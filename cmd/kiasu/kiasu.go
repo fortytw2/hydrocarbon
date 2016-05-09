@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/fortytw2/kiasu/vendor/gopkg.in/inconshreveable/log15.v2"
+	"gopkg.in/inconshreveable/log15.v2"
 	"github.com/julienschmidt/httprouter"
 )
 
