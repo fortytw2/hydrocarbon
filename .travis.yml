@@ -1,7 +1,6 @@
 language: go
 go:
- - 1.5.3
- - release
+ - 1.6.2
  - tip
 
 script:
