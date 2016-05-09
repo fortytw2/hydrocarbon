@@ -51,10 +51,10 @@ func (e *extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Article, 
 		}
 
 		if a != nil {
-			a.Markdown = strings.Replace(a.Markdown, "â", "", -1)
-			a.Markdown = strings.Replace(a.Markdown, "â¦", "...", -1)
+			a.Content = strings.Replace(a.Content, "â", "", -1)
+			a.Content = strings.Replace(a.Content, "â¦", "...", -1)
 
-			log15.Info(a.Markdown)
+			log15.Info(a.Content)
 			articles = append(articles, *a)
 		}
 	}
@@ -124,6 +124,6 @@ func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 
 	p := bluemonday.UGCPolicy()
 	return &kiasu.Article{
-		Markdown: html.UnescapeString(p.Sanitize(h)),
+		Content: html.UnescapeString(p.Sanitize(h)),
 	}, nil
 }
