@@ -18,6 +18,14 @@
 			"notests": true
 		},
 		{
+			"importpath": "github.com/julienschmidt/httprouter",
+			"repository": "https://github.com/julienschmidt/httprouter",
+			"vcs": "git",
+			"revision": "77366a47451a56bb3ba682481eed85b64fea14e8",
+			"branch": "master",
+			"notests": true
+		},
+		{
 			"importpath": "github.com/mattn/go-colorable",
 			"repository": "https://github.com/mattn/go-colorable",
 			"vcs": "git",
