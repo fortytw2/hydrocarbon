@@ -1,0 +1,54 @@
+{
+	"version": 0,
+	"dependencies": [
+		{
+			"importpath": "github.com/Puerkitobio/goquery",
+			"repository": "https://github.com/Puerkitobio/goquery",
+			"vcs": "git",
+			"revision": "2e29ea41f0d13f4a303c75553f4eeadddc7a4c56",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/andybalholm/cascadia",
+			"repository": "https://github.com/andybalholm/cascadia",
+			"vcs": "git",
+			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/mattn/go-colorable",
+			"repository": "https://github.com/mattn/go-colorable",
+			"vcs": "git",
+			"revision": "45ce6a6f60010487dd0dbab368b5fbbed1c14ef0",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "github.com/microcosm-cc/bluemonday",
+			"repository": "https://github.com/microcosm-cc/bluemonday",
+			"vcs": "git",
+			"revision": "4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20",
+			"branch": "master",
+			"notests": true
+		},
+		{
+			"importpath": "golang.org/x/net/html",
+			"repository": "https://go.googlesource.com/net",
+			"vcs": "git",
+			"revision": "35ec611a141ee705590b9eb64d673f9e6dfeb1ac",
+			"branch": "master",
+			"path": "/html",
+			"notests": true
+		},
+		{
+			"importpath": "gopkg.in/inconshreveable/log15.v2",
+			"repository": "https://gopkg.in/inconshreveable/log15.v2",
+			"vcs": "git",
+			"revision": "b105bd37f74e5d9dc7b6ad7806715c7a2b83fd3f",
+			"branch": "master",
+			"notests": true
+		}
+	]
+}
