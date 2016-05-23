@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"gopkg.in/inconshreveable/log15.v2"
+
 	"github.com/Puerkitobio/goquery"
 	"github.com/fortytw2/kiasu"
 	"github.com/microcosm-cc/bluemonday"
@@ -54,12 +55,12 @@ func (e *extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Article, 
 			a.Content = strings.Replace(a.Content, "â", "", -1)
 			a.Content = strings.Replace(a.Content, "â¦", "...", -1)
 
-			log15.Info(a.Content)
+			a.ScrapedAt = time.Now()
 			articles = append(articles, *a)
 		}
 	}
 
-	return nil, nil
+	return articles, nil
 }
 
 func (e *extractor) FindAll(f *kiasu.Feed) ([]kiasu.Article, error) {
@@ -104,6 +105,7 @@ func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 		return nil, nil
 	}
 
+	log15.Info("checking URL", "url", url)
 	postID := split[1]
 	rsp, err := http.Get(url)
 	if err != nil {

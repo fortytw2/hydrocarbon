@@ -21,6 +21,7 @@ type Feed struct {
 	HexColor string `json:"hex_color"`
 
 	Extractor string `json:"extractor"`
+	UnreadCount int `json:"unread_count"`
 }
 
 // Validate performs two functions, canonicalizing the baseURL for deduplication

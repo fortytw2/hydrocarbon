@@ -10,3 +10,4 @@ type Extractor interface {
 	Update(*Article) error
 	FindSince(*Feed, time.Time) ([]Article, error)
 }
+
