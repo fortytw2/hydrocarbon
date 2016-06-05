@@ -1,0 +1,79 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "PoHlYXsXrLQIizUOmp13QIayuzw=",
+			"path": "github.com/Puerkitobio/goquery",
+			"revision": "aeecb06b1e04a72e7d3312468c5b92f6bb2f3459",
+			"revisionTime": "2016-05-26T12:12:20Z"
+		},
+		{
+			"checksumSHA1": "YKJEHQmesxr6ExwGE4WZrpQsq4s=",
+			"path": "github.com/andybalholm/cascadia",
+			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
+			"revisionTime": "2015-07-30T17:44:59Z"
+		},
+		{
+			"checksumSHA1": "mZK+4q1Xr8z0AwkCAgO+7Rb8xk8=",
+			"path": "github.com/julienschmidt/httprouter",
+			"revision": "77366a47451a56bb3ba682481eed85b64fea14e8",
+			"revisionTime": "2016-02-19T15:40:26Z"
+		},
+		{
+			"checksumSHA1": "6wAWOVRtaH7hX48hmw9o7noyy5Q=",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59",
+			"revisionTime": "2016-06-02T15:08:27Z"
+		},
+		{
+			"checksumSHA1": "NkbetqlpWBi3gP08JDneC+axTKw=",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "56b76bdf51f7708750eac80fa38b952bb9f32639",
+			"revisionTime": "2015-12-11T00:06:21Z"
+		},
+		{
+			"checksumSHA1": "LveYDnKndgX1jERpELLVTrb5UlU=",
+			"path": "github.com/microcosm-cc/bluemonday",
+			"revision": "4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20",
+			"revisionTime": "2015-11-02T18:20:00Z"
+		},
+		{
+			"checksumSHA1": "vqc3a+oTUGX8PmD0TS+qQ7gmN8I=",
+			"path": "golang.org/x/net/html",
+			"revision": "c4c3ea71919de159c9e246d7be66deb7f0a39a58",
+			"revisionTime": "2016-05-27T23:48:58Z"
+		},
+		{
+			"checksumSHA1": "00eQaGynDYrv3tL+C7l9xH0IDZg=",
+			"path": "golang.org/x/net/html/atom",
+			"revision": "c4c3ea71919de159c9e246d7be66deb7f0a39a58",
+			"revisionTime": "2016-05-27T23:48:58Z"
+		},
+		{
+			"checksumSHA1": "QcDlr1sWBDt6Dn/v7W/MRgccAi4=",
+			"path": "golang.org/x/sys/unix",
+			"revision": "076b546753157f758b316e59bcb51e6807c04057",
+			"revisionTime": "2016-06-01T13:19:39Z"
+		},
+		{
+			"checksumSHA1": "lxnYI7ISNsR6jZLOGRURNlUiSNs=",
+			"path": "gopkg.in/inconshreveable/log15.v2",
+			"revision": "b105bd37f74e5d9dc7b6ad7806715c7a2b83fd3f",
+			"revisionTime": "2015-09-21T21:38:54Z"
+		},
+		{
+			"checksumSHA1": "piw2kSgPAMwvuUVfiTO8Ih2a6QY=",
+			"path": "gopkg.in/inconshreveable/log15.v2/stack",
+			"revision": "b105bd37f74e5d9dc7b6ad7806715c7a2b83fd3f",
+			"revisionTime": "2015-09-21T21:38:54Z"
+		},
+		{
+			"checksumSHA1": "/hR7Dh3kAiDFl4NGSogz0ctxBkE=",
+			"path": "gopkg.in/inconshreveable/log15.v2/term",
+			"revision": "b105bd37f74e5d9dc7b6ad7806715c7a2b83fd3f",
+			"revisionTime": "2015-09-21T21:38:54Z"
+		}
+	],
+	"rootPath": "github.com/fortytw2/kiasu"
+}
