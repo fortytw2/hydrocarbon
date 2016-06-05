@@ -75,5 +75,9 @@
 			"revisionTime": "2015-09-21T21:38:54Z"
 		}
 	],
-	"rootPath": "github.com/fortytw2/kiasu"
+	"rootPath": "github.com/fortytw2/kiasu",
+	"heroku": {
+        "install" : [ "./..." ],
+        "goVersion": "go1.6"
+    }
 }
