@@ -19,6 +19,7 @@ func ListFeeds(ds store.Store, l log15.Logger) httprouter.Handle {
 	<html>
 		<head>
 			<title>Kiasu</title>
+			<meta name="viewport" content="width=device-width, initial-scale=1">
 			<style>
 
 p {
@@ -29,9 +30,9 @@ p {
 		</head>
 
 		<body>
-			{{range .}} 
+			{{range .}}
 			<h3>{{.Title}}</h3>
-			<p> {{.Content}}</p> 
+			<p> {{.Content}}</p>
 
 			{{end}}
 		</body>
