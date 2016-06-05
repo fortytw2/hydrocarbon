@@ -18,7 +18,7 @@ func ListFeeds(ds store.Store, l log15.Logger) httprouter.Handle {
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		articles, err := e.FindSince(&kiasu.Feed{
 			BaseURL: r.URL.Query().Get("url"),
-		}, time.Now().AddDate(-2, -12, 0))
+		}, time.Time{})
 		if err != nil {
 			panic(err)
 		}
