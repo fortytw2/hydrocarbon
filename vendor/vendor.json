@@ -77,7 +77,7 @@
 	],
 	"rootPath": "github.com/fortytw2/kiasu",
 	"heroku": {
-        "install" : [ "./..." ],
+        "install" : [ "./cmd/..." ],
         "goVersion": "go1.6"
     }
 }
