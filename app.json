@@ -1,0 +1,14 @@
+{
+  "name": "kiasu",
+  "description": "never miss out",
+  "keywords": [
+    "rss",
+    "go",
+    "news",
+    "push"
+  ],
+  "image": "heroku/go:1.6",
+  "mount_dir": "src/github.com/fortytw2/kiasu",
+  "website": "http://github.com/fortytw2/kiasu",
+  "repository": "http://github.com/fortytw2/kiasu"
+}
