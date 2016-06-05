@@ -1,16 +1,15 @@
 package spacebattles
 
 import (
-	"html"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
-	"gopkg.in/inconshreveable/log15.v2"
-
 	"github.com/Puerkitobio/goquery"
 	"github.com/fortytw2/kiasu"
-	"github.com/microcosm-cc/bluemonday"
+	"github.com/jaytaylor/html2text"
+	"gopkg.in/inconshreveable/log15.v2"
 )
 
 type extractor struct{}
@@ -52,9 +51,6 @@ func (e *extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Article, 
 		}
 
 		if a != nil {
-			a.Content = strings.Replace(a.Content, "â", "", -1)
-			a.Content = strings.Replace(a.Content, "â¦", "...", -1)
-
 			a.ScrapedAt = time.Now()
 			articles = append(articles, *a)
 		}
@@ -72,7 +68,9 @@ func (e *extractor) getThreadmarkURLs(doc *goquery.Document, since time.Time) []
 	doc.Find(".threadmarkItem").EachWithBreak(func(i int, sel *goquery.Selection) bool {
 		log15.Info("checking")
 		ts := strings.TrimSpace(sel.Find(".DateTime").Text())
-		t, err := time.Parse("Jan 2, 2006", ts)
+		tss := strings.Split(ts, " at ")
+
+		t, err := time.Parse("Jan 2, 2006", tss[0])
 		if err != nil {
 			log15.Warn("could not parse time", "time", ts)
 			return true
@@ -124,8 +122,28 @@ func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 		return nil, err
 	}
 
-	p := bluemonday.UGCPolicy()
+	postTime, err := time.Parse("Jan 2, 2006 at 3:04 PM", sel.Find(".DateTime").AttrOr("title", "error"))
+	if err != nil {
+		return nil, err
+	}
+
+	title := strings.Replace(sel.Find(".threadmarker > .label").Text(), "Threadmark:", "", -1)
+	title = strings.TrimSpace(title)
+
+	auth, ok := sel.First().Attr("data-author")
+	if !ok {
+		return nil, errors.New("no authro found")
+	}
+
+	text, err := html2text.FromString(h)
+	if err != nil {
+		return nil, err
+	}
+
 	return &kiasu.Article{
-		Content: html.UnescapeString(p.Sanitize(h)),
+		CreatedAt: postTime,
+		Title:     title,
+		Author:    auth,
+		Content:   text,
 	}, nil
 }

@@ -1,5 +1,11 @@
 {
 	"comment": "",
+	"heroku": {
+		"goVersion": "go1.6",
+		"install": [
+			"./cmd/..."
+		]
+	},
 	"ignore": "test",
 	"package": [
 		{
@@ -13,6 +19,12 @@
 			"path": "github.com/andybalholm/cascadia",
 			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
 			"revisionTime": "2015-07-30T17:44:59Z"
+		},
+		{
+			"checksumSHA1": "e3FU8NY7df0sFeFGKhb9fBPSRXE=",
+			"path": "github.com/jaytaylor/html2text",
+			"revision": "52d9b785554a1918cb09909b89a1509a98b853fd",
+			"revisionTime": "2016-05-28T17:22:51Z"
 		},
 		{
 			"checksumSHA1": "mZK+4q1Xr8z0AwkCAgO+7Rb8xk8=",
@@ -31,12 +43,6 @@
 			"path": "github.com/mattn/go-isatty",
 			"revision": "56b76bdf51f7708750eac80fa38b952bb9f32639",
 			"revisionTime": "2015-12-11T00:06:21Z"
-		},
-		{
-			"checksumSHA1": "LveYDnKndgX1jERpELLVTrb5UlU=",
-			"path": "github.com/microcosm-cc/bluemonday",
-			"revision": "4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20",
-			"revisionTime": "2015-11-02T18:20:00Z"
 		},
 		{
 			"checksumSHA1": "vqc3a+oTUGX8PmD0TS+qQ7gmN8I=",
@@ -75,9 +81,5 @@
 			"revisionTime": "2015-09-21T21:38:54Z"
 		}
 	],
-	"rootPath": "github.com/fortytw2/kiasu",
-	"heroku": {
-        "install" : [ "./cmd/..." ],
-        "goVersion": "go1.6"
-    }
+	"rootPath": "github.com/fortytw2/kiasu"
 }
