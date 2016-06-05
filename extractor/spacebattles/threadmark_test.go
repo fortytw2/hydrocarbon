@@ -12,7 +12,7 @@ func TestExtractor(t *testing.T) {
 
 	_, err := e.FindSince(&kiasu.Feed{
 		BaseURL: "https://forums.spacebattles.com/threads/a-skittering-heart-worm-kingdom-hearts.371816/threadmarks",
-	}, time.Now().AddDate(0, -12, 0))
+	}, time.Time{})
 
 	if err != nil {
 		t.Fatal(err)
