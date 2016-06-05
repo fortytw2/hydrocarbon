@@ -122,9 +122,13 @@ func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 		return nil, err
 	}
 
-	postTime, err := time.Parse("Jan 2, 2006 at 3:04 PM", sel.Find(".DateTime").AttrOr("title", "error"))
-	if err != nil {
-		return nil, err
+	var postTime time.Time
+	t, ok := sel.Find(".DateTime").Attr("title")
+	if ok {
+		postTime, err = time.Parse("Jan 2, 2006 at 3:04 PM", t)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	title := strings.Replace(sel.Find(".threadmarker > .label").Text(), "Threadmark:", "", -1)
