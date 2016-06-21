@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/extractor/spacebattles"
+	"github.com/fortytw2/kiasu/extractor/xenforo"
 	"github.com/fortytw2/kiasu/store"
 	"github.com/julienschmidt/httprouter"
 	"gopkg.in/inconshreveable/log15.v2"
 )
 
 func ListFeeds(ds store.Store, l log15.Logger) httprouter.Handle {
-	e := spacebattles.NewExtractor()
+	e := xenforo.NewExtractor()
 
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		articles, err := e.FindSince(&kiasu.Feed{

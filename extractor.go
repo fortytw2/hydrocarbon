@@ -6,7 +6,6 @@ import "time"
 type Extractor interface {
 	// Validate determines if the extractor can parse the given feed
 	Validate(*Feed) error
-
 	Update(*Article) error
 	FindSince(*Feed, time.Time) ([]Article, error)
 }

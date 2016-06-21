@@ -1,4 +1,4 @@
-package spacebattles
+package xenforo
 
 import (
 	"errors"
@@ -97,14 +97,16 @@ func (e *extractor) getThreadmarkURLs(doc *goquery.Document, since time.Time) []
 
 func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 	split := strings.Split(url, "#post-")
+	
+	var postID string
 	if len(split) != 2 {
 		log15.Warn(url)
-		// not a real article
-		return nil, nil
+		postID = "first"
+	} else {
+		postID = split[1]
 	}
 
 	log15.Info("checking URL", "url", url)
-	postID := split[1]
 	rsp, err := http.Get(url)
 	if err != nil {
 		return nil, err
@@ -116,7 +118,13 @@ func (e *extractor) getThreadmarkArticle(url string) (*kiasu.Article, error) {
 		return nil, err
 	}
 
-	sel := doc.Find("#post-" + postID)
+	var sel *goquery.Selection
+	if postID == "first" {
+		sel = doc.Find(".hasThreadmark").First()
+	} else {
+		sel = doc.Find("#post-" + postID)
+	}
+	
 	h, err := sel.Find(".messageContent").Html()
 	if err != nil {
 		return nil, err
