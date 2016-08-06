@@ -14,7 +14,7 @@ import (
 func main() {
 	l := log.NewContext(log.NewLogfmtLogger(os.Stdout)).With("ts", log.DefaultTimestampUTC)
 
-	l.Log("msg", "launching kiasu", "port", ":8080")
+	l.Log("msg", "launching kiasu", "port", os.Getenv("PORT"))
 
 	r := xmux.New()
 
@@ -30,7 +30,7 @@ func main() {
 	// posts.POST("/read", api.ReadPost(l, db))
 	// posts.GET("/:id", api.GetSinglePost(l, db))
 
-	err := http.ListenAndServe(":8080", xhandler.New(context.Background(), r))
+	err := http.ListenAndServe(os.Getenv("PORT"), xhandler.New(context.Background(), r))
 	if err != nil {
 		l.Log("msg", "could not start kiasu", "error", err)
 	}
