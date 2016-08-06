@@ -39,5 +39,8 @@
 			"revisionTime": "2016-08-05T06:12:51Z"
 		}
 	],
-	"rootPath": "github.com/fortytw2/kiasu"
+	"rootPath": "github.com/fortytw2/kiasu",
+	"heroku": {
+			"install" : [ "./cmd/..." ]
+	}
 }
