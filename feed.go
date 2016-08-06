@@ -1,42 +1,19 @@
 package kiasu
 
-import (
-	"errors"
-	"net/url"
-)
+import "time"
 
-// Errors defined for feed validation
-var (
-	ErrNoBaseURL = errors.New("no base url")
-)
-
-// A Feed is a single feed of articles - be it a spacebattles thread, a news
-// site, or a FF story
+// A Feed is a single encapsulating unit around a source of news / posts / whatever
 type Feed struct {
-	ID int `json:"-"`
+	ID       int  `json:"id"`
+	PluginID *int `json:"plugin_id,omitempty"`
 
-	Name     string `json:"name"`
-	BaseURL  string `json:"base_url"`
-	IconURL  string `json:"icon_url"`
+	CreatedAt   time.Time  `json:"created_at"`
+	RefreshedAt *time.Time `json:"refreshed_at"`
+
+	URL         string `json:"url"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+
 	HexColor string `json:"hex_color"`
-
-	Extractor string `json:"extractor"`
-	UnreadCount int `json:"unread_count"`
-}
-
-// Validate performs two functions, canonicalizing the baseURL for deduplication
-// of feeds, and ensuring the feed seems valid
-func (f *Feed) Validate() error {
-	if f.BaseURL == "" {
-		return ErrNoBaseURL
-	}
-
-	u, err := url.Parse(f.BaseURL)
-	if err != nil {
-		return err
-	}
-
-	f.BaseURL = u.String()
-
-	return nil
+	IconURL  string `json:"icon_url"`
 }

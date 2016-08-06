@@ -5,30 +5,33 @@ import (
 	"os"
 
 	"github.com/fortytw2/kiasu/api"
-	"github.com/fortytw2/kiasu/web"
-	"github.com/julienschmidt/httprouter"
-	"gopkg.in/inconshreveable/log15.v2"
+	"github.com/go-kit/kit/log"
+	"github.com/rs/xhandler"
+	"github.com/rs/xmux"
+	"golang.org/x/net/context"
 )
 
 func main() {
-	l := log15.New()
-	l.Info("starting kiasu")
+	l := log.NewContext(log.NewLogfmtLogger(os.Stdout)).With("ts", log.DefaultTimestampUTC)
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		l.Crit("no port found")
-		os.Exit(1)
-	}
+	l.Log("msg", "launching kiasu", "port", ":8080")
 
-	r := httprouter.New()
+	r := xmux.New()
 
-	r.GET("/feed", web.ListFeeds(nil, nil))
+	v1 := r.NewGroup("/api/v1")
+	// all routes for users
+	api.AddUserRoutes(v1, nil, nil, nil)
 
-	// r.GET("/v1/extractors", api.Extractors)
-	// r.GET("/v1/feeds", api.Feeds)
-	r.GET("/api/v1/feed/", api.ListFeeds(nil, nil))
-	err := http.ListenAndServe(":"+port, r)
+	// feeds := api.NewGroup("/feed")
+	// feeds.GET("/", api.GetUserFeeds(l, db))
+	// feeds.GET("/:id", api.GetSingleFeed(l, db))
+	//
+	// posts := api.NewGroup("/post")
+	// posts.POST("/read", api.ReadPost(l, db))
+	// posts.GET("/:id", api.GetSinglePost(l, db))
+
+	err := http.ListenAndServe(":8080", xhandler.New(context.Background(), r))
 	if err != nil {
-		l.Crit("could not start kiasu", "error", err.Error())
+		l.Log("msg", "could not start kiasu", "error", err)
 	}
 }
