@@ -30,7 +30,7 @@ func main() {
 	// posts.POST("/read", api.ReadPost(l, db))
 	// posts.GET("/:id", api.GetSinglePost(l, db))
 
-	err := http.ListenAndServe(os.Getenv("PORT"), xhandler.New(context.Background(), r))
+	err := http.ListenAndServe(":"+os.Getenv("PORT"), xhandler.New(context.Background(), r))
 	if err != nil {
 		l.Log("msg", "could not start kiasu", "error", err)
 	}
