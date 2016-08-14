@@ -1,10 +1,5 @@
 {
 	"comment": "",
-	"heroku": {
-		"install": [
-			"./cmd/..."
-		]
-	},
 	"ignore": "test",
 	"package": [
 		{
@@ -12,6 +7,12 @@
 			"path": "github.com/Puerkitobio/goquery",
 			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
 			"revisionTime": "2016-07-28T01:43:13Z"
+		},
+		{
+			"checksumSHA1": "YKJEHQmesxr6ExwGE4WZrpQsq4s=",
+			"path": "github.com/andybalholm/cascadia",
+			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
+			"revisionTime": "2015-07-30T17:44:59Z"
 		},
 		{
 			"checksumSHA1": "9S8nEFGVvkV+hvLXjpnYbGhic+4=",
@@ -38,20 +39,32 @@
 			"revisionTime": "2016-05-28T17:22:51Z"
 		},
 		{
-			"checksumSHA1": "hCRfPlNpqv8tvVivLzmXsoUOf1c=",
-			"path": "github.com/rs/xhandler",
-			"revision": "ed27b6fd65218132ee50cd95f38474a3d8a2cd12",
-			"revisionTime": "2016-06-18T19:32:21Z"
+			"checksumSHA1": "JdmwgBWtKbxAiok1H+qibJICRWU=",
+			"path": "github.com/pressly/chi",
+			"revision": "2a15702aa96676aacb63d22b3f16df39336c3be5",
+			"revisionTime": "2016-08-11T16:05:33Z"
 		},
 		{
-			"checksumSHA1": "qIc7DhN+o2QufzOksNQOgcRBn9I=",
-			"path": "github.com/rs/xmux",
-			"revision": "447ce20d8516cc0d2564fc3de70b5d078e0b816e",
-			"revisionTime": "2016-05-27T16:11:30Z"
+			"checksumSHA1": "5BIMTxBMoXLN/x6TtnXsc/iUcpM=",
+			"path": "github.com/pressly/chi/middleware",
+			"revision": "2a15702aa96676aacb63d22b3f16df39336c3be5",
+			"revisionTime": "2016-08-11T16:05:33Z"
 		},
 		{
 			"checksumSHA1": "9jjO5GjLa0XF/nfWihF02RoH4qc=",
 			"path": "golang.org/x/net/context",
+			"revision": "075e191f18186a8ff2becaf64478e30f4545cdad",
+			"revisionTime": "2016-08-05T06:12:51Z"
+		},
+		{
+			"checksumSHA1": "vqc3a+oTUGX8PmD0TS+qQ7gmN8I=",
+			"path": "golang.org/x/net/html",
+			"revision": "075e191f18186a8ff2becaf64478e30f4545cdad",
+			"revisionTime": "2016-08-05T06:12:51Z"
+		},
+		{
+			"checksumSHA1": "00eQaGynDYrv3tL+C7l9xH0IDZg=",
+			"path": "golang.org/x/net/html/atom",
 			"revision": "075e191f18186a8ff2becaf64478e30f4545cdad",
 			"revisionTime": "2016-08-05T06:12:51Z"
 		}

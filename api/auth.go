@@ -5,14 +5,13 @@ import (
 	"strings"
 
 	"github.com/fortytw2/kiasu"
-	"github.com/rs/xhandler"
 	"golang.org/x/net/context"
 )
 
 // Authenticate wraps any given handler in basic authentication
 // using Bearer tokens
-func Authenticate(us kiasu.UserStore, x xhandler.HandlerFuncC) xhandler.HandlerFuncC {
-	return func(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func Authenticate(us kiasu.UserStore, x http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		authHeader := w.Header().Get("Authorization")
 		trimmed := strings.TrimLeft(authHeader, "Bearer ")
 		if trimmed == "" {
@@ -20,12 +19,15 @@ func Authenticate(us kiasu.UserStore, x xhandler.HandlerFuncC) xhandler.HandlerF
 			return
 		}
 
-		user, err := us.GetUser(ctx, trimmed)
+		user, err := us.GetUser(r.Context(), trimmed)
 		if err != nil {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		newCtx := context.WithValue(ctx, "user", user)
-		x(context.WithValue(newCtx, "access_token", trimmed), w, r)
+		// add the user + access_token to context
+		newCtx := context.WithValue(r.Context(), "user", user)
+		r.WithContext(context.WithValue(newCtx, "access_token", trimmed))
+
+		x(w, r)
 	}
 }
