@@ -2,6 +2,7 @@ package kiasu
 
 import "time"
 
+// A User is a registered (or not) user
 type User struct {
 	ID                int    `json:"id"`
 	Email             string `json:"email"`

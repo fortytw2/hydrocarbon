@@ -2,6 +2,7 @@ package kiasu
 
 import "time"
 
+// A Session is a single user session
 type Session struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"user_id"`

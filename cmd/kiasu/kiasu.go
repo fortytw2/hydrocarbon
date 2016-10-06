@@ -10,7 +10,7 @@ import (
 
 func main() {
 	l := log.NewContext(log.NewLogfmtLogger(os.Stdout)).With("ts", log.DefaultTimestampUTC)
-	l.Log("msg", "launching kiasu", "port", os.Getenv("PORT"))
+	l.Log("msg", "launching kiasu", "port", getPort())
 
 	// feeds := api.NewGroup("/feed")
 	// feeds.GET("/", api.GetUserFeeds(l, db))
@@ -20,8 +20,16 @@ func main() {
 	// posts.POST("/read", api.ReadPost(l, db))
 	// posts.GET("/:id", api.GetSinglePost(l, db))
 
-	err := http.ListenAndServe(":"+os.Getenv("PORT"), api.Routes(l, nil, nil))
+	err := http.ListenAndServe(getPort(), api.Routes(l, nil, nil))
 	if err != nil {
 		l.Log("msg", "could not start kiasu", "error", err)
 	}
+}
+
+func getPort() string {
+	p := os.Getenv("PORT")
+	if p != "" {
+		return ":" + p
+	}
+	return ":8080"
 }
