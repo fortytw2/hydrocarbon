@@ -1,7 +1,6 @@
 language: go
 go:
- - 1.7rc6
- - tip 
+ - 1.7.1
 
 script:
  - ./test.sh
