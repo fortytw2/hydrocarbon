@@ -12,6 +12,8 @@ import (
 )
 
 type store struct {
+	signKey []byte
+
 	users     []*kiasu.User
 	userIDMax int
 	userMu    sync.RWMutex
@@ -22,8 +24,9 @@ type store struct {
 }
 
 // NewStore returns a purely memory backed store :)
-func NewStore() kiasu.Store {
+func NewStore(signingKey []byte) kiasu.Store {
 	return &store{
+		signKey:  signingKey,
 		users:    make([]*kiasu.User, 0),
 		sessions: make([]*kiasu.Session, 0),
 	}
@@ -55,11 +58,11 @@ func (s *store) CreateUser(_ context.Context, m kiasu.Mailer, email string, pw s
 	s.userMu.Lock()
 	defer s.userMu.Unlock()
 	s.userIDMax++
-	h, err := abdi.Hash(pw, []byte{1, 2, 3, 4, 5, 2})
+	h, err := abdi.Hash(pw, s.signKey)
 	if err != nil {
 		return "", err
 	}
-	t := "potatoes"
+	t := randToken(24)
 	s.users = append(s.users, &kiasu.User{
 		ID:                s.userIDMax,
 		Email:             email,
@@ -69,16 +72,6 @@ func (s *store) CreateUser(_ context.Context, m kiasu.Mailer, email string, pw s
 		NotifyWindow:      30 * time.Second,
 	})
 
-	s.sessMu.Lock()
-	s.sessIDMax++
-	s.sessions = append(s.sessions, &kiasu.Session{
-		ID:        s.sessIDMax,
-		UserID:    s.userIDMax,
-		CreatedAt: time.Now(),
-		ExpiresAt: time.Now().Add(time.Hour),
-		Token:     "111222233334444",
-	})
-	s.sessMu.Unlock()
 	return t, nil
 }
 
@@ -94,15 +87,16 @@ func (s *store) ActivateUser(_ context.Context, confirmToken string) (string, er
 
 			s.sessMu.Lock()
 			s.sessIDMax++
+			t := randToken(24)
 			s.sessions = append(s.sessions, &kiasu.Session{
 				ID:        s.sessIDMax,
-				UserID:    s.userIDMax,
+				UserID:    u.ID,
 				CreatedAt: time.Now(),
 				ExpiresAt: time.Now().Add(time.Hour),
-				Token:     "111222233334444",
+				Token:     t,
 			})
 			s.sessMu.Unlock()
-			return "111222233334444", nil
+			return t, nil
 		}
 	}
 	s.userMu.RUnlock()
@@ -115,7 +109,21 @@ func (s *store) NewSession(_ context.Context, email string, pw string) (string, 
 }
 
 func (s *store) GetActiveSessions(_ context.Context, accessToken string, p *kiasu.Pagination) ([]kiasu.Session, error) {
-	panic("not implemented")
+	u, err := s.GetUser(context.Background(), accessToken)
+	if err != nil {
+		return nil, err
+	}
+
+	var out []kiasu.Session
+	s.sessMu.RLock()
+	for _, s := range s.sessions {
+		if s.UserID == u.ID {
+			out = append(out, *s)
+		}
+	}
+	s.sessMu.RUnlock()
+
+	return out, nil
 }
 
 func (s *store) GetPastSessions(_ context.Context, accessToken string, p *kiasu.Pagination) ([]kiasu.Session, error) {

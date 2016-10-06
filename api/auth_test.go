@@ -14,7 +14,7 @@ import (
 func TestAuthenticate(t *testing.T) {
 	t.Parallel()
 
-	u := mem.NewStore()
+	u := mem.NewStore([]byte{1, 2, 3, 4, 5, 3})
 	m := kiasu.FakeMailer()
 
 	token, err := u.CreateUser(context.Background(), m, "luke@jedicouncil.gov", "IamABest91030!")
