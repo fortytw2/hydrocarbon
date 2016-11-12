@@ -1,45 +1,56 @@
 package kiasu
 
-import "time"
+import (
+	"context"
+	"errors"
+	"fmt"
+	"net/http"
+	"time"
 
-// A Plugin is used to update and refresh feeds
-type Plugin interface {
-	CanCheckFeed(*Feed) error
-	CheckFeed(f *Feed, since time.Time) ([]Post, error)
-	Healthcheck() (*Healthcheck, error)
+	"github.com/fortytw2/kiasu/internal/cleanhttp"
+)
+
+// Plugin Errors
+var (
+	ErrPluginUninitialized = errors.New("plugin not initialized")
+)
+
+// An Instantiator is used to create new, stateful copies of a plugin
+type Instantiator func() (*Plugin, error)
+
+// A Plugin scrapes something and returns something
+type Plugin struct {
+	Name string
+
+	// find all configs, with a limit
+	Configs func(context.Context, Client, int) ([]Config, error)
+	// ensure a configuration is valid
+	Validate func(context.Context, Client, Config) error
+	// Run launches the given scrape and returns when it is finished
+	Run func(context.Context, Client, Config) ([]Post, error)
 }
 
-// A Healthcheck is a health check of a plugin (is it running)
-type Healthcheck struct {
-	CheckedAt time.Time `json:"checked_at"`
-	Available bool      `json:"available"`
+// A Config is a tuple of unique values attached to a scrape
+type Config struct {
+	InitialURL string
+	Since      time.Time
 }
 
-var _ Plugin = &MemoryPlugin{}
-
-// MemoryPlugin is an inproc plugin
-type MemoryPlugin struct {
-	Name        string
-	Description string
-
-	CanCheck func(*Feed) error
-	Check    func(f *Feed, since time.Time) ([]Post, error)
+// ErrCountryNotFound is returned when a request can't be made in that country
+type ErrCountryNotFound struct {
+	Country string
 }
 
-// CanCheckFeed writes out things
-func (mp *MemoryPlugin) CanCheckFeed(f *Feed) error {
-	return mp.CanCheck(f)
+func (e ErrCountryNotFound) Error() string {
+	return fmt.Sprintf("country %s not found in proxy configuration", e.Country)
 }
 
-// CheckFeed returns all posts since a given time
-func (mp *MemoryPlugin) CheckFeed(f *Feed, since time.Time) ([]Post, error) {
-	return mp.Check(f, since)
+// A Client is used to make all HTTP requests to the outside world
+type Client interface {
+	Do(*http.Request) (*http.Response, error)
 }
 
-// Healthcheck always returns true for inproc plugins (is the plugin up, not site)
-func (mp *MemoryPlugin) Healthcheck() (*Healthcheck, error) {
-	return &Healthcheck{
-		CheckedAt: time.Now(),
-		Available: true,
-	}, nil
+// DefaultClient is a simple client, nothing special
+func DefaultClient() Client {
+	return cleanhttp.DefaultPooledClient()
 }

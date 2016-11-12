@@ -14,6 +14,5 @@ type Post struct {
 	PostedAt time.Time `json:"posted_at"`
 	URL      string    `json:"url"`
 
-	ContentType string `json:"content_type"`
-	Content     string `json:"content"`
+	Content string `json:"content"`
 }

@@ -10,7 +10,6 @@ import (
 type Store interface {
 	UserStore
 	FeedStore
-	PluginStore
 	PaymentStore
 }
 
@@ -50,16 +49,4 @@ type FeedStore interface {
 	ReOrderFeed(ctx context.Context, accessToken string, feedID string, newOrder int) ([]Feed, error)
 
 	GetFeedPosts(ctx context.Context, accessToken string, feedID string, p *Pagination) ([]Post, error)
-}
-
-// PluginStore handles storage and retrieval of both inproc and rpc plugins
-type PluginStore interface {
-	GetPlugins(ctx context.Context, p *Pagination, active bool) ([]Plugin, error)
-	GetUserPlugins(ctx context.Context, accessToken string) ([]Plugin, error)
-	SearchPlugins(ctx context.Context, accessToken, query string, p *Pagination) ([]Plugin, error)
-
-	GetPluginStatus(ctx context.Context, accessToken, pluginID int) ([]Healthcheck, error)
-
-	RegisterInProcPlugin(ctx context.Context, pl Plugin, title, desc string) error
-	RegisterRPCPlugin(ctx context.Context, accessToken, url, title, desc string) error
 }

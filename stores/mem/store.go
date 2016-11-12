@@ -150,30 +150,6 @@ func (s *store) GetFeedPosts(_ context.Context, accessToken string, feedID strin
 	panic("not implemented")
 }
 
-func (s *store) GetPlugins(_ context.Context, p *kiasu.Pagination, active bool) ([]kiasu.Plugin, error) {
-	panic("not implemented")
-}
-
-func (s *store) GetUserPlugins(_ context.Context, accessToken string) ([]kiasu.Plugin, error) {
-	panic("not implemented")
-}
-
-func (s *store) SearchPlugins(_ context.Context, accessToken string, query string, p *kiasu.Pagination) ([]kiasu.Plugin, error) {
-	panic("not implemented")
-}
-
-func (s *store) GetPluginStatus(_ context.Context, accessToken int, pluginID int) ([]kiasu.Healthcheck, error) {
-	panic("not implemented")
-}
-
-func (s *store) RegisterInProcPlugin(_ context.Context, pl kiasu.Plugin, title string, desc string) error {
-	panic("not implemented")
-}
-
-func (s *store) RegisterRPCPlugin(_ context.Context, accessToken string, url string, title string, desc string) error {
-	panic("not implemented")
-}
-
 func (s *store) Charge(_ context.Context, accessToken string, chargeToken string) error {
 	panic("not implemented")
 }

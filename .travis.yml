@@ -1,12 +1,16 @@
 language: go
 go:
- - 1.7.1
+ - 1.7.3
+
+env:
+  global:
+    - GIT_LFS_URL=https://github.com/github/git-lfs/releases/download/v1.4.4/git-lfs-linux-amd64-1.4.4.tar.gz
+before_script:
+  - curl -L $GIT_LFS_URL | tar xvz --strip 1 git-lfs-1.4.4/git-lfs
+  - ./git-lfs pull
 
 script:
- - ./test.sh
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)
+ - go test -v ./...
 
 notifications:
   slack: pandadog:cP1IszmFigKwUVyJgNGK2cGV

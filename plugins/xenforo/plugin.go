@@ -1,6 +1,8 @@
 package xenforo
 
 import (
+	"context"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -10,24 +12,36 @@ import (
 	"github.com/jaytaylor/html2text"
 )
 
-type Extractor struct{}
+var firstPost = "first"
 
-// NewExtractor creates a new Extractor for SpaceBattles
-func NewExtractor() *Extractor {
-	return &Extractor{}
+// NewPlugin returns a fresh xenforo plugin
+func NewPlugin() (*kiasu.Plugin, error) {
+	return &kiasu.Plugin{
+		Name:     "xenforo",
+		Configs:  configs,
+		Validate: validate,
+		Run:      run,
+	}, nil
 }
 
-func (e *Extractor) Validate(f *kiasu.Feed) error {
-	// URLs MUST LOOK LIKE https://forums.spacebattles.com/threads/dominion-worm-s9-taylor.340669/threadmarks
+// list all configs up to the limit (scrapes for threads, basically)
+func configs(ctx context.Context, c kiasu.Client, limit int) ([]kiasu.Config, error) {
+	return nil, nil
+}
+
+// ensure a configuration is valid
+func validate(ctx context.Context, c kiasu.Client, cfg kiasu.Config) error {
 	return nil
 }
 
-func (e *Extractor) Update(a *kiasu.Post) error {
-	return nil
-}
+// Run launches the given scrape and returns when it is finished
+func run(_ context.Context, c kiasu.Client, cfg kiasu.Config) ([]kiasu.Post, error) {
+	req, err := http.NewRequest("GET", cfg.InitialURL, nil)
+	if err != nil {
+		return nil, err
+	}
 
-func (e *Extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Post, error) {
-	rsp, err := http.Get(f.URL)
+	rsp, err := c.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -36,12 +50,14 @@ func (e *Extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Post, err
 	if err != nil {
 		return nil, err
 	}
-
-	rsp.Body.Close()
+	err = rsp.Body.Close()
+	if err != nil {
+		return nil, err
+	}
 
 	var articles []kiasu.Post
-	for _, u := range e.getThreadmarkURLs(doc, since) {
-		a, err := e.getThreadmarkPost(u)
+	for _, u := range getThreadmarkURLs(doc, cfg.Since) {
+		a, err := getThreadmarkPost(c, u)
 		if err != nil {
 			return nil, err
 		}
@@ -54,11 +70,7 @@ func (e *Extractor) FindSince(f *kiasu.Feed, since time.Time) ([]kiasu.Post, err
 	return articles, nil
 }
 
-func (e *Extractor) FindAll(f *kiasu.Feed) ([]kiasu.Post, error) {
-	return e.FindSince(f, time.Time{})
-}
-
-func (e *Extractor) getThreadmarkURLs(doc *goquery.Document, since time.Time) []string {
+func getThreadmarkURLs(doc *goquery.Document, since time.Time) []string {
 	var chapterURLs []string
 	doc.Find(".threadmarkItem").EachWithBreak(func(i int, sel *goquery.Selection) bool {
 		ts := strings.TrimSpace(sel.Find(".DateTime").Text())
@@ -66,13 +78,11 @@ func (e *Extractor) getThreadmarkURLs(doc *goquery.Document, since time.Time) []
 
 		t, err := time.Parse("Jan 2, 2006", tss[0])
 		if err != nil {
-
 			return true
 		}
 
 		// respect time.Time
 		if t.Before(since) {
-
 			return false
 		}
 
@@ -89,20 +99,31 @@ func (e *Extractor) getThreadmarkURLs(doc *goquery.Document, since time.Time) []
 	return chapterURLs
 }
 
-func (e *Extractor) getThreadmarkPost(url string) (*kiasu.Post, error) {
+func getThreadmarkPost(c kiasu.Client, url string) (*kiasu.Post, error) {
 	split := strings.Split(url, "#post-")
 
 	var postID string
 	if len(split) != 2 {
-		postID = "first"
+		postID = firstPost
 	} else {
 		postID = split[1]
 	}
-	rsp, err := http.Get(url)
+
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
-	defer rsp.Body.Close()
+
+	rsp, err := c.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		err = rsp.Body.Close()
+		if err != nil {
+			fmt.Println("could not close rsp.Body", err)
+		}
+	}()
 
 	doc, err := goquery.NewDocumentFromReader(rsp.Body)
 	if err != nil {
@@ -110,7 +131,7 @@ func (e *Extractor) getThreadmarkPost(url string) (*kiasu.Post, error) {
 	}
 
 	var sel *goquery.Selection
-	if postID == "first" {
+	if postID == firstPost {
 		sel = doc.Find(".hasThreadmark").First()
 	} else {
 		sel = doc.Find("#post-" + postID)
@@ -139,8 +160,9 @@ func (e *Extractor) getThreadmarkPost(url string) (*kiasu.Post, error) {
 	}
 
 	return &kiasu.Post{
-		CreatedAt: postTime,
-		Title:     title,
-		Content:   text,
+		URL:      url,
+		PostedAt: postTime,
+		Title:    title,
+		Content:  text,
 	}, nil
 }
