@@ -1,52 +1,80 @@
 package kiasu
 
 import (
+	"errors"
 	"time"
 
-	"context"
+	"github.com/fortytw2/abdi"
 )
 
+// Errors
+var (
+	ErrUserExists = errors.New("user already exists")
+)
+
+//go:generate moq -out store_moq_test.go . PrimitiveStore
+
 // Store is responsible for persistent (or not) data storage and retrieval
-type Store interface {
+// and abstracting that into business-logic level functions
+type Store struct {
+	Users        UserStore
+	Sessions     SessionStore
+	Feeds        FeedStore
+	Posts        PostStore
+	ReadStatuses ReadStatusStore
+
+	EncryptionKey []byte
+}
+
+// PrimitiveStore encapsulates all primitive store types
+type PrimitiveStore interface {
 	UserStore
+	SessionStore
 	FeedStore
-	PaymentStore
+	PostStore
+	ReadStatusStore
 }
 
-// UserStore handles storage and retrieval of users and their sessions
-type UserStore interface {
-	// GetUser returns a users details
-	GetUser(ctx context.Context, accessToken string) (*User, error)
-	// CreateUser creates a new user, session and returns a confirmation_token
-	// given email + encrypted password
-	CreateUser(ctx context.Context, m Mailer, email string, pw string) (string, error)
-	ActivateUser(ctx context.Context, confirmToken string) (string, error)
-	// NewSession creates a new session
-	NewSession(ctx context.Context, email string, pw string) (string, error)
-
-	// Session management
-	GetActiveSessions(ctx context.Context, accessToken string, p *Pagination) ([]Session, error)
-	GetPastSessions(ctx context.Context, accessToken string, p *Pagination) ([]Session, error)
-	InvalidateToken(ctx context.Context, accessToken string) error
+// NewStore builds a data storage layer out of the persistence primitives
+// It automatically sets and maintains all annotations such as "CreatedAt",
+// "UpdatedAt", etc, but the underlying PrimitiveStore is equally allowed to
+func NewStore(ps PrimitiveStore, encryptionKey []byte) (*Store, error) {
+	return &Store{
+		Users:         ps,
+		Sessions:      ps,
+		Feeds:         ps,
+		Posts:         ps,
+		ReadStatuses:  ps,
+		EncryptionKey: encryptionKey,
+	}, nil
 }
 
-// PaymentStore handles payment information
-type PaymentStore interface {
-	Charge(ctx context.Context, accessToken, chargeToken string) error
-	// GetUsersByExpiry returns users sorted by and filtered by expiry date
-	GetUsersByExpiry(ctx context.Context, m Mailer, expireAfter time.Time, p *Pagination) ([]User, error)
-	// AddSubscription is used to add a subscription to a user with the given email
-	AddSubscription(ctx context.Context, email string, activeUntil time.Time) error
+// CreateUser creates a new user from an email and password
+func (s *Store) CreateUser(email, password string) (*User, error) {
+	if _, err := s.Users.GetUserByEmail(email); err != nil {
+		return nil, ErrUserExists
+	}
+
+	encPass, err := abdi.Hash(password, s.EncryptionKey)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now()
+	u, err := s.Users.SaveUser(&User{
+		Email:             email,
+		EncryptedPassword: *encPass,
+		Confirmed:         false,
+		TokenCreatedAt:    now,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
-// FeedStore handles storage and retrieval of feeds
-type FeedStore interface {
-	GetFeeds(ctx context.Context, p *Pagination) ([]Feed, error)
-	// GetUserFeeds returns a users feeds, ordered by their SortOrder
-	GetUserFeeds(ctx context.Context, accessToken string, p *Pagination) ([]Feed, error)
-	// ReOrderFeed allows the ordering of a feed to be changed, moving all
-	// feeds _down_ one from the change
-	ReOrderFeed(ctx context.Context, accessToken string, feedID string, newOrder int) ([]Feed, error)
-
-	GetFeedPosts(ctx context.Context, accessToken string, feedID string, p *Pagination) ([]Post, error)
+// GetUserByToken returns the user with the given access token
+func (s *Store) GetUserByToken(token string) (*User, error) {
+	return nil, nil
 }

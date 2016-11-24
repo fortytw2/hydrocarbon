@@ -1,7 +1,6 @@
 package xenforo
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -25,17 +24,17 @@ func NewPlugin() (*kiasu.Plugin, error) {
 }
 
 // list all configs up to the limit (scrapes for threads, basically)
-func configs(ctx context.Context, c kiasu.Client, limit int) ([]kiasu.Config, error) {
-	return nil, nil
+func configs(c kiasu.Client, p *kiasu.Pagination) ([]kiasu.Config, int, error) {
+	return nil, 0, nil
 }
 
 // ensure a configuration is valid
-func validate(ctx context.Context, c kiasu.Client, cfg kiasu.Config) error {
+func validate(c kiasu.Client, cfg kiasu.Config) error {
 	return nil
 }
 
 // Run launches the given scrape and returns when it is finished
-func run(_ context.Context, c kiasu.Client, cfg kiasu.Config) ([]kiasu.Post, error) {
+func run(c kiasu.Client, cfg kiasu.Config) ([]kiasu.Post, error) {
 	req, err := http.NewRequest("GET", cfg.InitialURL, nil)
 	if err != nil {
 		return nil, err

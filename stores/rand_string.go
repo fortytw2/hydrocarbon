@@ -1,4 +1,4 @@
-package mem
+package stores
 
 import (
 	"math/rand"

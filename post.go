@@ -2,10 +2,17 @@ package kiasu
 
 import "time"
 
+// PostStore provides primitives for storing and retrieving posts
+type PostStore interface {
+	GetPost(feedID, postID string) (*Post, error)
+	SavePost(*Post) (*Post, error)
+	GetPosts(feedID string, pg *Pagination) ([]Post, error)
+}
+
 // A Post is a single posting to a feed
 type Post struct {
-	ID     int `json:"id"`
-	FeedID int `json:"feed_id"`
+	ID     string `json:"id"`
+	FeedID string `json:"feed_id"`
 
 	CreatedAt   time.Time `json:"created_at"`
 	RefreshedAt time.Time `json:"refreshed_at"`

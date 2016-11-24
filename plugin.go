@@ -1,9 +1,7 @@
 package kiasu
 
 import (
-	"context"
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -22,27 +20,19 @@ type Instantiator func() (*Plugin, error)
 type Plugin struct {
 	Name string
 
-	// find all configs, with a limit
-	Configs func(context.Context, Client, int) ([]Config, error)
+	// find all configs, and paginate through them
+	// return configs found, max configs, error
+	Configs func(Client, *Pagination) ([]Config, int, error)
 	// ensure a configuration is valid
-	Validate func(context.Context, Client, Config) error
+	Validate func(Client, Config) error
 	// Run launches the given scrape and returns when it is finished
-	Run func(context.Context, Client, Config) ([]Post, error)
+	Run func(Client, Config) ([]Post, error)
 }
 
 // A Config is a tuple of unique values attached to a scrape
 type Config struct {
 	InitialURL string
 	Since      time.Time
-}
-
-// ErrCountryNotFound is returned when a request can't be made in that country
-type ErrCountryNotFound struct {
-	Country string
-}
-
-func (e ErrCountryNotFound) Error() string {
-	return fmt.Sprintf("country %s not found in proxy configuration", e.Country)
 }
 
 // A Client is used to make all HTTP requests to the outside world

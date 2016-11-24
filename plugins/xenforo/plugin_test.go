@@ -1,7 +1,6 @@
 package xenforo
 
 import (
-	"context"
 	"net/http"
 	"testing"
 	"time"
@@ -34,13 +33,13 @@ func TestExtractor(t *testing.T) {
 	p, err := NewPlugin()
 	assert.Nil(t, err)
 
-	// cfg, err := p.Configs(context.TODO(), tC, 1)
+	// cfg, err := p.Configs(tC, 1)
 	// assert.Nil(t, err)
 
-	// err = p.Validate(context.TODO(), tC, cfg[0])
+	// err = p.Validate(tC, cfg[0])
 	// assert.Nil(t, err)
 
-	posts, err := p.Run(context.TODO(), c, kiasu.Config{
+	posts, err := p.Run(c, kiasu.Config{
 		InitialURL: "https://forums.spacebattles.com/threads/skein-worm-altpower-au.437953/threadmarks",
 		Since:      time.Time{},
 	})
