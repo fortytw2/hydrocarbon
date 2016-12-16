@@ -6,7 +6,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/fortytw2/kiasu/internal/log"
+	"github.com/fortytw2/hydrocarbon/internal/log"
 	"github.com/go-stack/stack"
 )
 

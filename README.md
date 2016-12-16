@@ -1,4 +1,4 @@
-Kiasu [![Build Status](https://travis-ci.org/fortytw2/kiasu.svg?branch=master)](https://travis-ci.org/fortytw2/kiasu)
+Hydrocarbon [![Build Status](https://travis-ci.org/fortytw2/hydrocarbon.svg?branch=master)](https://travis-ci.org/fortytw2/hydrocarbon)
 ---------------------------------------------------------------------------------------------------------------------
 
 > news, notifications, and updates. never miss out.

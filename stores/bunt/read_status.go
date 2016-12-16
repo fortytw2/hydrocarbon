@@ -3,8 +3,8 @@ package bunt
 import (
 	"encoding/json"
 
-	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/internal/uuid"
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/internal/uuid"
 	"github.com/tidwall/buntdb"
 )
 
@@ -13,8 +13,8 @@ const (
 )
 
 // GetReadStatus returns read status by ID
-func (s *Store) GetReadStatus(id string) (*kiasu.ReadStatus, error) {
-	var rs kiasu.ReadStatus
+func (s *Store) GetReadStatus(id string) (*hydrocarbon.ReadStatus, error) {
+	var rs hydrocarbon.ReadStatus
 
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		js, err := tx.Get(readStatusPrefix + id)
@@ -32,7 +32,7 @@ func (s *Store) GetReadStatus(id string) (*kiasu.ReadStatus, error) {
 }
 
 // SaveReadStatus saves read status
-func (s *Store) SaveReadStatus(rs *kiasu.ReadStatus) (*kiasu.ReadStatus, error) {
+func (s *Store) SaveReadStatus(rs *hydrocarbon.ReadStatus) (*hydrocarbon.ReadStatus, error) {
 	id := uuid.NewV4()
 	rs.ID = id.String()
 
@@ -53,6 +53,6 @@ func (s *Store) SaveReadStatus(rs *kiasu.ReadStatus) (*kiasu.ReadStatus, error) 
 }
 
 // GetReadStatusByPostID returns read status for a given post
-func (s *Store) GetReadStatusByPostID(postID, userID string) (*kiasu.ReadStatus, error) {
+func (s *Store) GetReadStatusByPostID(postID, userID string) (*hydrocarbon.ReadStatus, error) {
 	return nil, nil
 }

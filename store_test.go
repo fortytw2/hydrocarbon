@@ -1,10 +1,10 @@
-package kiasu_test
+package hydrocarbon_test
 
 import (
 	"testing"
 
-	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/stores/bunt"
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/stores/bunt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -26,7 +26,7 @@ func TestCreateUser(t *testing.T) {
 	ps, err := bunt.NewMemStore()
 	assert.Nil(t, err)
 
-	s, err := kiasu.NewStore(ps, []byte{1, 2, 3, 4, 2})
+	s, err := hydrocarbon.NewStore(ps, []byte{1, 2, 3, 4, 2})
 	assert.Nil(t, err)
 
 	for _, u := range users {
@@ -37,7 +37,7 @@ func TestCreateUser(t *testing.T) {
 				continue
 			}
 			if u.Dupe {
-				assert.Equal(t, kiasu.ErrUserExists, err)
+				assert.Equal(t, hydrocarbon.ErrUserExists, err)
 				continue
 			}
 		}

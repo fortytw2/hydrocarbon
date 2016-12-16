@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/internal/uuid"
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/internal/uuid"
 	"github.com/tidwall/buntdb"
 )
 
@@ -14,8 +14,8 @@ const (
 )
 
 // GetPost returns a post by ID
-func (s *Store) GetPost(feedID, postID string) (*kiasu.Post, error) {
-	var p kiasu.Post
+func (s *Store) GetPost(feedID, postID string) (*hydrocarbon.Post, error) {
+	var p hydrocarbon.Post
 
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		js, err := tx.Get(postPrefix + feedID + ":" + postID)
@@ -33,7 +33,7 @@ func (s *Store) GetPost(feedID, postID string) (*kiasu.Post, error) {
 }
 
 // SavePost saves a post
-func (s *Store) SavePost(post *kiasu.Post) (*kiasu.Post, error) {
+func (s *Store) SavePost(post *hydrocarbon.Post) (*hydrocarbon.Post, error) {
 	err := s.db.CreateIndex("post_feed_id_"+post.FeedID, "post:"+post.FeedID+":*", buntdb.IndexJSON("feed_id"))
 	if err != nil {
 		if err == buntdb.ErrIndexExists {
@@ -64,13 +64,13 @@ func (s *Store) SavePost(post *kiasu.Post) (*kiasu.Post, error) {
 }
 
 // GetPosts paginates through all posts for a feed
-func (s *Store) GetPosts(feedID string, pg *kiasu.Pagination) ([]kiasu.Post, error) {
+func (s *Store) GetPosts(feedID string, pg *hydrocarbon.Pagination) ([]hydrocarbon.Post, error) {
 	var limit = pg.PageSize
 
-	var posts []kiasu.Post
+	var posts []hydrocarbon.Post
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		err := tx.Ascend("post_feed_id_"+feedID, func(key string, value string) bool {
-			var p kiasu.Post
+			var p hydrocarbon.Post
 			err := json.Unmarshal([]byte(value), &p)
 			if err != nil {
 				return true

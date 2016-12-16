@@ -3,7 +3,7 @@ package stores
 import (
 	"testing"
 
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -24,14 +24,14 @@ func fuzz(len int) []userTest {
 }
 
 // FuzzUserStore puts a lot of random users in the user store, then gets them back
-func FuzzUserStore(t *testing.T, us kiasu.UserStore, n int) {
+func FuzzUserStore(t *testing.T, us hydrocarbon.UserStore, n int) {
 	for _, u := range fuzz(n) {
-		newUser, err := us.SaveUser(&kiasu.User{
+		newUser, err := us.SaveUser(&hydrocarbon.User{
 			Email:             u.Email,
 			EncryptedPassword: u.Password,
 		})
 		if err != nil {
-			if err == kiasu.ErrUserExists {
+			if err == hydrocarbon.ErrUserExists {
 				continue
 			}
 			assert.Nil(t, err)
@@ -51,8 +51,8 @@ func FuzzUserStore(t *testing.T, us kiasu.UserStore, n int) {
 }
 
 // TestUserStore ensures a given userStore does what it should do
-func TestUserStore(t *testing.T, us kiasu.UserStore) {
-	u, err := us.SaveUser(&kiasu.User{
+func TestUserStore(t *testing.T, us hydrocarbon.UserStore) {
+	u, err := us.SaveUser(&hydrocarbon.User{
 		Email:             "ian@ian.com",
 		EncryptedPassword: "we12312312",
 	})

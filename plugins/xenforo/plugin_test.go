@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/watney"
 	"github.com/stretchr/testify/assert"
 )
@@ -39,7 +39,7 @@ func TestExtractor(t *testing.T) {
 	// err = p.Validate(tC, cfg[0])
 	// assert.Nil(t, err)
 
-	posts, err := p.Run(c, kiasu.Config{
+	posts, err := p.Run(c, hydrocarbon.Config{
 		InitialURL: "https://forums.spacebattles.com/threads/skein-worm-altpower-au.437953/threadmarks",
 		Since:      time.Time{},
 	})

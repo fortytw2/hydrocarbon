@@ -4,12 +4,12 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/fortytw2/kiasu/internal/log"
+	"github.com/fortytw2/hydrocarbon/internal/log"
 )
 
 func main() {
 	l := log.NewContext(log.NewLogfmtLogger(os.Stdout)).With("ts", log.DefaultTimestampUTC)
-	l.Log("msg", "launching kiasu", "port", getPort())
+	l.Log("msg", "launching hydrocarbon", "port", getPort())
 
 	// feeds := api.NewGroup("/feed")
 	// feeds.GET("/", api.GetUserFeeds(l, db))
@@ -21,7 +21,7 @@ func main() {
 
 	err := http.ListenAndServe(getPort(), nil)
 	if err != nil {
-		l.Log("msg", "could not start kiasu", "error", err)
+		l.Log("msg", "could not start hydrocarbon", "error", err)
 	}
 }
 

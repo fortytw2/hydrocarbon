@@ -1,9 +1,9 @@
-package kiasu
+package hydrocarbon
 
 import (
 	"time"
 
-	"github.com/fortytw2/kiasu/internal/token"
+	"github.com/fortytw2/hydrocarbon/internal/token"
 )
 
 // SessionStore stores sessions for users

@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/Puerkitobio/goquery"
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/jaytaylor/html2text"
 )
 
 var firstPost = "first"
 
 // NewPlugin returns a fresh xenforo plugin
-func NewPlugin() (*kiasu.Plugin, error) {
-	return &kiasu.Plugin{
+func NewPlugin() (*hydrocarbon.Plugin, error) {
+	return &hydrocarbon.Plugin{
 		Name:     "xenforo",
 		Configs:  configs,
 		Validate: validate,
@@ -24,17 +24,17 @@ func NewPlugin() (*kiasu.Plugin, error) {
 }
 
 // list all configs up to the limit (scrapes for threads, basically)
-func configs(c kiasu.Client, p *kiasu.Pagination) ([]kiasu.Config, int, error) {
+func configs(c hydrocarbon.Client, p *hydrocarbon.Pagination) ([]hydrocarbon.Config, int, error) {
 	return nil, 0, nil
 }
 
 // ensure a configuration is valid
-func validate(c kiasu.Client, cfg kiasu.Config) error {
+func validate(c hydrocarbon.Client, cfg hydrocarbon.Config) error {
 	return nil
 }
 
 // Run launches the given scrape and returns when it is finished
-func run(c kiasu.Client, cfg kiasu.Config) ([]kiasu.Post, error) {
+func run(c hydrocarbon.Client, cfg hydrocarbon.Config) ([]hydrocarbon.Post, error) {
 	req, err := http.NewRequest("GET", cfg.InitialURL, nil)
 	if err != nil {
 		return nil, err
@@ -54,7 +54,7 @@ func run(c kiasu.Client, cfg kiasu.Config) ([]kiasu.Post, error) {
 		return nil, err
 	}
 
-	var articles []kiasu.Post
+	var articles []hydrocarbon.Post
 	for _, u := range getThreadmarkURLs(doc, cfg.Since) {
 		a, err := getThreadmarkPost(c, u)
 		if err != nil {
@@ -98,7 +98,7 @@ func getThreadmarkURLs(doc *goquery.Document, since time.Time) []string {
 	return chapterURLs
 }
 
-func getThreadmarkPost(c kiasu.Client, url string) (*kiasu.Post, error) {
+func getThreadmarkPost(c hydrocarbon.Client, url string) (*hydrocarbon.Post, error) {
 	split := strings.Split(url, "#post-")
 
 	var postID string
@@ -158,7 +158,7 @@ func getThreadmarkPost(c kiasu.Client, url string) (*kiasu.Post, error) {
 		return nil, err
 	}
 
-	return &kiasu.Post{
+	return &hydrocarbon.Post{
 		URL:      url,
 		PostedAt: postTime,
 		Title:    title,

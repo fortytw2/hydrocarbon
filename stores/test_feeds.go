@@ -3,13 +3,13 @@ package stores
 import (
 	"testing"
 
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/stretchr/testify/assert"
 )
 
 // TestFeedStore ensures a given feedStore does what it should
-func TestFeedStore(t *testing.T, fs kiasu.FeedStore) {
-	f, err := fs.SaveFeed(&kiasu.Feed{
+func TestFeedStore(t *testing.T, fs hydrocarbon.FeedStore) {
+	f, err := fs.SaveFeed(&hydrocarbon.Feed{
 		Plugin:      "xenforo",
 		Name:        "totally-test-forum",
 		Description: "lol",
@@ -27,7 +27,7 @@ func TestFeedStore(t *testing.T, fs kiasu.FeedStore) {
 	assert.NotEmpty(t, outF.Name)
 	assert.Equal(t, outF.Name, f.Name)
 
-	outFs, err := fs.GetFeeds(&kiasu.Pagination{Page: 0, PageSize: 10})
+	outFs, err := fs.GetFeeds(&hydrocarbon.Pagination{Page: 0, PageSize: 10})
 	assert.Nil(t, err)
 	assert.Equal(t, len(outFs), 1)
 }

@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/internal/uuid"
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/internal/uuid"
 	"github.com/tidwall/buntdb"
 )
 
@@ -14,8 +14,8 @@ const (
 )
 
 // GetFeed returns a feed by its ID
-func (s *Store) GetFeed(id string) (*kiasu.Feed, error) {
-	var f kiasu.Feed
+func (s *Store) GetFeed(id string) (*hydrocarbon.Feed, error) {
+	var f hydrocarbon.Feed
 
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		js, err := tx.Get(feedPrefix + id)
@@ -33,7 +33,7 @@ func (s *Store) GetFeed(id string) (*kiasu.Feed, error) {
 }
 
 // SaveFeed saves a feed and returns it with it's new ID
-func (s *Store) SaveFeed(f *kiasu.Feed) (*kiasu.Feed, error) {
+func (s *Store) SaveFeed(f *hydrocarbon.Feed) (*hydrocarbon.Feed, error) {
 	id := uuid.NewV4()
 	f.ID = id.String()
 	f.CreatedAt = time.Now()
@@ -55,13 +55,13 @@ func (s *Store) SaveFeed(f *kiasu.Feed) (*kiasu.Feed, error) {
 }
 
 // GetFeeds returns and filters on feeds
-func (s *Store) GetFeeds(pg *kiasu.Pagination) ([]kiasu.Feed, error) {
+func (s *Store) GetFeeds(pg *hydrocarbon.Pagination) ([]hydrocarbon.Feed, error) {
 	var remaining = pg.PageSize
 
-	var feeds []kiasu.Feed
+	var feeds []hydrocarbon.Feed
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		err := tx.AscendKeys("feed:*", func(key string, value string) bool {
-			var f kiasu.Feed
+			var f hydrocarbon.Feed
 			err := json.Unmarshal([]byte(value), &f)
 			if err != nil {
 				return true

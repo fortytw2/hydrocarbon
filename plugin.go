@@ -1,11 +1,11 @@
-package kiasu
+package hydrocarbon
 
 import (
 	"errors"
 	"net/http"
 	"time"
 
-	"github.com/fortytw2/kiasu/internal/cleanhttp"
+	"github.com/fortytw2/hydrocarbon/internal/cleanhttp"
 )
 
 // Plugin Errors

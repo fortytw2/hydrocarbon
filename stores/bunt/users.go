@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fortytw2/kiasu"
-	"github.com/fortytw2/kiasu/internal/uuid"
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/internal/uuid"
 	"github.com/tidwall/buntdb"
 )
 
@@ -15,8 +15,8 @@ const (
 )
 
 // GetUser saves a user by ID
-func (s *Store) GetUser(id string) (*kiasu.User, error) {
-	var u kiasu.User
+func (s *Store) GetUser(id string) (*hydrocarbon.User, error) {
+	var u hydrocarbon.User
 
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		js, err := tx.Get(userPrefix + id)
@@ -34,8 +34,8 @@ func (s *Store) GetUser(id string) (*kiasu.User, error) {
 }
 
 // GetUserByEmail gets a user by their email
-func (s *Store) GetUserByEmail(email string) (*kiasu.User, error) {
-	var u kiasu.User
+func (s *Store) GetUserByEmail(email string) (*hydrocarbon.User, error) {
+	var u hydrocarbon.User
 	err := s.db.View(func(tx *buntdb.Tx) error {
 		// TODO: read buntdb docs
 		err := tx.AscendGreaterOrEqual("user_email", email, func(key string, value string) bool {
@@ -43,7 +43,7 @@ func (s *Store) GetUserByEmail(email string) (*kiasu.User, error) {
 				return true
 			}
 
-			var u2 kiasu.User
+			var u2 hydrocarbon.User
 			err := json.Unmarshal([]byte(value), &u2)
 			if err != nil {
 				return true
@@ -66,7 +66,7 @@ func (s *Store) GetUserByEmail(email string) (*kiasu.User, error) {
 }
 
 // SaveUser saves a user and returns it, with it's new ID
-func (s *Store) SaveUser(u *kiasu.User) (*kiasu.User, error) {
+func (s *Store) SaveUser(u *hydrocarbon.User) (*hydrocarbon.User, error) {
 	id := uuid.NewV4()
 	u.ID = id.String()
 	u.CreatedAt = time.Now()

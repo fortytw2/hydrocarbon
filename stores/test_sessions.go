@@ -3,10 +3,10 @@ package stores
 import (
 	"testing"
 
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 )
 
 // TestSessionStore ensures a given sessionStore does what it should do
-func TestSessionStore(t *testing.T, ss kiasu.SessionStore) {
+func TestSessionStore(t *testing.T, ss hydrocarbon.SessionStore) {
 
 }

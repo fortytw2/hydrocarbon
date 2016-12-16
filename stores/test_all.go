@@ -3,11 +3,11 @@ package stores
 import (
 	"testing"
 
-	"github.com/fortytw2/kiasu"
+	"github.com/fortytw2/hydrocarbon"
 )
 
 // TestAll is a helper function that tests all parts of a PrimitiveStore
-func TestAll(t *testing.T, s kiasu.PrimitiveStore) {
+func TestAll(t *testing.T, s hydrocarbon.PrimitiveStore) {
 	t.Run("user store", func(t *testing.T) {
 		TestUserStore(t, s)
 	})

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fortytw2/kiasu/stores"
+	"github.com/fortytw2/hydrocarbon/stores"
 	"github.com/stretchr/testify/assert"
 )
 
