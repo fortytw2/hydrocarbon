@@ -34,13 +34,16 @@ func (s *Store) GetPost(feedID, postID string) (*hydrocarbon.Post, error) {
 
 // SavePost saves a post
 func (s *Store) SavePost(post *hydrocarbon.Post) (*hydrocarbon.Post, error) {
-	err := s.db.CreateIndex("post_feed_id_"+post.FeedID, "post:"+post.FeedID+":*", buntdb.IndexJSON("feed_id"))
-	if err != nil {
+	err := s.db.Update(func(tx *buntdb.Tx) error {
+		err := tx.CreateIndex("post_feed_id_"+post.FeedID, "post:"+post.FeedID+":*", buntdb.IndexJSON("feed_id"))
 		if err == buntdb.ErrIndexExists {
 			// all is good
-		} else {
-			return nil, err
+			return nil
 		}
+		return err
+	})
+	if err != nil {
+		return nil, err
 	}
 
 	id := uuid.NewV4()

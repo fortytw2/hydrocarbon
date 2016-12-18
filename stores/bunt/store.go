@@ -52,14 +52,13 @@ func NewStore(filepath string) (hydrocarbon.PrimitiveStore, error) {
 }
 
 func setup(db *buntdb.DB) error {
-	err := db.CreateIndex("user_email", "user:*", buntdb.IndexJSON("email"))
-	if err != nil {
+	err := db.Update(func(tx *buntdb.Tx) error {
+		err := tx.CreateIndex("user_email", "user:*", buntdb.IndexJSON("email"))
 		if err == buntdb.ErrIndexExists {
 			// all is good
-		} else {
-			return err
+			return nil
 		}
-	}
-
-	return nil
+		return err
+	})
+	return err
 }

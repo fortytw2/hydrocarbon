@@ -3,7 +3,7 @@ Hydrocarbon [![Build Status](https://travis-ci.org/fortytw2/hydrocarbon.svg?bran
 
 > news, notifications, and updates. never miss out.
 
-Plugin based news/feed reader with a focus on full text extraction and quality reading experiences on all platforms.
+Plugin based news/feed reader with a focus on full text extraction and quality reading experiences on all platforms
 
 LICENSE
 -------

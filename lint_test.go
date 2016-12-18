@@ -11,7 +11,7 @@ func TestLint(t *testing.T) {
 	err := lint.Default.Check("./...")
 
 	// Ignore lint errors from auto-generated files
-	err = lint.Skip(err, lint.RegexpMatch(`internal/`, `_string\.go`, `\.pb\.go`))
+	err = lint.Skip(err, lint.RegexpMatch(`internal/`, `generate_cert/`, `_generated\.go`, `_string\.go`, `\.pb\.go`))
 
 	if err != nil {
 		t.Fatalf("lint failures: %v\n", err)

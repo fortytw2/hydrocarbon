@@ -1,0 +1,73 @@
+@import "reset.less";
+@black: rgba(22, 32, 51, 1);
+@blue: rgba(36, 89, 150, 1);
+@red: rgba(206, 45, 64, 1);
+@orange: rgba(211, 67, 57, 1);
+@white: #ffffff;
+@text-grey: #141823;
+
+body {
+	background-color: @white;
+	color           : @text-grey;
+	font-family     : Sans-Serif;
+
+	text-rendering  : optimizeLegibility;
+}
+
+div.content {
+	margin     : 1rem auto;
+	width      : 50%;
+	font-size  : 16px;
+	line-height: 1.4;
+}
+
+form {
+	position: relative;
+}
+
+input {
+	position: relative;
+}
+
+input:invalid {
+	border: 1px solid @red;
+}
+
+footer {
+	position  : absolute;
+	right     : 0;
+	bottom    : 0;
+	left      : 0;
+	padding   : 1rem;
+	text-align: center;
+	font-size : 12px;
+}
+
+ul {
+	overflow        : hidden;
+	margin          : 0;
+	padding         : 0;
+	background-color: @blue;
+	list-style-type : none;
+}
+
+li {
+	display: inline-block;
+	float  : left;
+}
+
+li.right {
+	float: right;
+}
+
+li a {
+	display        : block;
+	padding        : 14px 16px;
+	color          : @white;
+	text-align     : center;
+	text-decoration: none;
+}
+/* Change the link color to #111 (black) on hover */
+li a:hover {
+	background-color: darken(@blue, 5%);
+}

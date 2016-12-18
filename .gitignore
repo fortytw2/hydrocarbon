@@ -1,3 +1,9 @@
 cmd/hydrocarbon/hydrocarbon
+cmd/generate_cert/generate_cert
 
+*.ftmpl*
 *.txt
+*.pem
+
+web/dist/*
+!web/dist/.gitkeep
