@@ -11,8 +11,9 @@ type FeedStore interface {
 
 // A Feed is a single encapsulating unit around a source of news / posts / whatever
 type Feed struct {
-	ID     string `json:"id"`
-	Plugin string `json:"plugin,omitempty"`
+	ID         string `json:"id"`
+	Plugin     string `json:"plugin,omitempty"`
+	InitialURL string `json:"initial_url,omitempty"`
 
 	CreatedAt   time.Time  `json:"created_at"`
 	RefreshedAt *time.Time `json:"refreshed_at"`
