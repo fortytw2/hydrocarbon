@@ -17,4 +17,4 @@ script:
  - go test -race -v ./...
 
 notifications:
-  slack: pandadog:cP1IszmFigKwUVyJgNGK2cGV
+  slack: hydrocarbon:czrQMquiw5uA7yR3mhpMrdQM
