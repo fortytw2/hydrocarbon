@@ -7,8 +7,8 @@ func (s *Store) GetFeed(id string) (*hydrocarbon.Feed, error) {
 	return nil, nil
 }
 
-// SaveFeed saves a feed and returns it with it's new ID
-func (s *Store) SaveFeed(*hydrocarbon.Feed) (*hydrocarbon.Feed, error) {
+// CreateFeed saves a feed and returns it with it's new ID
+func (s *Store) CreateFeed(*hydrocarbon.Feed) (*hydrocarbon.Feed, error) {
 	return nil, nil
 }
 

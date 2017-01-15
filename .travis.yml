@@ -1,6 +1,10 @@
 language: go
 go:
- - 1.7.4
+ - tip
+
+sudo: required
+services:
+  - docker
 
 env:
   global:
@@ -10,7 +14,7 @@ before_script:
   - ./git-lfs pull
 
 script:
- - go test -v ./...
+ - go test -race -v ./...
 
 notifications:
   slack: pandadog:cP1IszmFigKwUVyJgNGK2cGV

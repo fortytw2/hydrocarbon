@@ -49,17 +49,13 @@ func NewStore(ps PrimitiveStore, encryptionKey []byte) (*Store, error) {
 
 // CreateUser creates a new user from an email and password
 func (s *Store) CreateUser(email, password string) (*User, error) {
-	if _, err := s.Users.GetUserByEmail(email); err != nil {
-		return nil, ErrUserExists
-	}
-
 	encPass, err := abdi.Hash(password, s.EncryptionKey)
 	if err != nil {
 		return nil, err
 	}
 
 	now := time.Now()
-	u, err := s.Users.SaveUser(&User{
+	u, err := s.Users.CreateUser(&User{
 		Email:             email,
 		EncryptedPassword: *encPass,
 		Confirmed:         false,
@@ -74,5 +70,15 @@ func (s *Store) CreateUser(email, password string) (*User, error) {
 
 // GetUserByToken returns the user with the given access token
 func (s *Store) GetUserByToken(token string) (*User, error) {
-	return nil, nil
+	sesh, err := s.Sessions.GetSessionByAccessToken(token)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.Users.GetUser(sesh.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

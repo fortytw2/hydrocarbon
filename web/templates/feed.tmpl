@@ -1,7 +1,17 @@
+!#arg feed *hydrocarbon.Feed
+!#arg posts []hydrocarbon.Post
+
 !#extends base
 
 !#sub head
 
 !#sub body
 
-<h1>view a feed and sidebar other feeds</h1>
+
+<h1>{{ feed.Name }}</h1>
+
+! for _, post := range posts {
+	<h2> {{ post.Title }}</h2>
+	<p> {{ post.Content }}</p>
+	<br>
+! }

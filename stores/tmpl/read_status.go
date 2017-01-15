@@ -12,7 +12,7 @@ func (s *Store) GetReadStatusByPostID(postID, userID string) (*hydrocarbon.ReadS
 	return nil, nil
 }
 
-// SaveReadStatus saves read status
-func (s *Store) SaveReadStatus(rs *hydrocarbon.ReadStatus) (*hydrocarbon.ReadStatus, error) {
+// CreateReadStatus saves read status
+func (s *Store) CreateReadStatus(rs *hydrocarbon.ReadStatus) (*hydrocarbon.ReadStatus, error) {
 	return nil, nil
 }

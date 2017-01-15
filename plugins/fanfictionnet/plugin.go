@@ -1,9 +1,10 @@
-package xenforo
+package fanfictionnet
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
-	"strings"
+	"regexp"
 	"time"
 
 	"github.com/Puerkitobio/goquery"
@@ -16,7 +17,7 @@ var firstPost = "first"
 // NewPlugin returns a fresh xenforo plugin
 func NewPlugin() (*hydrocarbon.Plugin, error) {
 	return &hydrocarbon.Plugin{
-		Name:     "xenforo",
+		Name:     "fanfiction",
 		Configs:  configs,
 		Validate: validate,
 		Run:      run,
@@ -54,9 +55,14 @@ func run(c hydrocarbon.Client, cfg hydrocarbon.Config) ([]hydrocarbon.Post, erro
 		return nil, err
 	}
 
+	storyID, err := getStoryID(cfg.InitialURL)
+	if err != nil {
+		return nil, err
+	}
+
 	var articles []hydrocarbon.Post
-	for _, u := range getThreadmarkURLs(doc, cfg.Since) {
-		a, err := getThreadmarkPost(c, u)
+	for i := 1; i < getNumberOfChapters(doc); i++ {
+		a, err := getChapterPost(c, fmt.Sprintf("https://www.fanfiction.net/s/%s/%d", storyID, i))
 		if err != nil {
 			return nil, err
 		}
@@ -69,45 +75,30 @@ func run(c hydrocarbon.Client, cfg hydrocarbon.Config) ([]hydrocarbon.Post, erro
 	return articles, nil
 }
 
-func getThreadmarkURLs(doc *goquery.Document, since time.Time) []string {
-	var chapterURLs []string
-	doc.Find(".threadmarkItem").EachWithBreak(func(i int, sel *goquery.Selection) bool {
-		ts := strings.TrimSpace(sel.Find(".DateTime").Text())
-		tss := strings.Split(ts, " at ")
+var reStoryID = regexp.MustCompile(`.*fanfiction.net/s/(\d+)/.*`)
 
-		t, err := time.Parse("Jan 2, 2006", tss[0])
-		if err != nil {
-			return true
-		}
+func getStoryID(url string) (string, error) {
+	submatch := reStoryID.FindAllStringSubmatch(url, 1)
+	if len(submatch) != 1 {
+		return "", errors.New("no story id found")
+	}
+	if len(submatch[0]) != 2 {
+		return "", errors.New("no story id found")
+	}
+	return submatch[0][1], nil
+}
 
-		// respect time.Time
-		if t.Before(since) {
-			return false
-		}
-
-		url, ok := sel.Find("a").Attr("href")
-		if !ok {
-
-			return false
-		}
-
-		chapterURLs = append(chapterURLs, "https://forums.spacebattles.com/"+url)
+func getNumberOfChapters(doc *goquery.Document) int {
+	var num int
+	doc.Find("#chap_select").First().Find("option").EachWithBreak(func(i int, sel *goquery.Selection) bool {
+		num++
 		return true
 	})
 
-	return chapterURLs
+	return num
 }
 
-func getThreadmarkPost(c hydrocarbon.Client, url string) (*hydrocarbon.Post, error) {
-	split := strings.Split(url, "#post-")
-
-	var postID string
-	if len(split) != 2 {
-		postID = firstPost
-	} else {
-		postID = split[1]
-	}
-
+func getChapterPost(c hydrocarbon.Client, url string) (*hydrocarbon.Post, error) {
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -129,36 +120,18 @@ func getThreadmarkPost(c hydrocarbon.Client, url string) (*hydrocarbon.Post, err
 		return nil, err
 	}
 
-	var sel *goquery.Selection
-	if postID == firstPost {
-		sel = doc.Find(".hasThreadmark").First()
-	} else {
-		sel = doc.Find("#post-" + postID)
-	}
-
-	h, err := sel.Find(".messageContent").Html()
+	title := doc.Find("#chap_select").First().Text()
+	content, err := doc.Find("#storytext").First().Html()
 	if err != nil {
 		return nil, err
 	}
 
-	var postTime time.Time
-	t, ok := sel.Find(".DateTime").Attr("title")
-	if ok {
-		postTime, err = time.Parse("Jan 2, 2006 at 3:04 PM", t)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	title := strings.Replace(sel.Find(".threadmarker > .label").Text(), "Threadmark:", "", -1)
-	title = strings.TrimSpace(title)
-
 	p := bluemonday.UGCPolicy()
-	html := p.Sanitize(h)
+	html := p.Sanitize(content)
 
 	return &hydrocarbon.Post{
 		URL:      url,
-		PostedAt: postTime,
+		PostedAt: time.Time{},
 		Title:    title,
 		Content:  html,
 	}, nil

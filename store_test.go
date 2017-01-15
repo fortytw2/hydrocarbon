@@ -1,12 +1,44 @@
 package hydrocarbon_test
 
 import (
+	"fmt"
+	"os"
 	"testing"
+	"time"
+
+	dockertest "gopkg.in/ory-am/dockertest.v2"
 
 	"github.com/fortytw2/hydrocarbon"
-	"github.com/fortytw2/hydrocarbon/stores/bunt"
+	"github.com/fortytw2/hydrocarbon/internal/log"
+	"github.com/fortytw2/hydrocarbon/stores/pg"
 	"github.com/stretchr/testify/assert"
 )
+
+var dsn string
+
+func TestMain(m *testing.M) {
+	if testing.Short() {
+		fmt.Println("skipping pgmigrate test")
+		return
+	}
+
+	c, err := dockertest.ConnectToPostgreSQL(1, 5*time.Second, func(u string) bool {
+		dsn = u
+		return true
+	})
+	if err != nil {
+		fmt.Printf("Could not connect to database: %s", err)
+		return
+	}
+
+	// Run tests
+	result := m.Run()
+	err = c.KillRemove()
+	if err != nil {
+		panic(err)
+	}
+	os.Exit(result)
+}
 
 func TestCreateUser(t *testing.T) {
 	var users = []struct {
@@ -23,7 +55,7 @@ func TestCreateUser(t *testing.T) {
 		{true, true, "ian@fortytw2.com", "sa8dwu9djio23jl"},
 	}
 
-	ps, err := bunt.NewMemStore()
+	ps, err := pg.NewStore(log.NewNopLogger(), dsn)
 	assert.Nil(t, err)
 
 	s, err := hydrocarbon.NewStore(ps, []byte{1, 2, 3, 4, 2})
@@ -35,10 +67,11 @@ func TestCreateUser(t *testing.T) {
 			if !u.Valid {
 				assert.NotNil(t, err)
 				continue
-			}
-			if u.Dupe {
+			} else if u.Dupe {
 				assert.Equal(t, hydrocarbon.ErrUserExists, err)
 				continue
+			} else {
+				t.Fatal(err)
 			}
 		}
 

@@ -6,7 +6,7 @@ import "time"
 type ReadStatusStore interface {
 	GetReadStatus(id string) (*ReadStatus, error)
 	GetReadStatusByPostID(postID, userID string) (*ReadStatus, error)
-	SaveReadStatus(*ReadStatus) (*ReadStatus, error)
+	CreateReadStatus(*ReadStatus) (*ReadStatus, error)
 }
 
 // ReadStatus allows us to mark things read or unread

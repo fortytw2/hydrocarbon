@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
-	"github.com/fortytw2/httpkit"
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/internal/httputil"
 	"github.com/fortytw2/hydrocarbon/internal/log"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
@@ -29,6 +29,7 @@ const (
 )
 
 //go:generate ftmpl -targetgo ./templates_generated.go templates/
+//go:generate goimports -w ./templates_generated.go
 
 // Routes returns all routes for this application
 func Routes(s *hydrocarbon.Store, l log.Logger) *chi.Mux {
@@ -40,22 +41,22 @@ func Routes(s *hydrocarbon.Store, l log.Logger) *chi.Mux {
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(middleware.DefaultCompress)
 
-	r.Handle("/hydrocarbon.min.css", httpkit.ErrorHandler(Stylesheet))
+	r.Handle("/hydrocarbon.min.css", httputil.ErrorHandler(Stylesheet))
 
-	r.Handle(homeURL, httpkit.ErrorHandler(renderHome))
+	r.Handle(homeURL, httputil.ErrorHandler(renderHome))
 
-	r.Get(registerURL, renderRegister)
-	r.Post(registerURL, newUser)
+	r.Get(registerURL, httputil.ErrorHandler(renderRegister).Func())
+	r.Post(registerURL, newUser(s).Func())
 	r.Get(confirmTokenURL, confirmUser)
 
 	r.Post(forgotPasswordURL, forgotPassword)
 
-	r.Get(loginURL, renderLogin)
+	r.Handle(loginURL, httputil.ErrorHandler(renderLogin))
 	r.Post(loginURL, newSession)
 	r.Delete(loginURL, deleteSession)
 
-	r.Get(feedsURL, renderFeed)
-	r.Get(oneFeedURL, renderFeed)
+	r.Get(feedsURL, renderFeed(s).Func())
+	// r.Get(oneFeedURL, renderFeed(s).Func())
 
 	r.Post(feedsURL, addFeed)
 	r.Post(reorderFeedsURL, reorderFeeds)

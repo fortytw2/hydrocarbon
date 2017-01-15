@@ -11,7 +11,7 @@ type SessionStore interface {
 	GetSession(id string) (*Session, error)
 	GetSessionsByUserID(userID string, pg *Pagination) ([]Session, error)
 	GetSessionByAccessToken(token string) (*Session, error)
-	SaveSession(*Session) (*User, error)
+	CreateSession(*Session) (*Session, error)
 }
 
 // A Session is a single user session

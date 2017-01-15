@@ -1,0 +1,16 @@
+!#arg feeds []hydrocarbon.Feed
+
+!#extends base
+
+!#sub head
+
+!#sub body
+
+<h1>Feed Listing</h1>
+
+! for _, f := range feeds {
+	<h2> {{ f.Name }}</h2>
+	<p> {{ f.Description }}</p>
+	<a href="/feeds?id={{ f.ID }}">link</a>
+	<br>
+! }

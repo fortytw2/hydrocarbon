@@ -1,11 +1,15 @@
 package hydrocarbon
 
-import "time"
+import (
+	"time"
+
+	"github.com/lib/pq"
+)
 
 // PostStore provides primitives for storing and retrieving posts
 type PostStore interface {
-	GetPost(feedID, postID string) (*Post, error)
-	SavePost(*Post) (*Post, error)
+	GetPost(postID string) (*Post, error)
+	CreatePost(*Post) (*Post, error)
 	GetPosts(feedID string, pg *Pagination) ([]Post, error)
 }
 
@@ -14,8 +18,9 @@ type Post struct {
 	ID     string `json:"id"`
 	FeedID string `json:"feed_id"`
 
-	CreatedAt   time.Time `json:"created_at"`
-	RefreshedAt time.Time `json:"refreshed_at"`
+	CreatedAt   time.Time   `json:"created_at"`
+	UpdatedAt   time.Time   `json:"updated_at"`
+	RefreshedAt pq.NullTime `json:"refreshed_at"`
 
 	Title    string    `json:"title"`
 	PostedAt time.Time `json:"posted_at"`

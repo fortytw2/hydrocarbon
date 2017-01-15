@@ -26,7 +26,7 @@ func fuzz(len int) []userTest {
 // FuzzUserStore puts a lot of random users in the user store, then gets them back
 func FuzzUserStore(t *testing.T, us hydrocarbon.UserStore, n int) {
 	for _, u := range fuzz(n) {
-		newUser, err := us.SaveUser(&hydrocarbon.User{
+		newUser, err := us.CreateUser(&hydrocarbon.User{
 			Email:             u.Email,
 			EncryptedPassword: u.Password,
 		})
@@ -52,7 +52,7 @@ func FuzzUserStore(t *testing.T, us hydrocarbon.UserStore, n int) {
 
 // TestUserStore ensures a given userStore does what it should do
 func TestUserStore(t *testing.T, us hydrocarbon.UserStore) {
-	u, err := us.SaveUser(&hydrocarbon.User{
+	u, err := us.CreateUser(&hydrocarbon.User{
 		Email:             "ian@ian.com",
 		EncryptedPassword: "we12312312",
 	})

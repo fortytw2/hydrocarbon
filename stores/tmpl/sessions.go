@@ -17,7 +17,7 @@ func (s *Store) GetSessionByAccessToken(token string) (*hydrocarbon.Session, err
 	return nil, nil
 }
 
-// SaveSession saves a new session
-func (s *Store) SaveSession(ses *hydrocarbon.Session) (*hydrocarbon.User, error) {
+// CreateSession saves a new session
+func (s *Store) CreateSession(ses *hydrocarbon.Session) (*hydrocarbon.Session, error) {
 	return nil, nil
 }

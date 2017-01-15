@@ -1,11 +1,11 @@
 package hydrocarbon
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/fortytw2/hydrocarbon/internal/log"
 	multierror "github.com/hashicorp/go-multierror"
+	uuid "github.com/satori/go.uuid"
 )
 
 // ScrapeLoop starts the background scraper
@@ -42,10 +42,10 @@ func Scrape(ist Instantiator, f Feed, ps PostStore, c Client) error {
 	}
 
 	var t time.Time
-	if f.RefreshedAt == nil {
+	if !f.RefreshedAt.Valid {
 		t = time.Time{}
 	} else {
-		t = *f.RefreshedAt
+		t = f.RefreshedAt.Time
 	}
 
 	err = plug.Validate(c, Config{InitialURL: f.InitialURL, Since: t})
@@ -62,8 +62,9 @@ func Scrape(ist Instantiator, f Feed, ps PostStore, c Client) error {
 
 	var e error
 	for _, p := range posts {
-		fmt.Printf("\n\n%+v\n\n", p)
-		_, err := ps.SavePost(&p)
+		p.ID = uuid.NewV4().String()
+		p.FeedID = f.ID
+		_, err := ps.CreatePost(&p)
 		if err != nil {
 			e = multierror.Append(e, err)
 		}

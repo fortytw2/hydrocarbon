@@ -9,10 +9,13 @@ import (
 
 // TestFeedStore ensures a given feedStore does what it should
 func TestFeedStore(t *testing.T, fs hydrocarbon.FeedStore) {
-	f, err := fs.SaveFeed(&hydrocarbon.Feed{
+	f, err := fs.CreateFeed(&hydrocarbon.Feed{
 		Plugin:      "xenforo",
 		Name:        "totally-test-forum",
 		Description: "lol",
+		InitialURL:  "potatoes",
+		HexColor:    "xD",
+		IconURL:     "http://potato.com/",
 	})
 	assert.Nil(t, err)
 	assert.NotEmpty(t, f.Name)
