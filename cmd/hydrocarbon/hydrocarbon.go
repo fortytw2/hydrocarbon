@@ -6,8 +6,10 @@ import (
 
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/internal/log"
+	"github.com/fortytw2/hydrocarbon/plugins/xenforo"
 	"github.com/fortytw2/hydrocarbon/stores/pg"
 	"github.com/fortytw2/hydrocarbon/web"
+	geoip2 "github.com/oschwald/geoip2-golang"
 )
 
 func main() {
@@ -18,6 +20,18 @@ func main() {
 		l.Log("msg", "env POSTGRES_DSN must be set")
 		return
 	}
+
+	geoipDB, err := geoip2.Open("GeoLite2-Country.mmdb")
+	if err != nil {
+		l.Log("msg", "could not open geoip2 db", "err", err)
+		return
+	}
+	defer func() {
+		err = geoipDB.Close()
+		if err != nil {
+			l.Log("msg", "could not safely close geoip db", "err", err)
+		}
+	}()
 
 	store, err := pg.NewStore(l, os.Getenv("POSTGRES_DSN"))
 	if err != nil {
@@ -31,9 +45,9 @@ func main() {
 		return
 	}
 
-	go launchScraper(l, s)
+	// go launchScraper(l, s)
 
-	r := web.Routes(s, l)
+	r := web.Routes(s, l, geoipDB)
 	err = http.ListenAndServe(getPort(), r)
 	if err != nil {
 		l.Log("msg", "cannot start", "error", err)
@@ -50,19 +64,9 @@ func getPort() string {
 }
 
 func launchScraper(l log.Logger, s *hydrocarbon.Store) {
-	// _, err := s.Feeds.CreateFeed(&hydrocarbon.Feed{
-	// 	Plugin:      "xenforo",
-	// 	InitialURL:  "https://forums.spacebattles.com/threads/skein-worm-altpower-au.437953/threadmarks",
-	// 	Name:        "spacebattles-skein",
-	// 	Description: "lol",
-	// })
-	// if err != nil {
-	// 	// do nothing
-	// }
-	//
-	// plugins := map[string]hydrocarbon.Instantiator{
-	// 	"xenforo": xenforo.NewPlugin,
-	// }
-	//
-	// hydrocarbon.ScrapeLoop(l, s.Feeds, s.Posts, plugins)
+	plugins := map[string]hydrocarbon.Instantiator{
+		"xenforo": xenforo.NewPlugin,
+	}
+
+	hydrocarbon.ScrapeLoop(l, s.Feeds, s.Posts, plugins)
 }

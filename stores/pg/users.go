@@ -31,7 +31,7 @@ func (s *Store) GetUser(id string) (*hydrocarbon.User, error) {
 		folders = append(folders, f)
 	}
 
-	userRow := s.db.QueryRowx("SELECT id, created_at, updated_at, email, encrypted_password, failed_login_count, active, confirmed, confirmation_token, token_created_at FROM users WHERE id = $1", id)
+	userRow := s.db.QueryRowx("SELECT id, created_at, updated_at, analytics, email, encrypted_password, paid_until, active, confirmed, confirmation_token, token_created_at, stripe_customer_id FROM users WHERE id = $1", id)
 	if userRow.Err() != nil {
 		return nil, userRow.Err()
 	}
@@ -48,7 +48,7 @@ func (s *Store) GetUser(id string) (*hydrocarbon.User, error) {
 
 // GetUserByEmail gets a yser by email
 func (s *Store) GetUserByEmail(email string) (*hydrocarbon.User, error) {
-	row := s.db.QueryRowx("SELECT * FROM users WHERE email = $1", email)
+	row := s.db.QueryRowx("SELECT id, created_at, updated_at, stripe_customer_id, paid_until, analytics, email, encrypted_password, active, confirmed, confirmation_token, token_created_at FROM users WHERE email = $1", email)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -62,13 +62,19 @@ func (s *Store) GetUserByEmail(email string) (*hydrocarbon.User, error) {
 	return &u, nil
 }
 
+// SetStripeCustomerID sets the stripe ID for a given user
+func (s *Store) SetStripeCustomerID(userID, stripeCustomerID string) error {
+	_, err := s.db.Exec("UPDATE users SET stripe_customer_id = $1 WHERE id = $2;", stripeCustomerID, userID)
+	return err
+}
+
 // CreateUser saves a user and returns it, with it's new ID
 func (s *Store) CreateUser(u *hydrocarbon.User) (*hydrocarbon.User, error) {
 	row := s.db.QueryRowx(`
-		INSERT INTO users (email, encrypted_password, failed_login_count, active, confirmed, confirmation_token, token_created_at, folder_ids)
+		INSERT INTO users (email, encrypted_password, analytics, active, confirmed, confirmation_token, token_created_at, folder_ids)
 	    VALUES ($1, $2, $3, $4, $5, $6, $7, '{}')
-		RETURNING id, created_at, updated_at, email, encrypted_password, failed_login_count, active, confirmed, confirmation_token, token_created_at
-	`, u.Email, u.EncryptedPassword, u.FailedLoginCount, u.Active, u.Confirmed, u.ConfirmationToken, u.TokenCreatedAt)
+		RETURNING id, created_at, updated_at, email, encrypted_password, active, confirmed, confirmation_token, token_created_at
+	`, u.Email, u.EncryptedPassword, u.Analytics, u.Active, u.Confirmed, u.ConfirmationToken, u.TokenCreatedAt)
 	if row.Err() != nil {
 		if pqE := row.Err().(*pq.Error); strings.Contains(pqE.Message, "users_email_key") {
 			return nil, hydrocarbon.ErrUserExists

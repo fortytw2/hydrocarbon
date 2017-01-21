@@ -62,7 +62,7 @@ func TestCreateUser(t *testing.T) {
 	assert.Nil(t, err)
 
 	for _, u := range users {
-		outU, err := s.CreateUser(u.Email, u.Password)
+		outU, err := s.CreateUser(u.Email, u.Password, false)
 		if err != nil {
 			if !u.Valid {
 				assert.NotNil(t, err)

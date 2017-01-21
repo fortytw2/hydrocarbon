@@ -48,7 +48,7 @@ func NewStore(ps PrimitiveStore, encryptionKey []byte) (*Store, error) {
 }
 
 // CreateUser creates a new user from an email and password
-func (s *Store) CreateUser(email, password string) (*User, error) {
+func (s *Store) CreateUser(email, password string, analytics bool) (*User, error) {
 	encPass, err := abdi.Hash(password, s.EncryptionKey)
 	if err != nil {
 		return nil, err
@@ -60,6 +60,7 @@ func (s *Store) CreateUser(email, password string) (*User, error) {
 		EncryptedPassword: *encPass,
 		Confirmed:         false,
 		TokenCreatedAt:    now,
+		Analytics:         analytics,
 	})
 	if err != nil {
 		return nil, err

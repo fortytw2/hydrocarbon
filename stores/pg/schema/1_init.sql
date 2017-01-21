@@ -45,18 +45,22 @@ CREATE TABLE users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
+  analytics BOOLEAN NOT NULL DEFAULT false,
   email TEXT NOT NULL UNIQUE,
   encrypted_password TEXT NOT NULL,
-  failed_login_count INT NOT NULL,
 
   active BOOLEAN NOT NULL DEFAULT 'false',
   confirmed BOOLEAN NOT NULL DEFAULT 'false',
   confirmation_token TEXT NOT NULL,
   token_created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
+  stripe_customer_id TEXT NOT NULL DEFAULT '',
+  paid_until TIMESTAMPTZ NOT NULL DEFAULT now() + interval '28 days',
+
   folder_ids text[] NOT NULL,
 
   CHECK(EXTRACT(TIMEZONE FROM token_created_at) = '0'),
+  CHECK(EXTRACT(TIMEZONE FROM paid_until) = '0'),
   CHECK(EXTRACT(TIMEZONE FROM created_at) = '0'),
   CHECK(EXTRACT(TIMEZONE FROM updated_at) = '0')
 );
@@ -90,8 +94,10 @@ CREATE TABLE sessions (
   user_id UUID REFERENCES users NOT NULL,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   invalidated_at TIMESTAMPTZ,
-  expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + interval '7 days',
+
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + interval '28 days',
   token TEXT NOT NULL,
 
   CHECK(EXTRACT(TIMEZONE FROM created_at) = '0'),

@@ -1,0 +1,41 @@
+!#arg stripePublishableKey string
+
+!#extends base
+
+!#sub body
+
+<h1>User Settings Page</h1><br>
+
+<h3> Manage Subscription </h3>
+
+{{! if loggedInUser.StripeCustomerID == "" }}
+
+No Customer ID! Unpaid!
+
+<form action="/charge" method="POST">
+  <script
+    src="https://checkout.stripe.com/checkout.js"
+    class="stripe-button"
+    data-key="{{s stripePublishableKey}}"
+    data-email="{{s loggedInUser.Email }}"
+    data-locale="en"
+    data-name="Hydrocarbon"
+    data-description="Monthly Subscription"
+    data-amount="2499"
+    data-currency="usd"
+    data-bitcoin="true"
+    data-alipay="true"
+    data-zip-code="true"
+    data-panel-label="Subscribe"
+    data-label="Pay with Card, Bitcoin, or Alipay">
+  </script>
+</form>
+
+{{! else }}
+
+All Paid Up! {{s loggedInUser.PaidUntil }}
+
+{{! end }}
+
+<h3> Delete my Account </h3>
+<p>To fully delete your account, please email ian@hydrocarbon.io</p>

@@ -18,3 +18,4 @@ script:
 
 notifications:
   slack: hydrocarbon:czrQMquiw5uA7yR3mhpMrdQM
+  email: false

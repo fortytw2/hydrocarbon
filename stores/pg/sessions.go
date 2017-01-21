@@ -40,7 +40,7 @@ func (s *Store) GetSessionsByUserID(userID string, pg *hydrocarbon.Pagination) (
 
 // GetSessionByAccessToken returns the session by access token
 func (s *Store) GetSessionByAccessToken(token string) (*hydrocarbon.Session, error) {
-	row := s.db.QueryRowx("SELECT * FROM sessions WHERE token = $1", token)
+	row := s.db.QueryRowx("SELECT * FROM sessions WHERE token = $1 AND invalidated_at IS NULL AND expires_at > now();", token)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
@@ -54,13 +54,19 @@ func (s *Store) GetSessionByAccessToken(token string) (*hydrocarbon.Session, err
 	return &sess, nil
 }
 
+// InvalidateSessionByToken invalidates a given session
+func (s *Store) InvalidateSessionByToken(token string) error {
+	_, err := s.db.Exec("UPDATE sessions SET invalidated_at = now() WHERE token = $1;", token)
+	return err
+}
+
 // CreateSession saves a new session
 func (s *Store) CreateSession(ses *hydrocarbon.Session) (*hydrocarbon.Session, error) {
 	row := s.db.QueryRowx(`
-		INSERT INTO sessions (user_id, invalidated_at, expires_at, token)
-	    VALUES ($1, $2, $3, $4)
+		INSERT INTO sessions (user_id, expires_at, token)
+	    VALUES ($1, $2, $3)
 		RETURNING *
-	`, ses.UserID, ses.InvalidatedAt, ses.ExpiresAt, ses.Token)
+	`, ses.UserID, ses.ExpiresAt, ses.Token)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}

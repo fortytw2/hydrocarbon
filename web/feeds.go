@@ -7,8 +7,20 @@ import (
 	"github.com/fortytw2/hydrocarbon/internal/httputil"
 )
 
+func renderNewFeed(w http.ResponseWriter, r *http.Request) {
+	_, err := w.Write([]byte(TMPLnew_feed("Hydrocarbon", loggedIn(r))))
+	if err != nil {
+		panic(err)
+	}
+}
+
 func renderFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
+		if loggedIn(r) == nil {
+			http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
+			return nil
+		}
+
 		feedID := r.URL.Query().Get("id")
 
 		if feedID == "" {
@@ -17,10 +29,10 @@ func renderFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
 				PageSize: 20,
 			})
 			if err != nil {
-				return httputil.Wrap(err, 404)
+				return httputil.Wrap(err, 500)
 			}
 
-			out := TMPLfeeds("Hydrocarbon", false, 0, fs)
+			out := TMPLfeeds("Hydrocarbon", loggedIn(r), fs)
 
 			_, err = w.Write([]byte(out))
 			return err
@@ -39,7 +51,7 @@ func renderFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
 			return err
 		}
 
-		out := TMPLfeed("Hydrocarbon", false, 0, f, posts)
+		out := TMPLfeed("Hydrocarbon", loggedIn(r), f, posts)
 
 		_, err = w.Write([]byte(out))
 		return err
@@ -47,7 +59,7 @@ func renderFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
 }
 
 func renderPost(w http.ResponseWriter, r *http.Request) {
-	out, err := TMPLERRpost("Hydrocarbon", false, 0)
+	out, err := TMPLERRpost("Hydrocarbon", loggedIn(r))
 	if err != nil {
 		panic(err)
 	}
@@ -62,10 +74,28 @@ func reorderFeeds(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func addFeed(w http.ResponseWriter, r *http.Request) {
+func addFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		if loggedIn(r) == nil {
+			http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
+			return nil
+		}
+
+		_, err := s.Feeds.CreateFeed(&hydrocarbon.Feed{
+			Plugin:     r.FormValue("plugin"),
+			InitialURL: r.FormValue("url"),
+			Name:       r.FormValue("name"),
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		http.Redirect(w, r, feedsURL, http.StatusSeeOther)
+
+		return nil
+	}
 
 }
-
 func deleteFeed(w http.ResponseWriter, r *http.Request) {
 
 }

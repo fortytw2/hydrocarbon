@@ -1,4 +1,6 @@
 @import "reset.less";
+@import "feeds.less";
+
 @black: rgba(22, 32, 51, 1);
 @blue: rgba(36, 89, 150, 1);
 @red: rgba(206, 45, 64, 1);
@@ -20,6 +22,10 @@ div.content {
 	width      : 90%;
 	font-size  : 16px;
 	line-height: 1.4;
+}
+
+div.form {
+	text-align: center;
 }
 
 i {
@@ -56,7 +62,7 @@ footer {
 	font-size : 12px;
 }
 
-ul {
+#header {
 	overflow        : hidden;
 	margin          : 0;
 	padding         : 0;
@@ -69,11 +75,15 @@ li {
 	float  : left;
 }
 
-li.right {
+li.logo {
+	font-weight: bolder;
+}
+
+#header > li.right {
 	float: right;
 }
 
-li a {
+#header > li a {
 	display        : block;
 	padding        : 14px 16px;
 	color          : @white;

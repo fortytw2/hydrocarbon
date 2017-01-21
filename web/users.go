@@ -1,19 +1,20 @@
 package web
 
 import (
-	"encoding/json"
+	"errors"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/fortytw2/abdi"
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/internal/httputil"
 	"github.com/fortytw2/hydrocarbon/internal/token"
-	"github.com/mholt/binding"
 )
 
 // login renders a dummy page for logging in
 func renderLogin(w http.ResponseWriter, r *http.Request) error {
-	out, err := TMPLERRlogin("Hydrocarbon", false, 0)
+	out, err := TMPLERRlogin("Hydrocarbon", loggedIn(r))
 	if err != nil {
 		return httputil.Wrap(err, http.StatusInternalServerError)
 	}
@@ -28,7 +29,7 @@ func renderLogin(w http.ResponseWriter, r *http.Request) error {
 
 // register displays a sign up page
 func renderRegister(w http.ResponseWriter, r *http.Request) error {
-	out := TMPLregister("Hydrocarbon", false, 0)
+	out := TMPLregister("Hydrocarbon", loggedIn(r))
 	_, err := w.Write([]byte(out))
 	if err != nil {
 		return httputil.Wrap(err, http.StatusInternalServerError)
@@ -37,29 +38,61 @@ func renderRegister(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 
-type registration struct {
-	Email    string
-	Password string
+func renderPasswordReset(w http.ResponseWriter, r *http.Request) error {
+	out := TMPLpassword_reset("Hydrocarbon", loggedIn(r))
+	_, err := w.Write([]byte(out))
+	if err != nil {
+		return httputil.Wrap(err, http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-// Then provide a field mapping (pointer receiver is vital)
-func (r *registration) FieldMap(req *http.Request) binding.FieldMap {
-	return binding.FieldMap{
-		&r.Email:    "email",
-		&r.Password: "password",
+func renderSettings(w http.ResponseWriter, r *http.Request) error {
+	out := TMPLsettings("Hydrocarbon", loggedIn(r), os.Getenv("STRIPE_PUBLIC_KEY"))
+	_, err := w.Write([]byte(out))
+	if err != nil {
+		return httputil.Wrap(err, http.StatusInternalServerError)
 	}
+
+	return nil
+}
+
+type registrationOrLogin struct {
+	Email     string
+	Password  string
+	Analytics string
+}
+
+func (r *registrationOrLogin) Valid() error {
+	if r.Email == "" {
+		return errors.New("email is required")
+	}
+	if r.Password == "" {
+		return errors.New("password is required")
+	}
+	return nil
+}
+
+func (r *registrationOrLogin) analytics() bool {
+	return r.Analytics == "on"
 }
 
 // newUser processes a post request
 func newUser(s *hydrocarbon.Store) httputil.ErrorHandler {
 	return func(w http.ResponseWriter, req *http.Request) error {
-		r := new(registration)
-		errs := binding.Bind(req, r)
-		if errs.Handle(w) {
-			return nil
+		r := registrationOrLogin{
+			Email:     req.FormValue("email"),
+			Password:  req.FormValue("password"),
+			Analytics: req.FormValue("analytics"),
 		}
 
-		user, err := s.CreateUser(r.Email, r.Password)
+		err := r.Valid()
+		if err != nil {
+			return err
+		}
+
+		user, err := s.CreateUser(r.Email, r.Password, r.analytics())
 		if err != nil {
 			return err
 		}
@@ -79,10 +112,63 @@ func newUser(s *hydrocarbon.Store) httputil.ErrorHandler {
 			return err
 		}
 
-		js, _ := json.Marshal(sesh)
-		_, err = w.Write(js)
+		http.SetCookie(w, &http.Cookie{
+			Name:  userCookieToken,
+			Value: sesh.Token,
+		})
 
-		return err
+		http.Redirect(w, req, feedsURL, http.StatusSeeOther)
+
+		return nil
+	}
+}
+
+// newSession creates a new session
+func newSession(s *hydrocarbon.Store) httputil.ErrorHandler {
+	return func(w http.ResponseWriter, req *http.Request) error {
+		r := registrationOrLogin{
+			Email:    req.FormValue("email"),
+			Password: req.FormValue("password"),
+		}
+
+		err := r.Valid()
+		if err != nil {
+			return err
+		}
+
+		user, err := s.Users.GetUserByEmail(r.Email)
+		if err != nil {
+			return err
+		}
+
+		err = abdi.Check(r.Password, user.EncryptedPassword, s.EncryptionKey)
+		if err != nil {
+			return err
+		}
+
+		newToken, err := token.GenerateRandomString(32)
+		if err != nil {
+			return err
+		}
+		// right here should send a confirmation email
+		// user.ConfirmationToken
+		sesh, err := s.Sessions.CreateSession(&hydrocarbon.Session{
+			UserID:    user.ID,
+			ExpiresAt: time.Now().Add(28 * 24 * time.Hour),
+			Token:     newToken,
+		})
+		if err != nil {
+			return err
+		}
+
+		http.SetCookie(w, &http.Cookie{
+			Name:  userCookieToken,
+			Value: sesh.Token,
+		})
+
+		http.Redirect(w, req, feedsURL, http.StatusSeeOther)
+
+		return nil
 	}
 }
 
@@ -97,11 +183,20 @@ func forgotPassword(w http.ResponseWriter, r *http.Request) {
 }
 
 // deleteSession invalidates an existing session
-func deleteSession(w http.ResponseWriter, r *http.Request) {
+func deleteSession(s *hydrocarbon.Store) httputil.ErrorHandler {
+	return func(w http.ResponseWriter, req *http.Request) error {
+		token := sessionToken(req)
+		if token == "" {
+			return errors.New("no session exists")
+		}
 
-}
+		err := s.Sessions.InvalidateSessionByToken(token)
+		if err != nil {
+			return err
+		}
 
-// newSession creates a new session
-func newSession(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, req, loginURL, http.StatusTemporaryRedirect)
 
+		return nil
+	}
 }
