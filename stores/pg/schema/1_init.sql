@@ -8,7 +8,8 @@ CREATE TABLE feeds (
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  refreshed_at TIMESTAMPTZ,
+  last_refreshed_at TIMESTAMPTZ,
+  last_enqueued_at TIMESTAMPTZ,
   name TEXT NOT NULL UNIQUE,
   description TEXT NOT NULL,
 
@@ -17,7 +18,8 @@ CREATE TABLE feeds (
 
   CHECK(EXTRACT(TIMEZONE FROM created_at) = '0'),
   CHECK(EXTRACT(TIMEZONE FROM updated_at) = '0'),
-  CHECK(EXTRACT(TIMEZONE FROM refreshed_at) = '0')
+  CHECK(EXTRACT(TIMEZONE FROM last_refreshed_at) = '0'),
+  CHECK(EXTRACT(TIMEZONE FROM last_enqueued_at) = '0')
 );
 
 CREATE TABLE posts (
@@ -55,6 +57,7 @@ CREATE TABLE users (
   token_created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   stripe_customer_id TEXT NOT NULL DEFAULT '',
+  -- set the default to work with stripe trial
   paid_until TIMESTAMPTZ NOT NULL DEFAULT now() + interval '28 days',
 
   folder_ids text[] NOT NULL,

@@ -11,6 +11,9 @@ type FeedStore interface {
 	GetFeed(id string) (*Feed, error)
 	CreateFeed(*Feed) (*Feed, error)
 	GetFeeds(pg *Pagination) ([]Feed, error)
+
+	GetFeedsToUpdate(max int) ([]Feed, error) // get feeds that need to be updated
+	SetRefreshedAt(id string) error
 }
 
 // A Feed is a single encapsulating unit around a source of news / posts / whatever
@@ -19,9 +22,10 @@ type Feed struct {
 	Plugin     string `json:"plugin,omitempty"`
 	InitialURL string `json:"initial_url,omitempty"`
 
-	CreatedAt   time.Time   `json:"created_at"`
-	UpdatedAt   time.Time   `json:"updated_at"`
-	RefreshedAt pq.NullTime `json:"refreshed_at"`
+	CreatedAt       time.Time   `json:"created_at"`
+	UpdatedAt       time.Time   `json:"updated_at"`
+	LastRefreshedAt pq.NullTime `json:"last_refreshed_at"`
+	LastEnqueuedAt  pq.NullTime `json:"last_enqueued_at"`
 
 	URL         string `json:"url"`
 	Name        string `json:"name"`

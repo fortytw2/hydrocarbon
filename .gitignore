@@ -4,6 +4,7 @@ cmd/generate_cert/generate_cert
 *.ftmpl*
 *.txt
 *.pem
+*.mmdb
 
 web/dist/*
 !web/dist/.gitkeep

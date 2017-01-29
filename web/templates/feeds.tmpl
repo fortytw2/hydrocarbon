@@ -4,16 +4,15 @@
 
 !#sub body
 
-<div class="sidebar">
-
-<ul>
-	<li class="sidebar-content"><a href="/feeds/new">New Feed</a></li>
-! for _, f := range feeds {
-	<li class="sidebar-content">{{ f.Name }}<a href="/feeds?id={{ f.ID }}">link</a></li>
+<ul class="sidebar">
+	<li><a href="/feeds/new">New Feed</a></li>
+! for _, f := range loggedInUser.Folders {
+	<li>Folder {{s f.Name }}</li>
+	{{! for _, fd := range f.Feeds }}
+	    <li><a href="/feeds?id={{s fd.ID}}">{{s fd.Name }}</a></li>
+	{{! end }}
 ! }
 </ul>
-
-</div>
 
 <div class="posts">
 

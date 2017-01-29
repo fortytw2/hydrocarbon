@@ -49,7 +49,13 @@ func renderPasswordReset(w http.ResponseWriter, r *http.Request) error {
 }
 
 func renderSettings(w http.ResponseWriter, r *http.Request) error {
-	out := TMPLsettings("Hydrocarbon", loggedIn(r), os.Getenv("STRIPE_PUBLIC_KEY"))
+	user := loggedIn(r)
+	if user == nil {
+		http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
+		return nil
+	}
+
+	out := TMPLsettings("Hydrocarbon", user, os.Getenv("STRIPE_PUBLIC_KEY"))
 	_, err := w.Write([]byte(out))
 	if err != nil {
 		return httputil.Wrap(err, http.StatusInternalServerError)

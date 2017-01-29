@@ -18,6 +18,7 @@ type Store struct {
 	Users        UserStore
 	Sessions     SessionStore
 	Feeds        FeedStore
+	Folders      FolderStore
 	Posts        PostStore
 	ReadStatuses ReadStatusStore
 
@@ -30,6 +31,7 @@ type PrimitiveStore interface {
 	SessionStore
 	FeedStore
 	PostStore
+	FolderStore
 	ReadStatusStore
 }
 
@@ -41,6 +43,7 @@ func NewStore(ps PrimitiveStore, encryptionKey []byte) (*Store, error) {
 		Users:         ps,
 		Sessions:      ps,
 		Feeds:         ps,
+		Folders:       ps,
 		Posts:         ps,
 		ReadStatuses:  ps,
 		EncryptionKey: encryptionKey,
@@ -62,6 +65,18 @@ func (s *Store) CreateUser(email, password string, analytics bool) (*User, error
 		TokenCreatedAt:    now,
 		Analytics:         analytics,
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	f, err := s.Folders.CreateFolder(&Folder{
+		Name: "default",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.Users.AddFolder(u.ID, f.ID)
 	if err != nil {
 		return nil, err
 	}

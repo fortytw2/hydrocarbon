@@ -108,15 +108,23 @@ func httplog(l log.Logger, db *geoip2.Reader) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, req *http.Request) {
 			m := httpsnoop.CaptureMetrics(next, w, req)
+			var remoteAddr string
+			if req.Header.Get("x-real-ip") != "" {
+				remoteAddr = req.Header.Get("x-real-ip")
+			} else if req.Header.Get("x-forwarded-for") != "" {
+				remoteAddr = req.Header.Get("x-forwarded-for")
+			} else if req.Header.Get("x-client-ip") != "" {
+				remoteAddr = req.Header.Get("x-client-ip")
+			} else {
+				remoteAddr = req.RemoteAddr
+			}
 
-			ip := net.ParseIP(req.Header.Get("x-real-ip"))
+			ip := net.ParseIP(remoteAddr)
 			c, err := db.Country(ip)
 			if err != nil {
-				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", req.RemoteAddr, "code", m.Code, "time", m.Duration, "bytes", m.Written)
-
+				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", remoteAddr, "code", m.Code, "time", m.Duration, "bytes", m.Written)
 			} else {
-				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", req.RemoteAddr, "country", c.Country.IsoCode, "code", m.Code, "time", m.Duration, "bytes", m.Written)
-
+				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", remoteAddr, "country", c.Country.IsoCode, "code", m.Code, "time", m.Duration, "bytes", m.Written)
 			}
 		}
 

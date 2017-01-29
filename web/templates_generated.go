@@ -254,22 +254,27 @@ func TMPLERRfeeds(title string, loggedInUser *hydrocarbon.User, feeds []hydrocar
 	<div class="content">
 `)
 	_w(`
-<div class="sidebar">
-
-<ul>
-	<li class="sidebar-content"><a href="/feeds/new">New Feed</a></li>
+<ul class="sidebar">
+	<li><a href="/feeds/new">New Feed</a></li>
 `)
-	for _, f := range feeds {
-		_w(`	<li class="sidebar-content">`)
-		_w(fmt.Sprintf(`%v`, f.Name))
-		_w(`<a href="/feeds?id=`)
-		_w(fmt.Sprintf(`%v`, f.ID))
-		_w(`">link</a></li>
+	for _, f := range loggedInUser.Folders {
+		_w(`	<li>Folder `)
+		_w(fmt.Sprintf(`%s`, _escape(f.Name)))
+		_w(`</li>
+	`)
+		for _, fd := range f.Feeds {
+			_w(`
+	    <li><a href="/feeds?id=`)
+			_w(fmt.Sprintf(`%s`, _escape(fd.ID)))
+			_w(`">`)
+			_w(fmt.Sprintf(`%s`, _escape(fd.Name)))
+			_w(`</a></li>
+	`)
+		}
+		_w(`
 `)
 	}
 	_w(`</ul>
-
-</div>
 
 <div class="posts">
 

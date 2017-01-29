@@ -1,9 +1,11 @@
 package pg
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
 
@@ -16,7 +18,7 @@ func (s *Store) GetUser(id string) (*hydrocarbon.User, error) {
 			id = $1
 		) SELECT folders.name, folders.created_at, folders.updated_at, folders.id
 		FROM folders
-		LEFT JOIN user_folders uf on folders.id=uf.id::uuid`, id)
+		INNER JOIN user_folders uf on folders.id=uf.id::uuid`, id)
 	if err != nil {
 		return nil, err
 	}
@@ -28,6 +30,35 @@ func (s *Store) GetUser(id string) (*hydrocarbon.User, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		var feedRows *sqlx.Rows
+		feedRows, err = s.db.Queryx(`
+			WITH folder_feeds as (
+				SELECT unnest(feed_ids) id
+				FROM folders WHERE
+				id = $1
+			) SELECT feeds.name, feeds.created_at, feeds.updated_at, feeds.id, feeds.plugin, feeds.initial_url
+			FROM feeds
+			INNER JOIN folder_feeds ff on feeds.id=ff.id::uuid`, f.ID)
+		if err != nil {
+			fmt.Println(err)
+			return nil, err
+		}
+
+		var feeds []hydrocarbon.Feed
+		for feedRows.Next() {
+			var fe hydrocarbon.Feed
+			err = feedRows.StructScan(&fe)
+			if err != nil {
+				fmt.Println(err)
+				return nil, err
+			}
+
+			feeds = append(feeds, fe)
+		}
+
+		f.Feeds = feeds
+
 		folders = append(folders, f)
 	}
 
@@ -65,6 +96,12 @@ func (s *Store) GetUserByEmail(email string) (*hydrocarbon.User, error) {
 // SetStripeCustomerID sets the stripe ID for a given user
 func (s *Store) SetStripeCustomerID(userID, stripeCustomerID string) error {
 	_, err := s.db.Exec("UPDATE users SET stripe_customer_id = $1 WHERE id = $2;", stripeCustomerID, userID)
+	return err
+}
+
+// AddFolder sets the stripe ID for a given user
+func (s *Store) AddFolder(userID, folderID string) error {
+	_, err := s.db.Exec("UPDATE users SET folder_ids = array_append(folder_ids, $1) WHERE id = $2;", folderID, userID)
 	return err
 }
 

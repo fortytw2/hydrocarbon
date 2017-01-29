@@ -2,6 +2,12 @@ package hydrocarbon
 
 import "time"
 
+// FolderStore saves and persists folders
+type FolderStore interface {
+	CreateFolder(*Folder) (*Folder, error)
+	AddFeed(folderID, feedID string) error
+}
+
 // A Folder is a collection of feeds
 type Folder struct {
 	ID string `json:"id"`

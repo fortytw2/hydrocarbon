@@ -76,16 +76,22 @@ func reorderFeeds(w http.ResponseWriter, r *http.Request) {
 
 func addFeed(s *hydrocarbon.Store) httputil.ErrorHandler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		if loggedIn(r) == nil {
+		user := loggedIn(r)
+		if user == nil {
 			http.Redirect(w, r, loginURL, http.StatusTemporaryRedirect)
 			return nil
 		}
 
-		_, err := s.Feeds.CreateFeed(&hydrocarbon.Feed{
+		f, err := s.Feeds.CreateFeed(&hydrocarbon.Feed{
 			Plugin:     r.FormValue("plugin"),
 			InitialURL: r.FormValue("url"),
 			Name:       r.FormValue("name"),
 		})
+		if err != nil {
+			panic(err)
+		}
+
+		err = s.Folders.AddFeed(user.Folders[0].ID, f.ID)
 		if err != nil {
 			panic(err)
 		}

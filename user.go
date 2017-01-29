@@ -12,8 +12,10 @@ var (
 type UserStore interface {
 	GetUser(id string) (*User, error)
 	GetUserByEmail(email string) (*User, error)
-	SetStripeCustomerID(userID, stripeID string) error
 	CreateUser(*User) (*User, error)
+
+	SetStripeCustomerID(userID, stripeID string) error
+	AddFolder(userID, folderID string) error
 }
 
 // A User is a registered (or not) user
