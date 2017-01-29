@@ -1,9 +1,11 @@
 {
-	"heroku": {
-		"install": ["./cmd/..."],
-		"goVersion": "go1.7"
-	},
 	"comment": "",
+	"heroku": {
+		"goVersion": "go1.7",
+		"install": [
+			"./cmd/..."
+		]
+	},
 	"ignore": "test",
 	"package": [
 		{
@@ -179,18 +181,6 @@
 			"revisionTime": "2016-12-29T21:13:11Z"
 		},
 		{
-			"checksumSHA1": "ssdHHJsQomfjUFJAELnUNCK/9ck=",
-			"path": "github.com/oschwald/geoip2-golang",
-			"revision": "496a3cbcb65a3cb54497fe4ae2273319e85160a4",
-			"revisionTime": "2016-09-10T23:16:03Z"
-		},
-		{
-			"checksumSHA1": "rnQM9A55VCOSbv0IOuUn/Yl+IFk=",
-			"path": "github.com/oschwald/maxminddb-golang",
-			"revision": "4cf6490e82edd288b91d6a786d85dab042015e24",
-			"revisionTime": "2016-12-31T00:38:52Z"
-		},
-		{
 			"checksumSHA1": "Se195FlZ160eaEk/uVx4KdTPSxU=",
 			"path": "github.com/pborman/uuid",
 			"revision": "1b00554d822231195d1babd97ff4a781231955c9",
@@ -279,18 +269,6 @@
 			"path": "golang.org/x/net/html/atom",
 			"revision": "f2499483f923065a842d38eb4c7f1927e6fc6e6d",
 			"revisionTime": "2017-01-14T04:22:49Z"
-		},
-		{
-			"checksumSHA1": "uTQtOqR0ePMMcvuvAIksiIZxhqU=",
-			"path": "golang.org/x/sys/unix",
-			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
-			"revisionTime": "2016-12-14T18:38:57Z"
-		},
-		{
-			"checksumSHA1": "kQB2wRB3twjUp615F6zEwGHjNe0=",
-			"path": "golang.org/x/sys/windows",
-			"revision": "d75a52659825e75fff6158388dddc6a5b04f9ba5",
-			"revisionTime": "2016-12-14T18:38:57Z"
 		},
 		{
 			"checksumSHA1": "YCPcVG3Kac1aaDpbPUtsZ/BXNgg=",

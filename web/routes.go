@@ -1,7 +1,6 @@
 package web
 
 import (
-	"net"
 	"net/http"
 	"time"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/internal/httputil"
 	"github.com/fortytw2/hydrocarbon/internal/log"
-	geoip2 "github.com/oschwald/geoip2-golang"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/unrolled/secure"
@@ -38,12 +36,12 @@ const (
 //go:generate goimports -w ./templates_generated.go
 
 // Routes returns all routes for this application
-func Routes(s *hydrocarbon.Store, l log.Logger, db *geoip2.Reader) *chi.Mux {
+func Routes(s *hydrocarbon.Store, l log.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.RealIP)
 	r.Use(secureHeader(true))
-	r.Use(httplog(l, db))
+	r.Use(httplog(l))
 	r.Use(middleware.Timeout(5 * time.Second))
 	r.Use(middleware.DefaultCompress)
 
@@ -104,7 +102,7 @@ func secureHeader(dev bool) func(http.Handler) http.Handler {
 	return s.Handler
 }
 
-func httplog(l log.Logger, db *geoip2.Reader) func(http.Handler) http.Handler {
+func httplog(l log.Logger) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, req *http.Request) {
 			m := httpsnoop.CaptureMetrics(next, w, req)
@@ -119,13 +117,7 @@ func httplog(l log.Logger, db *geoip2.Reader) func(http.Handler) http.Handler {
 				remoteAddr = req.RemoteAddr
 			}
 
-			ip := net.ParseIP(remoteAddr)
-			c, err := db.Country(ip)
-			if err != nil {
-				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", remoteAddr, "code", m.Code, "time", m.Duration, "bytes", m.Written)
-			} else {
-				l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", remoteAddr, "country", c.Country.IsoCode, "code", m.Code, "time", m.Duration, "bytes", m.Written)
-			}
+			l.Log("msg", "request", "method", req.Method, "url", req.URL.String(), "ip", remoteAddr, "code", m.Code, "time", m.Duration, "bytes", m.Written)
 		}
 
 		return http.HandlerFunc(fn)
