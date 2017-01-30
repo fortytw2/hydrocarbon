@@ -109,7 +109,7 @@ func (s *Store) AddFolder(userID, folderID string) error {
 func (s *Store) CreateUser(u *hydrocarbon.User) (*hydrocarbon.User, error) {
 	row := s.db.QueryRowx(`
 		INSERT INTO users (email, encrypted_password, analytics, active, confirmed, confirmation_token, token_created_at, folder_ids)
-	    VALUES ($1, $2, $3, $4, $5, $6, $7, '{}')
+	    VALUES (lower($1), $2, $3, $4, $5, $6, $7, '{}')
 		RETURNING id, created_at, updated_at, email, encrypted_password, active, confirmed, confirmation_token, token_created_at
 	`, u.Email, u.EncryptedPassword, u.Analytics, u.Active, u.Confirmed, u.ConfirmationToken, u.TokenCreatedAt)
 	if row.Err() != nil {
