@@ -8,6 +8,7 @@ import (
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/internal/httputil"
 	"github.com/fortytw2/hydrocarbon/internal/log"
+	raven "github.com/getsentry/raven-go"
 	"github.com/pressly/chi"
 	"github.com/pressly/chi/middleware"
 	"github.com/unrolled/secure"
@@ -39,6 +40,7 @@ const (
 func Routes(s *hydrocarbon.Store, l log.Logger) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Use(sentryPanic())
 	r.Use(middleware.RealIP)
 	r.Use(secureHeader(true))
 	r.Use(httplog(l))
@@ -100,6 +102,13 @@ func secureHeader(dev bool) func(http.Handler) http.Handler {
 	})
 
 	return s.Handler
+}
+
+func sentryPanic() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		fn := raven.RecoveryHandler(next.ServeHTTP)
+		return http.HandlerFunc(fn)
+	}
 }
 
 func httplog(l log.Logger) func(http.Handler) http.Handler {

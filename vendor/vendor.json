@@ -25,6 +25,12 @@
 			"revisionTime": "2016-12-24T14:14:13Z"
 		},
 		{
+			"checksumSHA1": "TbUu0oEcNoMuYbLJbnJkTOpZ/iw=",
+			"path": "github.com/certifi/gocertifi",
+			"revision": "03be5e6bb9874570ea7fb0961225d193cbc374c5",
+			"revisionTime": "2017-01-23T21:22:43Z"
+		},
+		{
 			"checksumSHA1": "dvabztWVQX8f6oMLRyv4dLH+TGY=",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "346938d642f2ec3594ed81d874461961cd0faa76",
@@ -59,6 +65,12 @@
 			"path": "github.com/fortytw2/watney",
 			"revision": "24bd73b74f21d3dafcffd78403552a7281b58298",
 			"revisionTime": "2016-12-09T13:30:49Z"
+		},
+		{
+			"checksumSHA1": "3ur+hHXnLZOIghIdCBBMx9pbP4E=",
+			"path": "github.com/getsentry/raven-go",
+			"revision": "3f7439d3e74d88e21d196ba20eb61a5a958bc118",
+			"revisionTime": "2016-11-15T13:54:11Z"
 		},
 		{
 			"checksumSHA1": "SUYEFYVLIO7x9+EBKlDv0QPe4CU=",

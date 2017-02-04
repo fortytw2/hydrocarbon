@@ -10,6 +10,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/plugins/xenforo"
 	"github.com/fortytw2/hydrocarbon/stores/pg"
 	"github.com/fortytw2/hydrocarbon/web"
+	raven "github.com/getsentry/raven-go"
 )
 
 func main() {
@@ -19,6 +20,12 @@ func main() {
 	if os.Getenv("POSTGRES_DSN") == "" {
 		l.Log("msg", "env POSTGRES_DSN must be set")
 		return
+	}
+
+	if sentryDSN := os.Getenv("SENTRY_DSN"); sentryDSN != "" {
+		raven.SetDSN(sentryDSN)
+	} else {
+		l.Log("msg", "sentry dsn not set, not reporting errors")
 	}
 
 	store, err := pg.NewStore(l, os.Getenv("POSTGRES_DSN"))
