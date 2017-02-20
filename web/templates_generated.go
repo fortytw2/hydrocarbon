@@ -54,6 +54,7 @@ func TMPLERRbase(title string, loggedInUser *hydrocarbon.User) (string, error) {
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -71,6 +72,7 @@ func TMPLERRbase(title string, loggedInUser *hydrocarbon.User) (string, error) {
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -135,6 +137,7 @@ func TMPLERRfeed(title string, loggedInUser *hydrocarbon.User, feed *hydrocarbon
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -152,6 +155,7 @@ func TMPLERRfeed(title string, loggedInUser *hydrocarbon.User, feed *hydrocarbon
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -233,6 +237,7 @@ func TMPLERRfeeds(title string, loggedInUser *hydrocarbon.User, feeds []hydrocar
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -250,6 +255,7 @@ func TMPLERRfeeds(title string, loggedInUser *hydrocarbon.User, feeds []hydrocar
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -340,6 +346,7 @@ func TMPLERRhome(title string, loggedInUser *hydrocarbon.User) (string, error) {
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -357,6 +364,7 @@ func TMPLERRhome(title string, loggedInUser *hydrocarbon.User) (string, error) {
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -427,6 +435,7 @@ func TMPLERRlogin(title string, loggedInUser *hydrocarbon.User) (string, error) 
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -444,21 +453,24 @@ func TMPLERRlogin(title string, loggedInUser *hydrocarbon.User) (string, error) 
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
 	_w(`
-<div id="register">
+<div class="form" id="register">
+  <h1>Login</h1>
 
-<h1>Login</h1>
-
-<form action="login" method="post">
-  Email <input type="email" name="email"><br>
-  Password <input type="password" name="password"><br>
-  <a href="password_reset">forgot password?</a><br>
-  <input type="submit" value="Submit">
-</form>
-
+  <form action="login" method="post">
+    <label>Email</label>
+    <input type="email" name="email">
+    <label>Password</label>
+    <input type="password" name="password">
+    <br />
+    <a href="password_reset">forgot password?</a>
+    <br />
+    <input type="submit" value="Submit">
+  </form>
 </div>
 `)
 	_w(`	</div>
@@ -520,6 +532,7 @@ func TMPLERRnew_feed(title string, loggedInUser *hydrocarbon.User) (string, erro
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -537,21 +550,19 @@ func TMPLERRnew_feed(title string, loggedInUser *hydrocarbon.User) (string, erro
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
 	_w(`
-<div id="new-feed">
-
-<h1>New Feed</h1>
-
-<form action="/feeds/new" method="post">
-  Name <input type="text" name="name"><br>
-  Plugin <input type="text" name="plugin"><br>
-  URL  <input type="text" name="url"><br>
-  <input type="submit" value="Submit">
-</form>
-
+<div class="form" id="new-feed">
+  <h1>New Feed</h1>
+  <form action="/feeds/new" method="post">
+    Name <input type="text" name="name"><br>
+    Plugin <input type="text" name="plugin"><br>
+    URL  <input type="text" name="url"><br>
+    <input type="submit" value="Submit">
+  </form>
 </div>
 `)
 	_w(`	</div>
@@ -613,6 +624,7 @@ func TMPLERRpassword_reset(title string, loggedInUser *hydrocarbon.User) (string
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -630,20 +642,18 @@ func TMPLERRpassword_reset(title string, loggedInUser *hydrocarbon.User) (string
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
 	_w(`
-<div id="password_reset">
-
-<h1>Password Reset</h1>
-
-<form action="password_reset" method="post">
-  Email <input type="email" name="email"><br>
-  if your email is registered, we'll send you an email<br>
-  <input type="submit" value="Submit">
-</form>
-
+<div class="form" id="password_reset">
+  <h1>Password Reset</h1>
+  <form action="password_reset" method="post">
+    Email <input type="email" name="email"><br>
+    if your email is registered, we'll send you an email<br>
+    <input type="submit" value="Submit">
+  </form>
 </div>
 `)
 	_w(`	</div>
@@ -705,6 +715,7 @@ func TMPLERRpost(title string, loggedInUser *hydrocarbon.User) (string, error) {
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -722,6 +733,7 @@ func TMPLERRpost(title string, loggedInUser *hydrocarbon.User) (string, error) {
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -787,6 +799,7 @@ func TMPLERRprivacy(title string, loggedInUser *hydrocarbon.User) (string, error
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -804,6 +817,7 @@ func TMPLERRprivacy(title string, loggedInUser *hydrocarbon.User) (string, error
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
@@ -873,6 +887,7 @@ func TMPLERRregister(title string, loggedInUser *hydrocarbon.User) (string, erro
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -890,11 +905,12 @@ func TMPLERRregister(title string, loggedInUser *hydrocarbon.User) (string, erro
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)
 	_w(`
-<div id="register">
+<div class="form" id="register">
 
 <h1>Registration</h1>
 
@@ -970,6 +986,7 @@ func TMPLERRsettings(title string, loggedInUser *hydrocarbon.User, stripePublish
 	}
 	_w(`</head>
 <body>
+    <nav>
 	<ul id="header">
 		<li class="logo"><a href="/">hydrocarbon</a></li>
 <!-- if loggedIn header -->
@@ -987,6 +1004,7 @@ func TMPLERRsettings(title string, loggedInUser *hydrocarbon.User, stripePublish
 `)
 	}
 	_w(`	</ul>
+	</nav>
 
 	<div class="content">
 `)

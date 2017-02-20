@@ -2,15 +2,17 @@
 
 !#sub body
 
-<div id="register">
+<div class="form" id="register">
+  <h1>Login</h1>
 
-<h1>Login</h1>
-
-<form action="login" method="post">
-  Email <input type="email" name="email"><br>
-  Password <input type="password" name="password"><br>
-  <a href="password_reset">forgot password?</a><br>
-  <input type="submit" value="Submit">
-</form>
-
+  <form action="login" method="post">
+    <label>Email</label>
+    <input type="email" name="email">
+    <label>Password</label>
+    <input type="password" name="password">
+    <br />
+    <a href="password_reset">forgot password?</a>
+    <br />
+    <input type="submit" value="Submit">
+  </form>
 </div>
