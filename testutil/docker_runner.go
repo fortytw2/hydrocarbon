@@ -1,20 +1,32 @@
 package testutil
 
 import (
-	"context"
 	"fmt"
 	"net"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 )
 
+type Container struct {
+	Name string
+	Addr string
+
+	cmd *exec.Cmd
+}
+
+func (c *Container) Shutdown() {
+	c.cmd.Process.Signal(syscall.SIGTERM)
+}
+
 // RunContainer runs a given docker container and returns a port on which the
 // container can be reached
-func RunContainer(ctx context.Context, container string, port string, waitFunc func(addr string) error) (string, error) {
+func RunContainer(container string, port string, waitFunc func(addr string) error) (*Container, error) {
+
 	free := freePort()
 	addr := fmt.Sprintf("localhost:%d", free)
-	cmd := exec.CommandContext(ctx, "docker", "run", "-p", fmt.Sprintf("%d:%s", free, port), container)
+	cmd := exec.Command("docker", "run", "-p", fmt.Sprintf("%d:%s", free, port), container)
 	// run this in the background
 	go func() {
 		cmd.Stderr = os.Stderr
@@ -34,7 +46,11 @@ func RunContainer(ctx context.Context, container string, port string, waitFunc f
 		}
 	}
 
-	return addr, nil
+	return &Container{
+		Name: container,
+		Addr: addr,
+		cmd:  cmd,
+	}, nil
 }
 
 func freePort() int {
