@@ -37,9 +37,9 @@ func NewDB(dsn string) (*DB, error) {
 // CreateUser creates a new user and returns the users ID
 func (db *DB) CreateUser(ctx context.Context, email string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO users 
-							(email) 
-							VALUES ($1)
-							RETURNING id;`, email)
+										(email) 
+										VALUES ($1)
+										RETURNING id;`, email)
 
 	var userID string
 	err := row.Scan(&userID)
@@ -53,9 +53,9 @@ func (db *DB) CreateUser(ctx context.Context, email string) (string, error) {
 // CreateLoginToken creates a new one-time-use login token
 func (db *DB) CreateLoginToken(ctx context.Context, userID string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO login_tokens 
-							(user_id)
-							VALUES ($1)
-							RETURNING token;`, userID)
+										(user_id)
+										VALUES ($1)
+										RETURNING token;`, userID)
 
 	var token string
 	err := row.Scan(&token)
@@ -70,10 +70,10 @@ func (db *DB) CreateLoginToken(ctx context.Context, userID string) (string, erro
 // the token was for
 func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `UPDATE login_tokens
-							SET (used) = (true)
-							WHERE token = $1
-							AND expired_at > now()
-							RETURNING user_id;`, token)
+										SET (used) = (true)
+										WHERE token = $1
+										AND expired_at > now()
+										RETURNING user_id;`, token)
 
 	var userID string
 	err := row.Scan(&userID)
@@ -88,9 +88,9 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 // session token
 func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO sessions 
-							(user_id, user_agent, ip)
-							VALUES ($1, $2, $3)
-							RETURNING token;`, userID, userAgent, ip)
+										(user_id, user_agent, ip)
+										VALUES ($1, $2, $3)
+										RETURNING token;`, userID, userAgent, ip)
 
 	var token string
 	err := row.Scan(&token)
@@ -104,8 +104,8 @@ func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (
 // DeleteSession invalidates the current session
 func (db *DB) DeleteSession(ctx context.Context, token string) error {
 	_, err := db.sql.QueryContext(ctx, `UPDATE 
-							sessions
-							SET (active) = (false)
-							WHERE token = $1;`, token)
+										sessions
+										SET (active) = (false)
+										WHERE token = $1;`, token)
 	return err
 }
