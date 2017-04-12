@@ -1,0 +1,14 @@
+language: go
+go:
+ - 1.8
+
+sudo: required
+services:
+  - docker
+
+script:
+ - go test -race -v ./...
+
+notifications:
+  slack: hydrocarbon:czrQMquiw5uA7yR3mhpMrdQM
+  email: false

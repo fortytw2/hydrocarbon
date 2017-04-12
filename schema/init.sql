@@ -6,9 +6,7 @@ CREATE TABLE users (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-	-- every customer is permanently linked to a stripe customer id
-	-- you cannot create an account without entering card details
-	stripe_customer_id TEXT NOT NULL,
+	stripe_customer_id TEXT,
 	email TEXT NOT NULL
 );
 
