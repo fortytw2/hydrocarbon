@@ -1,32 +1,13 @@
 package hydrocarbon
 
 import (
-	"database/sql"
 	"testing"
-
-	"github.com/fortytw2/dockertest"
 )
 
 func TestMigrations(t *testing.T) {
-	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
-		db, err := sql.Open("postgres", "postgres://postgres:postgres@"+addr+"?sslmode=disable")
-		if err != nil {
-			return err
-		}
+	t.Parallel()
 
-		return db.Ping()
-	})
-	defer container.Shutdown()
-	if err != nil {
-		t.Fatalf("could not start postgres, %s", err)
-	}
-
-	// spin up postgres
-
-	db, err := NewDB("postgres://postgres:postgres@" + container.Addr + "?sslmode=disable")
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := setupTestDB(t)
 
 	count, err := countMigrations(db.sql)
 	if err != nil {

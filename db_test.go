@@ -8,9 +8,7 @@ import (
 	"github.com/fortytw2/dockertest"
 )
 
-func TestUser(t *testing.T) {
-	t.Parallel()
-
+func setupTestDB(t *testing.T) *DB {
 	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
 		db, err := sql.Open("postgres", "postgres://postgres:postgres@"+addr+"?sslmode=disable")
 		if err != nil {
@@ -28,6 +26,14 @@ func TestUser(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	return db
+}
+
+func TestUser(t *testing.T) {
+	t.Parallel()
+
+	db := setupTestDB(t)
 
 	t.Run("create", createUser(db))
 }
