@@ -23,6 +23,13 @@ type UserAPI struct {
 	m Mailer
 }
 
+func NewUserAPI(s UserStore, m Mailer) *UserAPI {
+	return &UserAPI{
+		s: s,
+		m: m,
+	}
+}
+
 var registerSuccess = []byte(`{"status":"success, check your email"}`)
 
 func (ua *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
