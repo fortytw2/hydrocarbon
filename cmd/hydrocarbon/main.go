@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
 )
 
@@ -20,7 +21,8 @@ func main() {
 		log.Fatal("could not connect to postgres", err)
 	}
 
-	err = http.ListenAndServe(getPort(), hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{})))
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{}))
+	err = http.ListenAndServe(getPort(), gziphandler.GzipHandler(r))
 	if err != nil {
 		log.Fatal(err)
 	}
