@@ -35,7 +35,7 @@ CREATE TABLE sessions (
 	user_agent TEXT NOT NULL,
 	ip TEXT NOT NULL,
 
-	token TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
+	key TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	active BOOLEAN NOT NULL DEFAULT true
 );
 

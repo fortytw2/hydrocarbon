@@ -14,7 +14,7 @@ type UserStore interface {
 	CreateLoginToken(ctx context.Context, userID string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error)
-	DeleteSession(ctx context.Context, token string) error
+	DeactivateSession(ctx context.Context, key string) error
 }
 
 // UserAPI encapsulates everything related to user management
@@ -34,7 +34,7 @@ var (
 	registerSuccess = []byte(`{"status":"success", "note": "check your email"}`)
 )
 
-func (ua *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
+func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 	var registerData struct {
 		Email string `json:"email"`
 	}
@@ -98,6 +98,35 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = json.NewEncoder(w).Encode(&activateSuccess)
+	if err != nil {
+		// do something
+	}
+}
+
+func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
+	var deactivateData struct {
+		Key string `json:"key"`
+	}
+
+	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&deactivateData)
+	if err != nil {
+		panic(err)
+		// do something
+	}
+
+	err = ua.s.DeactivateSession(r.Context(), deactivateData.Key)
+	if err != nil {
+		panic(err)
+		// do something
+	}
+
+	var deactivateSuccess = struct {
+		Status string `json:"status"`
+	}{
+		"success",
+	}
+
+	err = json.NewEncoder(w).Encode(&deactivateSuccess)
 	if err != nil {
 		// do something
 	}

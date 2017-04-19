@@ -89,27 +89,27 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 }
 
 // CreateSession creates a new session for the user ID and returns the
-// session token
+// session key
 func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO sessions 
 										(user_id, user_agent, ip)
 										VALUES ($1, $2, $3)
-										RETURNING token;`, userID, userAgent, ip)
+										RETURNING key;`, userID, userAgent, ip)
 
-	var token string
-	err := row.Scan(&token)
+	var key string
+	err := row.Scan(&key)
 	if err != nil {
 		return "", err
 	}
 
-	return token, nil
+	return key, nil
 }
 
-// DeleteSession invalidates the current session
-func (db *DB) DeleteSession(ctx context.Context, token string) error {
+// DeactivateSession invalidates the current session
+func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 	_, err := db.sql.QueryContext(ctx, `UPDATE 
 										sessions
 										SET (active) = (false)
-										WHERE token = $1;`, token)
+										WHERE key = $1;`, key)
 	return err
 }
