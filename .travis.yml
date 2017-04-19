@@ -7,7 +7,8 @@ services:
   - docker
 
 script:
- - go test -race -v ./...
+  - go generate $(go list ./... | grep -v vendor)
+  - go test -race -v ./...
 
 notifications:
   slack: hydrocarbon:czrQMquiw5uA7yR3mhpMrdQM
