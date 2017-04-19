@@ -12,30 +12,15 @@ CREATE TABLE users (
 
 CREATE UNIQUE INDEX users_email_uniq_idx ON users (lower(email));
 
--- oauth_access_tokens are used to manage access grants
--- from our oauth login providers - github, twitter, google
-CREATE TABLE oauth_access_tokens (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-	user_id UUID REFERENCES users NOT NULL,
-
-	provider TEXT NOT NULL,
-
-	access_token TEXT NOT NULL,
-	access_token_expiry TIMESTAMPTZ NOT NULL,
-
-	-- we use refresh tokens to 
-	refresh_token TEXT NOT NULL,
-	refresh_token_expiry TIMESTAMPTZ NOT NULL
-);
-
 -- login tokens are one-time tokens used to login if oauth 2.0 is not used
 CREATE TABLE login_tokens (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
 	user_id UUID REFERENCES users NOT NULL,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + INTERVAL '24 HOURS',
 
-	token TEXT DEFAULT encode(gen_random_bytes(32), 'base64'),
+	token TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	used BOOLEAN NOT NULL DEFAULT false
 );
 
@@ -50,7 +35,7 @@ CREATE TABLE sessions (
 	user_agent TEXT NOT NULL,
 	ip TEXT NOT NULL,
 
-	token TEXT DEFAULT encode(gen_random_bytes(32), 'base64'),
+	token TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	active BOOLEAN NOT NULL DEFAULT true
 );
 

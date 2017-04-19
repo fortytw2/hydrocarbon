@@ -20,7 +20,7 @@ func main() {
 		log.Fatal("could not connect to postgres", err)
 	}
 
-	err = http.ListenAndServe(getPort(), hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, nil)))
+	err = http.ListenAndServe(getPort(), hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{})))
 	if err != nil {
 		log.Fatal(err)
 	}

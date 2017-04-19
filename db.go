@@ -72,13 +72,17 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 	row := db.sql.QueryRowContext(ctx, `UPDATE login_tokens
 										SET (used) = (true)
 										WHERE token = $1
-										AND expired_at > now()
+										AND expires_at > now()
 										RETURNING user_id;`, token)
 
 	var userID string
 	err := row.Scan(&userID)
 	if err != nil {
 		return "", err
+	}
+
+	if userID == "" {
+		return "", errors.New("no login token found")
 	}
 
 	return userID, nil

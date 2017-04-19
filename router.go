@@ -5,7 +5,8 @@ import "net/http"
 func NewRouter(ua *UserAPI) *http.ServeMux {
 	m := http.NewServeMux()
 
-	m.HandleFunc("/api/register", ua.Register)
+	m.HandleFunc("/api/request", ua.Register)
+	m.HandleFunc("/api/activate", ua.Activate)
 
 	return m
 }

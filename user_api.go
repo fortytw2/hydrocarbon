@@ -30,12 +30,14 @@ func NewUserAPI(s UserStore, m Mailer) *UserAPI {
 	}
 }
 
-var registerSuccess = []byte(`{"status":"success, check your email"}`)
+var (
+	registerSuccess = []byte(`{"status":"success", "note": "check your email"}`)
+)
 
 func (ua *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
-	var registerData = struct {
+	var registerData struct {
 		Email string `json:"email"`
-	}{}
+	}
 
 	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&registerData)
 	if err != nil {
@@ -62,4 +64,41 @@ func (ua *UserAPI) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(registerSuccess)
+}
+
+func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
+	var activateData struct {
+		Token string `json:"token"`
+	}
+
+	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&activateData)
+	if err != nil {
+		panic(err)
+		// do something
+	}
+
+	userID, err := ua.s.ActivateLoginToken(r.Context(), activateData.Token)
+	if err != nil {
+		panic(err)
+		// do something
+	}
+
+	key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), r.RemoteAddr)
+	if err != nil {
+		panic(err)
+		// do something
+	}
+
+	var activateSuccess = struct {
+		Status string `json:"status"`
+		APIKey string `json:"api_key"`
+	}{
+		"success",
+		key,
+	}
+
+	err = json.NewEncoder(w).Encode(&activateSuccess)
+	if err != nil {
+		// do something
+	}
 }
