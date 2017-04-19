@@ -20,6 +20,9 @@ CREATE TABLE login_tokens (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + INTERVAL '24 HOURS',
 
+	user_agent TEXT NOT NULL,
+	ip TEXT NOT NULL,
+
 	token TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	used BOOLEAN NOT NULL DEFAULT false
 );
@@ -39,7 +42,7 @@ CREATE TABLE sessions (
 	active BOOLEAN NOT NULL DEFAULT true
 );
 
-CREATE UNIQUE INDEX sessions_token_idx ON sessions (token);
+CREATE UNIQUE INDEX sessions_key_idx ON sessions (key);
 
 -- payments are where we record all payments made via stripe
 CREATE TABLE payments (

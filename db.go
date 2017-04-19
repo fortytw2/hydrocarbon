@@ -51,11 +51,11 @@ func (db *DB) CreateUser(ctx context.Context, email string) (string, error) {
 }
 
 // CreateLoginToken creates a new one-time-use login token
-func (db *DB) CreateLoginToken(ctx context.Context, userID string) (string, error) {
-	row := db.sql.QueryRowContext(ctx, `INSERT INTO login_tokens 
-										(user_id)
-										VALUES ($1)
-										RETURNING token;`, userID)
+func (db *DB) CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error) {
+	row := db.sql.QueryRowContext(ctx, `INSERT INTO login_tokens
+										(user_id, user_agent, ip)
+										VALUES ($1, $2, $3)
+										RETURNING token;`, userID, userAgent, ip)
 
 	var token string
 	err := row.Scan(&token)
@@ -73,16 +73,16 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 										SET (used) = (true)
 										WHERE token = $1
 										AND expires_at > now()
+										AND used = false
 										RETURNING user_id;`, token)
 
 	var userID string
 	err := row.Scan(&userID)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", errors.New("no valid token found")
+		}
 		return "", err
-	}
-
-	if userID == "" {
-		return "", errors.New("no login token found")
 	}
 
 	return userID, nil
@@ -112,4 +112,20 @@ func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 										SET (active) = (false)
 										WHERE key = $1;`, key)
 	return err
+}
+
+// ActiveUserFromKey returns the active user ID from the session key
+func (db *DB) ActiveUserFromKey(ctx context.Context, key string) (string, error) {
+	row := db.sql.QueryRowContext(ctx, `SELECT user_id 
+										FROM sessions 
+										WHERE key = $1
+										AND active = true;`, key)
+
+	var userID string
+	err := row.Scan(&userID)
+	if err != nil {
+		return "", err
+	}
+
+	return userID, nil
 }

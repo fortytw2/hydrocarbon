@@ -11,7 +11,7 @@ import (
 // actual underlying database
 type UserStore interface {
 	CreateUser(ctx context.Context, email string) (string, error)
-	CreateLoginToken(ctx context.Context, userID string) (string, error)
+	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error)
 	DeactivateSession(ctx context.Context, key string) error
@@ -31,7 +31,7 @@ func NewUserAPI(s UserStore, m Mailer) *UserAPI {
 }
 
 var (
-	registerSuccess = []byte(`{"status":"success", "note": "check your email"}`)
+	registerSuccess = []byte(`{"status":"success", "note": "check your email, token expires in 24 hours"}`)
 )
 
 func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 		// something
 	}
 
-	lt, err := ua.s.CreateLoginToken(r.Context(), userID)
+	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
 		// something
 	}
