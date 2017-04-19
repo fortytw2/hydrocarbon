@@ -5,10 +5,10 @@ import "net/http"
 func NewRouter(ua *UserAPI) *http.ServeMux {
 	m := http.NewServeMux()
 
-	// user management
-	m.HandleFunc("/api/request", ua.RequestToken)
-	m.HandleFunc("/api/activate", ua.Activate)
-	m.HandleFunc("/api/deactivate", ua.Deactivate)
+	// session management
+	m.HandleFunc("/api/token/request", ua.RequestToken)
+	m.HandleFunc("/api/token/activate", ua.Activate)
+	m.HandleFunc("/api/key/deactivate", ua.Deactivate)
 
 	return m
 }

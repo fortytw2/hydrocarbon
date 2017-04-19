@@ -91,7 +91,7 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 
 	var activateSuccess = struct {
 		Status string `json:"status"`
-		APIKey string `json:"api_key"`
+		Key    string `json:"key"`
 	}{
 		"success",
 		key,
