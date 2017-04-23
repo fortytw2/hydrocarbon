@@ -14,13 +14,16 @@ import (
 func NewRouter(ua *UserAPI) *httprouter.Router {
 	m := httprouter.New()
 
-	m.Handle("GET", "/static/*file", http.StripPrefix("/static/", http.FileServer(
+	fs := http.FileServer(
 		&assetfs.AssetFS{
 			Asset:     public.Asset,
 			AssetDir:  public.AssetDir,
 			AssetInfo: public.AssetInfo,
 			Prefix:    "ui/build/",
-		})).ServeHTTP)
+		})
+
+	m.Handle("GET", "/static/*file", http.StripPrefix("/static/", fs).ServeHTTP)
+	m.Handle("GET", "/favicon.ico", fs.ServeHTTP)
 
 	m.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		buf := public.MustAsset("ui/build/index.html")
