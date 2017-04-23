@@ -3,19 +3,16 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build-dist": "rollup -c --output=build/js/bundle.min.js -- src/main.ts",
-    "build": "rollup -c -m inline --output=build/js/bundle.min.js -- src/main.ts"
+    "build-dist": "rollup -c --output=build/js/bundle.min.js -- src/main.js",
+    "build": "rollup -c -m inline --output=build/js/bundle.min.js -- src/main.js"
   },
   "dependencies": {
     "mithril": "^1.1.1"
   },
   "devDependencies": {
-    "@types/mithril": "github:spacejack/mithril.d.ts#improved",
     "rollup": "^0.41.6",
     "rollup-plugin-closure-compiler-js": "^1.0.4",
     "rollup-plugin-commonjs": "^8.0.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-typescript": "^0.8.1",
-    "typescript": "^2.2.2"
+    "rollup-plugin-node-resolve": "^3.0.0"
   }
 }
