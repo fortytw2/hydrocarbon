@@ -7,8 +7,8 @@ export default {
   view(vnode) {
     return m(".page", [
       m(nav),
-      m("h1", "about"),
-      m("p", "this is the about page."),
+      m("h1", "login"),
+      m("p", "login page will go here"),
       m(footer)
     ]);
   }

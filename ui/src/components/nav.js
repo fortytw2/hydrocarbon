@@ -1,12 +1,25 @@
-import m from 'mithril'
-import * as Mithril from 'mithril'
+import m from "mithril";
+import * as Mithril from "mithril";
+
+var navClass = "pa3 pa4-ns";
+var titleClass = "link dim black b f6 f5-ns dib mr3";
+var linkClass = "link dim gray    f6 f5-ns dib mr3";
 
 export default {
-    view (vnode) {
-		return m('div',
-			m('a', {href: '/', oncreate: m.route.link}, "Home"),
-			m('span', " | "),
-			m('a', {href: '/about', oncreate: m.route.link}, "About")
-		)
-	}
-}
+  view(vnode) {
+    return m(
+      "nav",
+      { class: navClass },
+      m(
+        "a",
+        { class: titleClass, href: "/", oncreate: m.route.link },
+        "hydrocarbon"
+      ),
+      m(
+        "a",
+        { class: linkClass, href: "/login", oncreate: m.route.link },
+        "login"
+      )
+    );
+  }
+};
