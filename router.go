@@ -11,7 +11,7 @@ import (
 //go:generate bash -c "cd ui && yarn run build-dist"
 //go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/build/..."
 
-func NewRouter(ua *UserAPI) *httprouter.Router {
+func NewRouter(ua *UserAPI, https bool) http.Handler {
 	m := httprouter.New()
 
 	fs := http.FileServer(
@@ -36,5 +36,20 @@ func NewRouter(ua *UserAPI) *httprouter.Router {
 	m.POST("/api/token/activate", ua.Activate)
 	m.POST("/api/key/deactivate", ua.Deactivate)
 
+	if https {
+		return redirectHTTPS(m)
+	}
 	return m
+}
+
+func redirectHTTPS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Forwarded-Proto") == "http" {
+			r.URL.Scheme = "https"
+			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
