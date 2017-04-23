@@ -7,7 +7,8 @@ import (
 func TestMigrations(t *testing.T) {
 	t.Parallel()
 
-	db := setupTestDB(t)
+	db, shutdown := setupTestDB(t)
+	defer shutdown()
 
 	count, err := countMigrations(db.sql)
 	if err != nil {

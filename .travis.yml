@@ -21,7 +21,10 @@ cache:
     - ui/node_modules
 
 script:
-  - cd ui && yarn install
+  - go get -u github.com/jteeuwen/go-bindata/...
+  - cd ui
+  - yarn install
+  - cd ../
   - go generate $(go list ./... | grep -v vendor)
   - go test -race -v ./...
 

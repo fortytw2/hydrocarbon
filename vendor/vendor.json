@@ -1,0 +1,49 @@
+{
+	"heroku": {
+		"goVersion": "go1.8",
+		"install": [
+			"./cmd/..."
+		]
+	},
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "p04JPQsK07AUDAYJuAWwifJRISU=",
+			"path": "github.com/NYTimes/gziphandler",
+			"revision": "22d4470af89e09998fc16b35029df973932df4ae",
+			"revisionTime": "2017-04-03T15:28:07Z"
+		},
+		{
+			"checksumSHA1": "q2kOt2MRa1OPLDWdN65gxvoG4Ns=",
+			"path": "github.com/bouk/httprouter",
+			"revision": "ee8b3818a7f51fbc94cc709b5744b52c2c725e91",
+			"revisionTime": "2016-08-06T18:58:30Z"
+		},
+		{
+			"checksumSHA1": "7DxViusFRJ7UPH0jZqYatwDrOkY=",
+			"path": "github.com/elazarl/go-bindata-assetfs",
+			"revision": "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43",
+			"revisionTime": "2017-02-27T21:27:28Z"
+		},
+		{
+			"checksumSHA1": "0ctnwTrvduyyaFRHs3dIz9iv35w=",
+			"path": "github.com/fortytw2/dockertest",
+			"revision": "f653a0466d6256c354eaaf203481190cc8c04d3a",
+			"revisionTime": "2017-04-12T12:02:05Z"
+		},
+		{
+			"checksumSHA1": "uTUsjF7bymOuKvXbW2BpkK/w4Vg=",
+			"path": "github.com/lib/pq",
+			"revision": "2704adc878c21e1329f46f6e56a1c387d788ff94",
+			"revisionTime": "2017-03-24T20:46:54Z"
+		},
+		{
+			"checksumSHA1": "Gk3jTNQ5uGDUE0WMJFWcYz9PMps=",
+			"path": "github.com/lib/pq/oid",
+			"revision": "2704adc878c21e1329f46f6e56a1c387d788ff94",
+			"revisionTime": "2017-03-24T20:46:54Z"
+		}
+	],
+	"rootPath": "github.com/fortytw2/hydrocarbon"
+}

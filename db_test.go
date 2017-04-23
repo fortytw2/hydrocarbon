@@ -2,38 +2,31 @@ package hydrocarbon
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
 	"github.com/fortytw2/dockertest"
 )
 
-func setupTestDB(t *testing.T) *DB {
-	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
-		db, err := sql.Open("postgres", "postgres://postgres:postgres@"+addr+"?sslmode=disable")
-		if err != nil {
-			return err
-		}
+func setupTestDB(t *testing.T) (*DB, func()) {
+	var db *DB
 
-		return db.Ping()
+	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
+		var err error
+		db, err = NewDB("postgres://postgres:postgres@" + addr + "?sslmode=disable")
+		return err
 	})
-	defer container.Shutdown()
 	if err != nil {
 		t.Fatalf("could not start postgres, %s", err)
 	}
 
-	db, err := NewDB("postgres://postgres:postgres@" + container.Addr + "?sslmode=disable")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	return db
+	return db, container.Shutdown
 }
 
 func TestUser(t *testing.T) {
 	t.Parallel()
 
-	db := setupTestDB(t)
+	db, shutdown := setupTestDB(t)
+	defer shutdown()
 
 	t.Run("create", createUser(db))
 }

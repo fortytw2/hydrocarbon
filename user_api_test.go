@@ -12,19 +12,18 @@ import (
 func TestUserAPI(t *testing.T) {
 	t.Parallel()
 
-	db := setupTestDB(t)
+	db, shutdown := setupTestDB(t)
+	defer shutdown()
 
 	t.Run("create", userAPITestCreate(db))
 }
 
 func userAPITestCreate(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		t.Parallel()
-
 		s := httptest.NewServer(http.HandlerFunc((&UserAPI{
 			s: db,
 			m: &MockMailer{},
-		}).Register))
+		}).RequestToken))
 
 		resp, err := http.Post(s.URL, "application/json", strings.NewReader(`{"email":"ian@hydrocarbon.io"}`))
 		if err != nil {
@@ -39,6 +38,5 @@ func userAPITestCreate(db *DB) func(t *testing.T) {
 		if !bytes.Equal(buf, registerSuccess) {
 			t.Fatal("did not register account")
 		}
-
 	}
 }

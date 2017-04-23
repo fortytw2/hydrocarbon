@@ -2,8 +2,6 @@ cmd/hydrocarbon/hydrocarbon
 
 .DS_Store
 ui/node_modules/
-ui/build/js/bundle.min.js
-public/assets_generated.go
 ui/npm-debug.log*
 ui/yarn-debug.log*
 ui/yarn-error.log*
