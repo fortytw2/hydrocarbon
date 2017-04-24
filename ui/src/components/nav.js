@@ -1,5 +1,4 @@
 import m from "mithril";
-import * as Mithril from "mithril";
 
 var navClass = "pa3 pa4-ns";
 var titleClass = "link dim black b f6 f5-ns dib mr3";
