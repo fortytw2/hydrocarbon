@@ -15,13 +15,15 @@ export default {
       ),
       m(
         "div",
-        { class: "tc mt2" },
+        { class: "tc mt2",
+          style: "display: flex; align-items: center; justify-content: center;" 
+        },
         m(
           "a",
           {
             class: svgLinkClass,
+            style: "height: 16px;",
             href: "https://github.com/fortytw2/hydrocarbon?ref=hc",
-            oncreate: m.route.link
           },
           m(
             "svg",
