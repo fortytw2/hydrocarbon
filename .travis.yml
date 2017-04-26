@@ -21,11 +21,12 @@ cache:
     - ui/node_modules
 
 script:
-  - go get -u github.com/jteeuwen/go-bindata/...
+  - go get -u github.com/lestrrat/go-bindata/...
   - cd ui
   - yarn install
   - cd ../
   - go generate $(go list ./... | grep -v vendor)
+  - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
   - go test -race -v ./...
 
 notifications:
