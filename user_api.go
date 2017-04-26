@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 )
 
 // A UserStore is an interface used to seperate the UserAPI from knowledge of the
@@ -41,25 +42,30 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&registerData)
 	if err != nil {
+		panic(err)
 		// do something
 	}
 
-	if len(registerData.Email) > 256 {
+	if len(registerData.Email) > 256 || !strings.Contains(registerData.Email, "@") {
+		panic(err)
 		// error out
 	}
 
 	userID, err := ua.s.CreateUser(r.Context(), registerData.Email)
 	if err != nil {
+		panic(err)
 		// something
 	}
 
 	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), r.RemoteAddr)
 	if err != nil {
+		panic(err)
 		// something
 	}
 
 	err = ua.m.Send(registerData.Email, "go to $URL with "+lt)
 	if err != nil {
+		panic(err)
 		// something
 	}
 
