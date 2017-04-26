@@ -6,8 +6,5 @@ export default {
   entry: "./main.js",
   format: "iife",
 
-  plugins: [
-    resolve({ jsnext: true, main: true }),
-    commonjs()
-  ]
+  plugins: [resolve({ jsnext: true, main: true }), commonjs()]
 };

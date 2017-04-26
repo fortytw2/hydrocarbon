@@ -36,5 +36,5 @@ m.route(document.body, "/", {
     render: function() {
       return m(layout, m(login));
     }
-  },
+  }
 });

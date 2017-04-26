@@ -25,6 +25,9 @@ script:
   - cd ui
   - yarn install
   - cd ../
+  # Ensure all js is formatted. gopherCI takes care of Go
+  - yarn global add prettier --ignore-engines
+  - prettier --write "ui/**.js"
   - go generate $(go list ./... | grep -v vendor)
   - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
   - go test -race -v ./...

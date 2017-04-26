@@ -12,8 +12,8 @@ export default {
       {
         class: "measure center",
         onsubmit: function(e) {
-          e.preventDefault()
-          user.requestToken(document.getElementById("email").value)
+          e.preventDefault();
+          user.requestToken(document.getElementById("email").value);
         }
       },
       [

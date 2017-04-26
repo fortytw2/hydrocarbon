@@ -1,7 +1,7 @@
 // src/models/User.js
 import m from "mithril";
 import config from "../config";
-import flash from "./flash.js"
+import flash from "./flash.js";
 
 export default {
   requestToken: function(email) {
@@ -15,8 +15,8 @@ export default {
         }
       })
       .then(function(result) {
-        console.log(result)
-        flash.flashMessage = result.note
+        console.log(result);
+        flash.flashMessage = result.note;
       });
   }
 };
