@@ -1,3 +1,3 @@
 export default {
-  URL: "http://localhost:8080/api"
+  URL: "URL_ENDPOINT_CHANGE_ME"
 };
