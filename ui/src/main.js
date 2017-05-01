@@ -3,6 +3,8 @@
 import m from "mithril";
 import layout from "./components/layout";
 import login from "./components/login";
+import config from "./config";
+import raven from "raven-js";
 
 m.route.prefix("");
 
@@ -38,3 +40,8 @@ m.route(document.body, "/", {
     }
   }
 });
+
+if (config.SENTRY_PUBLIC_DSN !== "") {
+  console.log("installing sentry", config.SENTRY_PUBLIC_DSN);
+  raven.config(config.SENTRY_PUBLIC_DSN).install();
+}
