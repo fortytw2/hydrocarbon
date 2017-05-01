@@ -1,7 +1,8 @@
 // src/models/User.js
 import m from "mithril";
 import config from "../config";
-import flash from "./flash.js";
+import flash from "./flash";
+import raven from "raven-js";
 
 export default {
   requestToken: function(email) {
@@ -17,6 +18,9 @@ export default {
       .then(function(result) {
         console.log(result);
         flash.flashMessage = result.note;
+      })
+      .catch(function(error) {
+        raven.captureException(error);
       });
   }
 };

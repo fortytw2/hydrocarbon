@@ -43,5 +43,15 @@ m.route(document.body, "/", {
 
 if (config.SENTRY_PUBLIC_DSN !== "") {
   console.log("installing sentry", config.SENTRY_PUBLIC_DSN);
-  raven.config(config.SENTRY_PUBLIC_DSN).install();
+  raven
+    .config(config.SENTRY_PUBLIC_DSN, {
+      environment: "HYDROCARBON_ENV",
+      autoBreadcrumbs: {
+        xhr: true, // XMLHttpRequest
+        console: true, // console logging
+        dom: true, // DOM interactions, i.e. clicks/typing
+        location: true // url changes, including pushState/popState
+      }
+    })
+    .install();
 }
