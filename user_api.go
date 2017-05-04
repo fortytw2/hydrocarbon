@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 )
@@ -57,7 +58,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 		// something
 	}
 
-	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), r.RemoteAddr)
+	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
 		panic(err)
 		// something
@@ -89,7 +90,7 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 		// do something
 	}
 
-	key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), r.RemoteAddr)
+	key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
 		panic(err)
 		// do something
@@ -136,4 +137,25 @@ func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		// do something
 	}
+}
+
+func getRemoteIP(r *http.Request) string {
+	realIP := r.Header.Get("X-Real-IP")
+	if realIP != "" {
+		return realIP
+	}
+
+	fwdIP := r.Header.Get("X-Forwarded-For")
+	fwdSplit := strings.Split(fwdIP, ",")
+	if fwdIP != "" {
+		// pick the leftmost x-forwarded-for addr
+		return fwdSplit[0]
+	}
+
+	// this literally can't fail on r.RemoteAddr
+	ip, _, err := net.SplitHostPort(r.RemoteAddr)
+	if err != nil {
+		return r.RemoteAddr
+	}
+	return ip
 }

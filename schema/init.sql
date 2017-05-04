@@ -1,4 +1,5 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
 	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -7,10 +8,10 @@ CREATE TABLE users (
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
 	stripe_customer_id TEXT,
-	email TEXT NOT NULL
+	email CITEXT NOT NULL
 );
 
-CREATE UNIQUE INDEX users_email_uniq_idx ON users (lower(email));
+CREATE UNIQUE INDEX users_email_uniq_idx ON users (email);
 
 -- login tokens are one-time tokens used to login if oauth 2.0 is not used
 CREATE TABLE login_tokens (
@@ -21,7 +22,7 @@ CREATE TABLE login_tokens (
 	expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + INTERVAL '24 HOURS',
 
 	user_agent TEXT NOT NULL,
-	ip TEXT NOT NULL,
+	ip CIDR NOT NULL,
 
 	token TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	used BOOLEAN NOT NULL DEFAULT false
@@ -36,7 +37,7 @@ CREATE TABLE sessions (
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	user_agent TEXT NOT NULL,
-	ip TEXT NOT NULL,
+	ip CIDR NOT NULL,
 
 	key TEXT DEFAULT encode(gen_random_bytes(16), 'hex'),
 	active BOOLEAN NOT NULL DEFAULT true

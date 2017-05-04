@@ -23,8 +23,6 @@ func setupTestDB(t *testing.T) (*DB, func()) {
 }
 
 func TestUser(t *testing.T) {
-	t.Parallel()
-
 	db, shutdown := setupTestDB(t)
 	defer shutdown()
 
@@ -38,9 +36,30 @@ func createUser(db *DB) func(t *testing.T) {
 			t.Fatalf("could not create user %s", err)
 		}
 
-		_, err = db.CreateUser(context.Background(), "ian@hydrocarbon.io")
+		_, err = db.CreateUser(context.Background(), "ian@HYDroCARBon.io")
 		if err == nil {
 			t.Fatal("no error on creating same user twice")
+		}
+	}
+}
+
+func TestSession(t *testing.T) {
+	db, shutdown := setupTestDB(t)
+	defer shutdown()
+
+	t.Run("create", createSession(db))
+}
+
+func createSession(db *DB) func(t *testing.T) {
+	return func(t *testing.T) {
+		id, err := db.CreateUser(context.Background(), "ian@createsession.io")
+		if err != nil {
+			t.Fatalf("could not create user %s", err)
+		}
+
+		_, err = db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
+		if err != nil {
+			t.Fatalf("could not create session %s", err)
 		}
 	}
 }

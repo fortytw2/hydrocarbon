@@ -54,7 +54,7 @@ func (db *DB) CreateUser(ctx context.Context, email string) (string, error) {
 func (db *DB) CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO login_tokens
 										(user_id, user_agent, ip)
-										VALUES ($1, $2, $3)
+										VALUES ($1, $2, $3::cidr)
 										RETURNING token;`, userID, userAgent, ip)
 
 	var token string
@@ -93,7 +93,7 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO sessions 
 										(user_id, user_agent, ip)
-										VALUES ($1, $2, $3)
+										VALUES ($1, $2, $3::cidr)
 										RETURNING key;`, userID, userAgent, ip)
 
 	var key string

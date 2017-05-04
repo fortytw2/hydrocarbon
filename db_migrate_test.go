@@ -5,8 +5,6 @@ import (
 )
 
 func TestMigrations(t *testing.T) {
-	t.Parallel()
-
 	db, shutdown := setupTestDB(t)
 	defer shutdown()
 
