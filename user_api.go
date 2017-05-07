@@ -3,6 +3,7 @@ package hydrocarbon
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -64,7 +65,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 		// something
 	}
 
-	err = ua.m.Send(registerData.Email, "go to $URL with "+lt)
+	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/login-callback?key=%s to login", ua.m.RootDomain(), lt))
 	if err != nil {
 		panic(err)
 		// something

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
@@ -33,8 +34,8 @@ func main() {
 	sentryPublic := os.Getenv("SENTRY_PUBLIC_DSN")
 	log.Println("using SENTRY_PUBLIC_DSN", sentryPublic)
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{}), domain, sentryPublic)
-	err = http.ListenAndServe(getPort(), gziphandler.GzipHandler(r))
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{Domain: domain}), domain, sentryPublic)
+	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,4 +47,14 @@ func getPort() string {
 		return ":" + p
 	}
 	return ":8080"
+}
+
+func httpLogger(router http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		startTime := time.Now()
+		router.ServeHTTP(w, req)
+		finishTime := time.Now()
+		elapsedTime := finishTime.Sub(startTime)
+		log.Println("hydrocarbon:", req.Method, req.URL, elapsedTime)
+	})
 }

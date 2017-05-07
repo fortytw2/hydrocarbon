@@ -1,6 +1,4 @@
 import m from "mithril";
-import nav from "./nav";
-import footer from "./footer";
 import user from "../models/user";
 
 var inputClass = "pa2 input-reset ba bg-transparent w-100";

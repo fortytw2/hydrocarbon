@@ -3,6 +3,8 @@
 import m from "mithril";
 import layout from "./components/layout";
 import login from "./components/login";
+import logincallback from "./components/login-callback";
+import settings from "./components/settings";
 import config from "./config";
 import raven from "raven-js";
 
@@ -37,6 +39,16 @@ m.route(document.body, "/", {
   "/login": {
     render: function() {
       return m(layout, m(login));
+    }
+  },
+  "/login-callback": {
+    render: function() {
+      return m(layout, m(logincallback));
+    }
+  },
+  "/settings": {
+    render: function() {
+      return m(layout, m(settings));
     }
   }
 });

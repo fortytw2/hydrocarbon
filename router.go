@@ -1,13 +1,11 @@
 package hydrocarbon
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
-	"strings"
-
 	"net/url"
-
-	"bytes"
+	"strings"
 
 	"github.com/bouk/httprouter"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
