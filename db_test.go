@@ -57,7 +57,7 @@ func createSession(db *DB) func(t *testing.T) {
 			t.Fatalf("could not create user %s", err)
 		}
 
-		_, err = db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
+		_, _, err = db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
 		if err != nil {
 			t.Fatalf("could not create session %s", err)
 		}

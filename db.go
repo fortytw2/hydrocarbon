@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	_ "github.com/lib/pq"
 )
@@ -90,19 +91,58 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 
 // CreateSession creates a new session for the user ID and returns the
 // session key
-func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error) {
+func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (email string, key string, err error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO sessions 
 										(user_id, user_agent, ip)
 										VALUES ($1, $2, $3::cidr)
 										RETURNING key;`, userID, userAgent, ip)
-
-	var key string
-	err := row.Scan(&key)
+	err = row.Scan(&key)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 
-	return key, nil
+	row = db.sql.QueryRowContext(ctx, `SELECT email
+										FROM users
+										WHERE id = $1`, userID)
+	err = row.Scan(&email)
+	if err != nil {
+		return "", "", err
+	}
+
+	return email, key, nil
+}
+
+// A Session is a session
+type Session struct {
+	CreatedAt time.Time `json:"created_at"`
+	UserAgent string    `json:"user_agent"`
+	IP        string    `json:"ip"`
+	Active    bool      `json:"active"`
+}
+
+// ListSessions lists all sessions a user has
+func (db *DB) ListSessions(ctx context.Context, key string, page int) ([]*Session, error) {
+	rows, err := db.sql.QueryContext(ctx, `SELECT created_at, user_agent, ip, active
+							FROM sessions
+							WHERE user_id = (SELECT user_id FROM sessions WHERE key = $1)
+							LIMIT 25
+							OFFSET $2`, key, page)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var out []*Session
+	for rows.Next() {
+		var s Session
+		err = rows.Scan(&s.CreatedAt, &s.UserAgent, &s.IP, &s.Active)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, &s)
+	}
+
+	return out, nil
 }
 
 // DeactivateSession invalidates the current session
@@ -111,6 +151,7 @@ func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 										sessions
 										SET (active) = (false)
 										WHERE key = $1;`, key)
+
 	return err
 }
 

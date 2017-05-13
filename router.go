@@ -31,6 +31,11 @@ func NewRouter(ua *UserAPI, domain, sentryPublic string) http.Handler {
 	m.Handle("GET", "/favicon.ico", fs.ServeHTTP)
 
 	m.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
 		buf := public.MustAsset("ui/build/index.html")
 		w.Header().Set("Content-Type", "text/html")
 		w.Write(buf)
@@ -40,6 +45,7 @@ func NewRouter(ua *UserAPI, domain, sentryPublic string) http.Handler {
 	m.POST("/api/token/request", ua.RequestToken)
 	m.POST("/api/token/activate", ua.Activate)
 	m.POST("/api/key/deactivate", ua.Deactivate)
+	m.POST("/api/key/list", ua.ListSessions)
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)

@@ -16,7 +16,8 @@ type UserStore interface {
 	CreateUser(ctx context.Context, email string) (string, error)
 	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
-	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, error)
+	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, string, error)
+	ListSessions(ctx context.Context, key string, page int) ([]*Session, error)
 	DeactivateSession(ctx context.Context, key string) error
 }
 
@@ -74,6 +75,24 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 	w.Write(registerSuccess)
 }
 
+// ListSessions writes out all of a users current / past sessions
+func (ua *UserAPI) ListSessions(w http.ResponseWriter, r *http.Request) {
+	key := r.Header.Get("X-Hydrocarbon-Key")
+	if key == "" {
+		return
+	}
+
+	sess, err := ua.s.ListSessions(r.Context(), key, 0)
+	if err != nil {
+		panic(err)
+	}
+
+	err = json.NewEncoder(w).Encode(sess)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 	var activateData struct {
 		Token string `json:"token"`
@@ -91,7 +110,7 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 		// do something
 	}
 
-	key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
+	email, key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
 		panic(err)
 		// do something
@@ -99,9 +118,11 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 
 	var activateSuccess = struct {
 		Status string `json:"status"`
+		Email  string `json:"email"`
 		Key    string `json:"key"`
 	}{
 		"success",
+		email,
 		key,
 	}
 

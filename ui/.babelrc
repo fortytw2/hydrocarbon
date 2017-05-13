@@ -1,0 +1,25 @@
+{
+    "presets": [
+        [
+            "env",
+            {
+                "targets": {
+                    "browsers": [
+                        "> 5%"
+                    ]
+                },
+                "modules": false
+            }
+        ]
+    ],
+    "plugins": [
+        "external-helpers",
+        "transform-class-properties",
+        [
+            "transform-react-jsx",
+            {
+                "pragma": "h"
+            }
+        ]
+    ]
+}
