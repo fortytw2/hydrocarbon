@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "build": "rollup -c --output=build/js/bundle.min.js -- main.jsx"
+    "build-css": "tachyons tachyons/tachyons.css --minify > build/css/bundle.min.css",
+    "build-js": "rollup -c --output=build/js/bundle.min.js -- main.jsx"
   },
   "dependencies": {
     "history": "^4.6.1",
@@ -24,6 +25,8 @@
     "rollup-plugin-babili": "^3.0.0",
     "rollup-plugin-commonjs": "^8.0.2",
     "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-replace": "^1.1.1"
+    "rollup-plugin-replace": "^1.1.1",
+    "tachyons": "^4.7.0",
+    "tachyons-cli": "^1.0.10"
   }
 }
