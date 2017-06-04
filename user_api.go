@@ -3,6 +3,7 @@ package hydrocarbon
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -13,7 +14,7 @@ import (
 // A UserStore is an interface used to seperate the UserAPI from knowledge of the
 // actual underlying database
 type UserStore interface {
-	CreateUser(ctx context.Context, email string) (string, error)
+	CreateOrGetUser(ctx context.Context, email string) (string, error)
 	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, string, error)
@@ -35,7 +36,7 @@ func NewUserAPI(s UserStore, m Mailer) *UserAPI {
 }
 
 var (
-	registerSuccess = []byte(`{"status":"success", "note": "check your email, token expires in 24 hours"}`)
+	registerSuccess = []byte(`{"status":"success", "note": "email sent, token expires in 24 hours"}`)
 )
 
 func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
@@ -45,31 +46,31 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&registerData)
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	if len(registerData.Email) > 256 || !strings.Contains(registerData.Email, "@") {
-		panic(err)
-		// error out
+		writeErr(w, err)
+		return
 	}
 
-	userID, err := ua.s.CreateUser(r.Context(), registerData.Email)
+	userID, err := ua.s.CreateOrGetUser(r.Context(), registerData.Email)
 	if err != nil {
-		panic(err)
-		// something
+		writeErr(w, err)
+		return
 	}
 
 	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
-		panic(err)
-		// something
+		writeErr(w, err)
+		return
 	}
 
-	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/login-callback?key=%s to login", ua.m.RootDomain(), lt))
+	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/login-callback?token=%s to login", ua.m.RootDomain(), lt))
 	if err != nil {
-		panic(err)
-		// something
+		writeErr(w, err)
+		return
 	}
 
 	w.Write(registerSuccess)
@@ -79,17 +80,20 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 func (ua *UserAPI) ListSessions(w http.ResponseWriter, r *http.Request) {
 	key := r.Header.Get("X-Hydrocarbon-Key")
 	if key == "" {
+		writeErr(w, errors.New("no api key present"))
 		return
 	}
 
 	sess, err := ua.s.ListSessions(r.Context(), key, 0)
 	if err != nil {
-		panic(err)
+		writeErr(w, err)
+		return
 	}
 
 	err = json.NewEncoder(w).Encode(sess)
 	if err != nil {
-		panic(err)
+		writeErr(w, err)
+		return
 	}
 }
 
@@ -100,20 +104,20 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&activateData)
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	userID, err := ua.s.ActivateLoginToken(r.Context(), activateData.Token)
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	email, key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	var activateSuccess = struct {
@@ -139,14 +143,14 @@ func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&deactivateData)
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	err = ua.s.DeactivateSession(r.Context(), deactivateData.Key)
 	if err != nil {
-		panic(err)
-		// do something
+		writeErr(w, err)
+		return
 	}
 
 	var deactivateSuccess = struct {
@@ -180,4 +184,17 @@ func getRemoteIP(r *http.Request) string {
 		return r.RemoteAddr
 	}
 	return ip
+}
+
+func writeErr(w http.ResponseWriter, err error) {
+	var s = struct {
+		Status string `json:"status"`
+		Error  string `json:"error"`
+	}{
+		"error",
+		err.Error(),
+	}
+
+	json.NewEncoder(w).Encode(s)
+	w.WriteHeader(http.StatusOK)
 }

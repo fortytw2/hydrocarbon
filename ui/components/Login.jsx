@@ -1,18 +1,34 @@
-import { Component, h, render } from "preact";
+import { Component, h } from "preact";
 
-import { Store } from "../state/Store";
+import { RequestLoginToken } from "../http/User";
 
 class Login extends Component {
+  constructor(props) {
+    super(props);
+    this.setState({ emailValue: "" });
+  }
+
+  handleChange(event) {
+    this.setState({ emailValue: event.target.value });
+  }
+
+  handleSubmit(event) {
+    event.preventDefault();
+    RequestLoginToken(this.state.emailValue);
+  }
+
   render(props, state) {
     return (
-      <div class="fl w-100 pa2 h-auto">
-        <form class="measure center">
+      <div class="fl w-100 pa5 h-auto">
+        <form class="measure center" onSubmit={this.handleSubmit.bind(this)}>
           <fieldset class="ba b--transparent ph0 mh0">
             <div class="mt3">
               <label for="email-address" class="db fw6 lh-copy f6">
                 we'll send you a link to login
               </label>
               <input
+                value={state.emailValue}
+                onChange={this.handleChange.bind(this)}
                 placeholder="example@example.com"
                 id="email"
                 type="email"

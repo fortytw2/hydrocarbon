@@ -1,4 +1,4 @@
-import { Component, h, render } from "preact";
+import { Component, h } from "preact";
 
 export default ({ type, url }, {}) => (
   <section class="pa1 pa2-ns">

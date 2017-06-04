@@ -8,10 +8,10 @@ CREATE TABLE users (
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
 	stripe_customer_id TEXT,
-	email CITEXT NOT NULL
-);
+	email CITEXT NOT NULL,
 
-CREATE UNIQUE INDEX users_email_uniq_idx ON users (email);
+	CONSTRAINT email_uniq UNIQUE (email)
+);
 
 -- login tokens are one-time tokens used to login if oauth 2.0 is not used
 CREATE TABLE login_tokens (

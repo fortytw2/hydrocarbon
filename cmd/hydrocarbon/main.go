@@ -8,6 +8,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/postmark"
 )
 
 func main() {
@@ -34,7 +35,23 @@ func main() {
 	sentryPublic := os.Getenv("SENTRY_PUBLIC_DSN")
 	log.Println("using SENTRY_PUBLIC_DSN", sentryPublic)
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, &hydrocarbon.StdoutMailer{Domain: domain}), domain, sentryPublic)
+	var m hydrocarbon.Mailer
+	{
+		if os.Getenv("POSTMARK_KEY") != "" {
+			log.Println("sending mails to via postmark")
+			m = &postmark.Mailer{
+				Key:    os.Getenv("POSTMARK_KEY"),
+				Domain: domain,
+				Doer:   http.DefaultClient,
+			}
+
+		} else {
+			log.Println("sending mails to Stdout")
+			m = &hydrocarbon.StdoutMailer{Domain: domain}
+		}
+	}
+
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, m), domain, sentryPublic)
 	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)

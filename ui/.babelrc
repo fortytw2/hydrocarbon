@@ -5,7 +5,7 @@
             {
                 "targets": {
                     "browsers": [
-                        "> 5%"
+                        "last 2 versions"
                     ]
                 },
                 "modules": false
@@ -14,11 +14,11 @@
     ],
     "plugins": [
         "external-helpers",
-        "transform-class-properties",
+        "transform-object-rest-spread",
         [
             "transform-react-jsx",
             {
-                "pragma": "h"
+                "pragma": "h" // default pragma is React.createElement
             }
         ]
     ]

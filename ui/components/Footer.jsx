@@ -1,4 +1,4 @@
-import { Component, h, render } from "preact";
+import { Component, h } from "preact";
 
 class Footer extends Component {
   render({}, {}) {

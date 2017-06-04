@@ -1,25 +1,24 @@
 {
   "scripts": {
-    "build-dist": "rollup -c --output=build/js/bundle.min.js -- main.jsx",
-    "build": "ollup -c -m inline --output=build/js/bundle.min.js -- main.jsx"
+    "build": "rollup -c --output=build/js/bundle.min.js -- main.jsx"
   },
   "dependencies": {
     "history": "^4.6.1",
+    "nanoajax": "^0.4.3",
     "preact": "^8.1.0",
     "preact-redux": "^2.0.1",
     "preact-router": "^2.5.2",
     "preact-router-redux": "^4.1.0",
-    "redux": "^3.6.0"
+    "redux": "^3.6.0",
+    "redux-persist": "^4.8.0"
   },
   "devDependencies": {
     "babel-plugin-external-helpers": "^6.22.0",
-    "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-assign": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-plugin-transform-react-jsx": "^6.24.1",
     "babel-preset-babili": "^0.0.12",
     "babel-preset-env": "^1.4.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
     "rollup": "^0.41.6",
     "rollup-plugin-babel": "^2.7.1",
     "rollup-plugin-babili": "^3.0.0",

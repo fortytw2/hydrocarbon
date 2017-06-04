@@ -31,14 +31,14 @@ func TestUser(t *testing.T) {
 
 func createUser(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		_, err := db.CreateUser(context.Background(), "ian@hydrocarbon.io")
+		_, err := db.CreateOrGetUser(context.Background(), "ian@hydrocarbon.io")
 		if err != nil {
 			t.Fatalf("could not create user %s", err)
 		}
 
-		_, err = db.CreateUser(context.Background(), "ian@HYDroCARBon.io")
-		if err == nil {
-			t.Fatal("no error on creating same user twice")
+		_, err = db.CreateOrGetUser(context.Background(), "ian@HYDroCARBon.io")
+		if err != nil {
+			t.Fatal("error on creating same user twice:", err)
 		}
 	}
 }
@@ -52,7 +52,7 @@ func TestSession(t *testing.T) {
 
 func createSession(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		id, err := db.CreateUser(context.Background(), "ian@createsession.io")
+		id, err := db.CreateOrGetUser(context.Background(), "ian@createsession.io")
 		if err != nil {
 			t.Fatalf("could not create user %s", err)
 		}

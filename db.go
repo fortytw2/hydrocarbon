@@ -35,11 +35,13 @@ func NewDB(dsn string) (*DB, error) {
 	}, nil
 }
 
-// CreateUser creates a new user and returns the users ID
-func (db *DB) CreateUser(ctx context.Context, email string) (string, error) {
+// CreateOrGetUser creates a new user and returns the users ID
+func (db *DB) CreateOrGetUser(ctx context.Context, email string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `INSERT INTO users 
 										(email) 
 										VALUES ($1)
+										ON CONFLICT (email)
+										DO UPDATE SET email = EXCLUDED.email
 										RETURNING id;`, email)
 
 	var userID string
@@ -81,7 +83,7 @@ func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, err
 	err := row.Scan(&userID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return "", errors.New("no valid token found")
+			return "", errors.New("token invalid")
 		}
 		return "", err
 	}

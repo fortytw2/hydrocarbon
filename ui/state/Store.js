@@ -1,21 +1,22 @@
 import * as reducers from "./Reducers";
 
-import { combineReducers, createStore } from "redux";
+import { applyMiddleware, combineReducers, compose, createStore } from "redux";
+import { autoRehydrate, persistStore } from "redux-persist";
 import { routerReducer, syncHistoryWithStore } from "preact-router-redux";
 
 import createBrowserHistory from "history/createBrowserHistory";
 
-let h = createBrowserHistory();
+let initialState = {
+  notifications: [],
+  login: { apiKey: "", email: "" }
+};
 
-let Store = createStore(
-  combineReducers({
-    reducers,
-    routing: routerReducer
-  }),
+let Store = compose(autoRehydrate())(createStore)(
+  combineReducers({ ...reducers, routing: routerReducer }),
   window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__()
 );
 
 // Create an enhanced history that syncs navigation events with the store
-const history = syncHistoryWithStore(h, Store);
+const History = syncHistoryWithStore(createBrowserHistory(), Store);
 
-export { Store, history };
+export { Store, History };
