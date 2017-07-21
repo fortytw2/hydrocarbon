@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -20,7 +21,12 @@ func runMigrations(db *sql.DB) error {
 		return err
 	}
 
-	for i, file := range AssetNames() {
+	// assetNames returns the map keys, which are iterated in a random order
+	// and not usable without sorting here if there are more than 1 migration.
+	names := AssetNames()
+	sort.Strings(names)
+
+	for i, file := range names {
 		// skip running ones we've clearly already ran
 		if count > 0 {
 			count--
@@ -34,7 +40,7 @@ func runMigrations(db *sql.DB) error {
 			return err
 		}
 
-		cleanName := strings.TrimLeft("schema/", file)
+		cleanName := strings.TrimPrefix("schema/", file)
 		err = recordMigration(cleanName, db)
 		if err != nil {
 			return err
@@ -90,9 +96,5 @@ func runMigration(num int, buf []byte, db *sql.DB) error {
 
 func recordMigration(name string, db *sql.DB) error {
 	_, err := db.Query("INSERT INTO migrations (name) VALUES ($1);", name)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
