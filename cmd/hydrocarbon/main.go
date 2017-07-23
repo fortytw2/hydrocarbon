@@ -42,7 +42,7 @@ func main() {
 			m = &postmark.Mailer{
 				Key:    os.Getenv("POSTMARK_KEY"),
 				Domain: domain,
-				Doer:   http.DefaultClient,
+				Client: http.DefaultClient,
 			}
 
 		} else {

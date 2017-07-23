@@ -6,15 +6,14 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/fortytw2/hydrocarbon"
-	"github.com/fortytw2/hydrocarbon/httputil"
+	"github.com/fortytw2/hydrocarbon/httpx"
 )
 
 // Mailer sends mails via Postmark
 type Mailer struct {
 	Key    string
 	Domain string
-	Doer   hydrocarbon.Doer
+	Client *http.Client
 }
 
 type mailReq struct {
@@ -56,11 +55,15 @@ func (m *Mailer) Send(email string, body string) error {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("X-Postmark-Server-Token", m.Key)
 
-	resp, err := m.Doer.Do(req)
+	resp, err := m.Client.Do(req)
 	if err != nil {
 		return err
 	}
-	defer httputil.DrainAndClose(resp.Body)
+
+	err = httpx.DrainAndClose(resp.Body)
+	if err != nil {
+		return err
+	}
 
 	if resp.StatusCode == http.StatusUnprocessableEntity {
 		return errors.New("error sending to postmark, got 422")
