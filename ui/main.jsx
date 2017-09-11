@@ -1,15 +1,15 @@
 import { Component, h, render } from "preact";
-import { History, Store } from "./state/Store";
+import { History, Store } from "./state/store";
 import { Route, Router } from "preact-router";
 
-import Footer from "./components/Footer";
-import Login from "./components/Login";
-import LoginCallback from "./components/LoginCallback";
-import Nav from "./components/Nav";
-import NotFound from "./components/NotFound";
-import NotificationWindow from "./components/NotificationWindow";
-import RehydrateProvider from "./components/RehydrateProvider";
-import TextContent from "./components/TextContent";
+import Footer from "./components/footer";
+import Login from "./components/login";
+import LoginCallback from "./components/login_callback";
+import Nav from "./components/nav";
+import NotFound from "./components/not_found";
+import NotificationWindow from "./components/notification_window";
+import RehydrateProvider from "./components/rehydrate_provider";
+import TextContent from "./components/text_content";
 import { initDevTools } from "./vendor/devtools";
 
 initDevTools();

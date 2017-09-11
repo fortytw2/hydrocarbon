@@ -1,18 +1,19 @@
 language: go
 go:
- - 1.8
+ - 1.9
 
 sudo: required
 services:
   - docker
 
 env:
-  - TRAVIS_NODE_VERSION="7"
+  - TRAVIS_NODE_VERSION="8"
 
 before_install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   # Repo for Yarn
   - npm install -g yarn
+  - go get -u github.com/golang/dep/...
 
 cache:
   yarn: true
@@ -20,10 +21,12 @@ cache:
     - ui/node_modules
 
 script:
+  - export PATH="$PATH:`yarn global bin`"
   - go get -u github.com/lestrrat/go-bindata/...
+  - dep ensure
   - pushd ui && yarn install && popd
   # Ensure all js is formatted. gopherCI takes care of Go
-  - yarn global add prettier --ignore-engines
+  - yarn global add prettier
   - prettier --write "ui/**.js"
   - go generate $(go list ./... | grep -v vendor)
   - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }

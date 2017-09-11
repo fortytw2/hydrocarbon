@@ -27,6 +27,8 @@ func TestUser(t *testing.T) {
 	defer shutdown()
 
 	t.Run("create", createUser(db))
+	t.Run("defaultFolder", defaultFolder(db))
+	t.Run("addFeed", addFeed(db))
 }
 
 func createUser(db *DB) func(t *testing.T) {
@@ -60,6 +62,57 @@ func createSession(db *DB) func(t *testing.T) {
 		_, _, err = db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
 		if err != nil {
 			t.Fatalf("could not create session %s", err)
+		}
+	}
+}
+
+func defaultFolder(db *DB) func(t *testing.T) {
+	return func(t *testing.T) {
+		userID, err := db.CreateOrGetUser(context.TODO(), "ian@testpotatoes.rs")
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		_, key, err := db.CreateSession(context.Background(), userID, "Firefox", "192.168.1.21")
+		if err != nil {
+			t.Fatalf("could not create session %s", err)
+		}
+
+		fid, err := db.getDefaultFolderID(context.Background(), key)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if fid == "" {
+			t.Fatal("no default folder id")
+		}
+
+		fid2, err := db.getDefaultFolderID(context.Background(), key)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if fid2 != fid {
+			t.Fatal("default folder creating many default folders")
+		}
+	}
+}
+
+func addFeed(db *DB) func(t *testing.T) {
+	return func(t *testing.T) {
+		userID, err := db.CreateOrGetUser(context.Background(), "fow2qe.awdwad@qdwad.com")
+		if err != nil {
+			t.Fatal("could not create user")
+		}
+
+		_, key, err := db.CreateSession(context.Background(), userID, "Firefox", "192.168.1.21")
+		if err != nil {
+			t.Fatalf("could not create session %s", err)
+		}
+
+		err = db.AddFeed(context.Background(), key, "", "testfeed", "testplugin", "https://www.goole.com")
+		if err != nil {
+			t.Fatal(err)
 		}
 	}
 }

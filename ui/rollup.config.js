@@ -19,7 +19,6 @@ export default {
     resolve({ jsnext: true, main: true, extensions: [".js", ".jsx"] }),
     commonjs({
       extensions: [".jsx", ".js"]
-      // include: ["node_modules/**/*"]
     }),
     babili({
       comments: false

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/plugins/rss"
 	"github.com/fortytw2/hydrocarbon/postmark"
 )
 
@@ -32,13 +34,10 @@ func main() {
 	}
 	log.Println("ui will target", domain+"/api", "for api requests")
 
-	sentryPublic := os.Getenv("SENTRY_PUBLIC_DSN")
-	log.Println("using SENTRY_PUBLIC_DSN", sentryPublic)
-
 	var m hydrocarbon.Mailer
 	{
 		if os.Getenv("POSTMARK_KEY") != "" {
-			log.Println("sending mails to via postmark")
+			log.Println("sending mails via postmark")
 			m = &postmark.Mailer{
 				Key:    os.Getenv("POSTMARK_KEY"),
 				Domain: domain,
@@ -46,12 +45,16 @@ func main() {
 			}
 
 		} else {
-			log.Println("sending mails to Stdout")
+			log.Println("sending mails to stdout")
 			m = &hydrocarbon.StdoutMailer{Domain: domain}
 		}
 	}
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, m), domain, sentryPublic)
+	pl := hydrocarbon.NewPluginList(&rss.Reader{Client: http.DefaultClient})
+	rf := hydrocarbon.NewRefresher(db, pl, &hydrocarbon.StdoutReporter{})
+	go rf.Refresh(context.Background())
+
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, m), hydrocarbon.NewFeedAPI(db, pl), domain)
 	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)
