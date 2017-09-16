@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 
 	"github.com/bouk/httprouter"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
@@ -30,6 +31,7 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	m.Handle("GET", "/static/*file", http.StripPrefix("/static/", fs).ServeHTTP)
 	m.Handle("GET", "/favicon.ico", fs.ServeHTTP)
 
+	// serve the single page app for every other route, it has a 404 page builtin
 	m.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -41,17 +43,21 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 		w.Write(buf)
 	})
 
-	// session management
+	// login tokens
 	m.POST("/api/token/request", ua.RequestToken)
 	m.POST("/api/token/activate", ua.Activate)
+
+	// api keys
 	m.POST("/api/key/deactivate", ua.Deactivate)
 	m.POST("/api/key/list", ua.ListSessions)
 
-	// feeds/folder management
+	// feed management
+	m.POST("/api/feed/list", fa.GetFeed)
 	m.POST("/api/feed/new", fa.AddFeed)
 	m.POST("/api/feed/delete", fa.RemoveFeed)
-	m.POST("/api/folders", fa.GetFolders)
-	m.POST("/api/feed", fa.GetFeed)
+
+	// folder management
+	m.POST("/api/folder/list", fa.GetFolders)
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)
@@ -60,18 +66,34 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	return m
 }
 
-func rewriteAsset(domain string, f1 func(name string) ([]byte, error)) func(name string) ([]byte, error) {
+func rewriteAsset(domain string, fileFunc func(name string) ([]byte, error)) func(name string) ([]byte, error) {
+	var cacheMu sync.RWMutex
+	cache := make(map[string][]byte)
+
 	return func(name string) ([]byte, error) {
+		// return rewritten assets from cache if possible
+		cacheMu.RLock()
+		if body, ok := cache[name]; ok {
+			cacheMu.RUnlock()
+			return body, nil
+		}
+		cacheMu.RUnlock()
+
 		if strings.Contains(name, ".min.js") {
-			buf, err := f1(name)
+			buf, err := fileFunc(name)
 			if err != nil {
 				return nil, err
 			}
 			buf = bytes.Replace(buf, []byte("URL_ENDPOINT_CHANGE_ME"), []byte(domain+"/api"), -1)
 
+			// add rewritten assets to cache
+			cacheMu.Lock()
+			cache[name] = buf
+			cacheMu.Unlock()
+
 			return buf, nil
 		}
-		return f1(name)
+		return fileFunc(name)
 	}
 }
 
