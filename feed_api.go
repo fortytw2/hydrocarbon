@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 )
@@ -65,24 +66,26 @@ func (p *Post) ContentHash() string {
 
 // FeedAPI encapsulates everything related to user management
 type FeedAPI struct {
-	s FeedStore
-	p *PluginList
+	s  FeedStore
+	ks *KeySigner
+	p  *PluginList
 }
 
 // NewFeedAPI returns a new Feed API
-func NewFeedAPI(s FeedStore, p *PluginList) *FeedAPI {
+func NewFeedAPI(s FeedStore, ks *KeySigner, p *PluginList) *FeedAPI {
 	return &FeedAPI{
-		s: s,
-		p: p,
+		s:  s,
+		ks: ks,
+		p:  p,
 	}
 }
 
 // AddFeed adds the specified feed to the given user
 // if folder_id is left out, the feed is added to the users "default" folder
 func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
-	key := r.Header.Get("X-Hydrocarbon-Key")
-	if key == "" {
-		writeErr(w, errors.New("no api key present"))
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
 		return
 	}
 
@@ -92,7 +95,7 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
 		URL      string `json:"url"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&feed)
+	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&feed)
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -124,9 +127,9 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
 
 // RemoveFeed removes the given feed from the users list
 func (fa *FeedAPI) RemoveFeed(w http.ResponseWriter, r *http.Request) {
-	key := r.Header.Get("X-Hydrocarbon-Key")
-	if key == "" {
-		writeErr(w, errors.New("no api key present"))
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
 		return
 	}
 
@@ -135,7 +138,7 @@ func (fa *FeedAPI) RemoveFeed(w http.ResponseWriter, r *http.Request) {
 		FeedID   string `json:"feed_id"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&feed)
+	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&feed)
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -155,9 +158,9 @@ func (fa *FeedAPI) RemoveFeed(w http.ResponseWriter, r *http.Request) {
 
 // GetFolders writes all of a users folders out
 func (fa *FeedAPI) GetFolders(w http.ResponseWriter, r *http.Request) {
-	key := r.Header.Get("X-Hydrocarbon-Key")
-	if key == "" {
-		writeErr(w, errors.New("no api key present"))
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
 		return
 	}
 
@@ -176,9 +179,9 @@ func (fa *FeedAPI) GetFolders(w http.ResponseWriter, r *http.Request) {
 
 // GetFeed writes a specific feed
 func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) {
-	key := r.Header.Get("X-Hydrocarbon-Key")
-	if key == "" {
-		writeErr(w, errors.New("no api key present"))
+	_, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
 		return
 	}
 
@@ -186,7 +189,7 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) {
 		ID string `json:"id"`
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&id)
+	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&id)
 	if err != nil {
 		writeErr(w, err)
 		return

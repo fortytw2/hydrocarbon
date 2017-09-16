@@ -50,11 +50,23 @@ func main() {
 		}
 	}
 
+	var signingKey string
+	{
+		if sk := os.Getenv("SIGNING_kEY"); sk != "" {
+			log.Println("using signing key from env")
+			signingKey = sk
+		} else {
+			log.Println("using default signing key, CHANGE ME IN PROD")
+			signingKey = "DEV_SIGNING_KEY"
+		}
+	}
+
+	ks := hydrocarbon.NewKeySigner(signingKey)
 	pl := hydrocarbon.NewPluginList(&rss.Reader{Client: http.DefaultClient})
 	rf := hydrocarbon.NewRefresher(db, pl, &hydrocarbon.StdoutReporter{})
 	go rf.Refresh(context.Background())
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, m), hydrocarbon.NewFeedAPI(db, pl), domain)
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m), hydrocarbon.NewFeedAPI(db, ks, pl), domain)
 	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)

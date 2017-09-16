@@ -3,7 +3,6 @@ package hydrocarbon
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -24,14 +23,16 @@ type UserStore interface {
 
 // UserAPI encapsulates everything related to user management
 type UserAPI struct {
-	s UserStore
-	m Mailer
+	s  UserStore
+	m  Mailer
+	ks *KeySigner
 }
 
-func NewUserAPI(s UserStore, m Mailer) *UserAPI {
+func NewUserAPI(s UserStore, ks *KeySigner, m Mailer) *UserAPI {
 	return &UserAPI{
-		s: s,
-		m: m,
+		s:  s,
+		ks: ks,
+		m:  m,
 	}
 }
 
@@ -78,9 +79,9 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 
 // ListSessions writes out all of a users current / past sessions
 func (ua *UserAPI) ListSessions(w http.ResponseWriter, r *http.Request) {
-	key := r.Header.Get("X-Hydrocarbon-Key")
-	if key == "" {
-		writeErr(w, errors.New("no api key present"))
+	key, err := ua.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
 		return
 	}
 
@@ -120,6 +121,12 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	key, err = ua.ks.Sign(key)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
 	var activateSuccess = struct {
 		Status string `json:"status"`
 		Email  string `json:"email"`
@@ -137,17 +144,13 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
-	var deactivateData struct {
-		Key string `json:"key"`
-	}
-
-	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&deactivateData)
+	key, err := ua.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
 	if err != nil {
 		writeErr(w, err)
 		return
 	}
 
-	err = ua.s.DeactivateSession(r.Context(), deactivateData.Key)
+	err = ua.s.DeactivateSession(r.Context(), key)
 	if err != nil {
 		writeErr(w, err)
 		return
