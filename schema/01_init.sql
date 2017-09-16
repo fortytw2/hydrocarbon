@@ -18,6 +18,7 @@ CREATE TABLE login_tokens (
 	user_id UUID REFERENCES users NOT NULL,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	expires_at TIMESTAMPTZ NOT NULL DEFAULT now() + INTERVAL '24 HOURS',
 
 	user_agent TEXT NOT NULL,
@@ -35,6 +36,7 @@ CREATE TABLE sessions (
 	user_id UUID REFERENCES users NOT NULL,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	user_agent TEXT NOT NULL,
 	ip CIDR NOT NULL,
 

@@ -1,9 +1,7 @@
 package hydrocarbon
 
 import (
-	"context"
 	"database/sql"
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -40,7 +38,7 @@ func runMigrations(db *sql.DB) error {
 			return err
 		}
 
-		cleanName := strings.TrimPrefix("schema/", file)
+		cleanName := strings.TrimPrefix(file, "schema/")
 		err = recordMigration(cleanName, db)
 		if err != nil {
 			return err
@@ -77,21 +75,8 @@ func countMigrations(db *sql.DB) (int, error) {
 }
 
 func runMigration(num int, buf []byte, db *sql.DB) error {
-	queries := strings.Split(string(buf), ";")
-
-	tx, err := db.BeginTx(context.Background(), nil)
-	if err != nil {
-		return err
-	}
-
-	for i, q := range queries {
-		_, err := tx.Exec(q + ";")
-		if err != nil {
-			return fmt.Errorf("migrator: statement %d  in migration %d failed: %s", i, num, err)
-		}
-	}
-
-	return tx.Commit()
+	_, err := db.Exec(string(buf))
+	return err
 }
 
 func recordMigration(name string, db *sql.DB) error {
