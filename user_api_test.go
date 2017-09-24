@@ -14,16 +14,6 @@ func TestGetRemoteIP(t *testing.T) {
 
 	{
 		r, _ := http.NewRequest(http.MethodGet, "https://www.hydrocarbon.io/", nil)
-		r.Header.Set("X-Real-IP", "193.167.12.23")
-
-		ip := getRemoteIP(r)
-		if ip != "193.167.12.23" {
-			t.Error("x-real-ip is broken")
-		}
-	}
-
-	{
-		r, _ := http.NewRequest(http.MethodGet, "https://www.hydrocarbon.io/", nil)
 		r.Header.Set("X-Forwarded-For", "193.167.12.23, 204.121.12.21")
 
 		ip := getRemoteIP(r)

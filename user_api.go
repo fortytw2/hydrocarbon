@@ -260,11 +260,6 @@ func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
 }
 
 func getRemoteIP(r *http.Request) string {
-	realIP := r.Header.Get("X-Real-IP")
-	if realIP != "" {
-		return realIP
-	}
-
 	fwdIP := r.Header.Get("X-Forwarded-For")
 	fwdSplit := strings.Split(fwdIP, ",")
 	if fwdIP != "" {
