@@ -7,6 +7,11 @@ CREATE TABLE users (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
+	admin BOOLEAN NOT NULL DEFAULT false,
+
+	stripe_customer_id CITEXT,
+	stripe_subscription_id CITEXT,
+	last_payment_date TIMESTAMPTZ,
 	email CITEXT NOT NULL,
 
 	UNIQUE (email)

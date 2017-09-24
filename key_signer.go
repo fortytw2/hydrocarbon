@@ -3,7 +3,7 @@ package hydrocarbon
 import (
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -29,7 +29,7 @@ func (ks *KeySigner) Sign(val string) (string, error) {
 		return "", nil
 	}
 
-	return fmt.Sprintf("%s:%s", val, base64.StdEncoding.EncodeToString(h.Sum(nil))), nil
+	return fmt.Sprintf("%s:%s", val, hex.EncodeToString(h.Sum(nil))), nil
 }
 
 // Verify checks a value signed with Sign
@@ -46,7 +46,7 @@ func (ks *KeySigner) Verify(pubVal string) (string, error) {
 		return "", nil
 	}
 
-	hmacBytes, err := base64.StdEncoding.DecodeString(spl[1])
+	hmacBytes, err := hex.DecodeString(spl[1])
 	if err != nil {
 		return "", err
 	}

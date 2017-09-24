@@ -44,20 +44,23 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	})
 
 	// login tokens
-	m.POST("/api/token/request", ua.RequestToken)
-	m.POST("/api/token/activate", ua.Activate)
+	m.POST("/api/token/create", ua.RequestToken)
+
+	// payment managemnet
+	m.POST("/api/payment/create", ua.CreatePayment)
 
 	// api keys
-	m.POST("/api/key/deactivate", ua.Deactivate)
+	m.POST("/api/key/create", ua.Activate)
+	m.POST("/api/key/delete", ua.Deactivate)
 	m.POST("/api/key/list", ua.ListSessions)
 
 	// feed management
-	m.POST("/api/feed/list", fa.GetFeed)
-	m.POST("/api/feed/new", fa.AddFeed)
+	m.POST("/api/feed/create", fa.AddFeed)
 	m.POST("/api/feed/delete", fa.RemoveFeed)
+	m.POST("/api/feed/list", fa.GetFeed)
 
 	// folder management
-	m.POST("/api/folder/list", fa.GetFolders)
+	m.POST("/api/folder/create", fa.GetFolders)
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)

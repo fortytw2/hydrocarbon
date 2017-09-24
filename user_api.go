@@ -3,17 +3,24 @@ package hydrocarbon
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"strings"
+
+	stripe "github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/client"
+	"github.com/stripe/stripe-go/customer"
+	"github.com/stripe/stripe-go/sub"
 )
 
 // A UserStore is an interface used to seperate the UserAPI from knowledge of the
 // actual underlying database
 type UserStore interface {
-	CreateOrGetUser(ctx context.Context, email string) (string, error)
+	CreateOrGetUser(ctx context.Context, email string) (string, bool, error)
+	SetStripeIDs(ctx context.Context, userID, customerID, subscriptionID string) error
 	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, string, error)
@@ -23,16 +30,25 @@ type UserStore interface {
 
 // UserAPI encapsulates everything related to user management
 type UserAPI struct {
-	s  UserStore
-	m  Mailer
-	ks *KeySigner
+	paymentRequired bool
+	stripePlanID    string
+	sc              *client.API
+	s               UserStore
+	m               Mailer
+	ks              *KeySigner
 }
 
-func NewUserAPI(s UserStore, ks *KeySigner, m Mailer) *UserAPI {
+func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey string, paymentRequired bool) *UserAPI {
+	c := &client.API{}
+	c.Init(stripeKey, nil)
+
 	return &UserAPI{
-		s:  s,
-		ks: ks,
-		m:  m,
+		s:               s,
+		ks:              ks,
+		m:               m,
+		sc:              c,
+		stripePlanID:    stripePlanID,
+		paymentRequired: paymentRequired,
 	}
 }
 
@@ -56,9 +72,14 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID, err := ua.s.CreateOrGetUser(r.Context(), registerData.Email)
+	userID, paid, err := ua.s.CreateOrGetUser(r.Context(), registerData.Email)
 	if err != nil {
 		writeErr(w, err)
+		return
+	}
+
+	if ua.paymentRequired && !paid {
+		w.Write([]byte(`{"status":"payment_required", "note":"you must create a payment"}`))
 		return
 	}
 
@@ -75,6 +96,76 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(registerSuccess)
+}
+
+var paymentSuccess = []byte(`{"status":"success", "note":"subscription created"}`)
+
+// CreatePayment sets up the initial stripe stuff for a user
+func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) {
+	if !ua.paymentRequired {
+		w.WriteHeader(http.StatusExpectationFailed)
+		return
+	}
+
+	var stripeData struct {
+		Email  string `json:"email"`
+		Coupon string `json:"coupon"`
+		Token  string `json:"token"`
+	}
+
+	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&stripeData)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	userID, paid, err := ua.s.CreateOrGetUser(r.Context(), stripeData.Email)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	if paid {
+		writeErr(w, errors.New("subscription already exists"))
+		return
+	}
+
+	params := &stripe.CustomerParams{
+		Email: stripeData.Email,
+	}
+	params.SetSource(stripeData.Token)
+
+	customer, err := customer.New(params)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	sp := &stripe.SubParams{
+		Customer: customer.ID,
+		Items: []*stripe.SubItemsParams{
+			{
+				Plan: ua.stripePlanID,
+			},
+		},
+	}
+	if stripeData.Coupon != "" {
+		sp.Coupon = stripeData.Coupon
+	}
+
+	s, err := sub.New(sp)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	ua.s.SetStripeIDs(r.Context(), userID, customer.ID, s.ID)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	w.Write(paymentSuccess)
 }
 
 // ListSessions writes out all of a users current / past sessions

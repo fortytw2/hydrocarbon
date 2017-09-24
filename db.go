@@ -37,22 +37,33 @@ func NewDB(dsn string) (*DB, error) {
 }
 
 // CreateOrGetUser creates a new user and returns the users ID
-func (db *DB) CreateOrGetUser(ctx context.Context, email string) (string, error) {
+func (db *DB) CreateOrGetUser(ctx context.Context, email string) (string, bool, error) {
 	row := db.sql.QueryRowContext(ctx, `
 	INSERT INTO users 
 	(email) 
 	VALUES ($1)
 	ON CONFLICT (email)
 	DO UPDATE SET email = EXCLUDED.email
-	RETURNING id;`, email)
+	RETURNING id, stripe_subscription_id;`, email)
 
 	var userID string
-	err := row.Scan(&userID)
+	var stripeSubID sql.NullString
+	err := row.Scan(&userID, &stripeSubID)
 	if err != nil {
-		return "", err
+		return "", false, err
 	}
 
-	return userID, nil
+	return userID, stripeSubID.Valid, nil
+}
+
+// SetStripeIDs sets a users stripe IDs
+func (db *DB) SetStripeIDs(ctx context.Context, userID, customerID, subID string) error {
+	_, err := db.sql.ExecContext(ctx, `
+	UPDATE users 
+	SET (stripe_customer_id, stripe_subscription_id) = ($1, $2)
+	WHERE id = $3;`, customerID, subID, userID)
+
+	return err
 }
 
 // CreateLoginToken creates a new one-time-use login token

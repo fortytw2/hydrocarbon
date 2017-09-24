@@ -61,12 +61,15 @@ func main() {
 		}
 	}
 
+	// enable stripe
+	stripePrivKey, paymentEnabled := os.LookupEnv("STRIPE_PRIVATE_TOKEN")
+
 	ks := hydrocarbon.NewKeySigner(signingKey)
 	pl := hydrocarbon.NewPluginList(&rss.Reader{Client: http.DefaultClient})
 	rf := hydrocarbon.NewRefresher(db, pl, &hydrocarbon.StdoutReporter{})
 	go rf.Refresh(context.Background())
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m), hydrocarbon.NewFeedAPI(db, ks, pl), domain)
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, ks, pl), domain)
 	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)

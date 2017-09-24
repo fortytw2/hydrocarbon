@@ -5,7 +5,7 @@
   branch = "master"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
-  revision = "46766160161ff594e6d56bf8fcffb0b0399dc62d"
+  revision = "97ae7fbaf81620fe97840685304a78a306a39c64"
 
 [[projects]]
   branch = "master"
@@ -29,7 +29,7 @@
   branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid"]
-  revision = "e42267488fe361b9dc034be7a6bffef5b195bceb"
+  revision = "23da1db4f16d9658a86ae9b717c245fc078f10f1"
 
 [[projects]]
   branch = "master"
@@ -38,14 +38,20 @@
   revision = "68fecaef60268522d2ac3f0123cec9d3bcab7b6e"
 
 [[projects]]
+  name = "github.com/stripe/stripe-go"
+  packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
+  revision = "fd984f4cf0352b66a98d2e7902ee8a71c11d65d1"
+  version = "v27.0.1"
+
+[[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["html","html/atom"]
-  revision = "66aacef3dd8a676686c7ae3716979581e8b03c47"
+  revision = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "72ed680a18295ffcad86f4130e279dd8ac92e365ea978f60b0229922856b217b"
+  inputs-digest = "40148e2a100c629c26a921c9dd10dbce3c9d50d3962e9b21c9ca48a8f1c5930c"
   solver-name = "gps-cdcl"
   solver-version = 1

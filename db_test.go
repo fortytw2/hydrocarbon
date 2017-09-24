@@ -33,12 +33,12 @@ func TestUser(t *testing.T) {
 
 func createUser(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		_, err := db.CreateOrGetUser(context.Background(), "ian@hydrocarbon.io")
+		_, _, err := db.CreateOrGetUser(context.Background(), "ian@hydrocarbon.io")
 		if err != nil {
 			t.Fatalf("could not create user %s", err)
 		}
 
-		_, err = db.CreateOrGetUser(context.Background(), "ian@HYDroCARBon.io")
+		_, _, err = db.CreateOrGetUser(context.Background(), "ian@HYDroCARBon.io")
 		if err != nil {
 			t.Fatal("error on creating same user twice:", err)
 		}
@@ -54,7 +54,7 @@ func TestSession(t *testing.T) {
 
 func createSession(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		id, err := db.CreateOrGetUser(context.Background(), "ian@createsession.io")
+		id, _, err := db.CreateOrGetUser(context.Background(), "ian@createsession.io")
 		if err != nil {
 			t.Fatalf("could not create user %s", err)
 		}
@@ -68,7 +68,7 @@ func createSession(db *DB) func(t *testing.T) {
 
 func defaultFolder(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		userID, err := db.CreateOrGetUser(context.TODO(), "ian@testpotatoes.rs")
+		userID, _, err := db.CreateOrGetUser(context.TODO(), "ian@testpotatoes.rs")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -100,7 +100,7 @@ func defaultFolder(db *DB) func(t *testing.T) {
 
 func addFeed(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		userID, err := db.CreateOrGetUser(context.Background(), "fow2qe.awdwad@qdwad.com")
+		userID, _, err := db.CreateOrGetUser(context.Background(), "fow2qe.awdwad@qdwad.com")
 		if err != nil {
 			t.Fatal("could not create user")
 		}
