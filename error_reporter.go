@@ -2,7 +2,7 @@ package hydrocarbon
 
 import (
 	"context"
-	"fmt"
+	"log"
 )
 
 // ErrorReporter is used to report errors from long running / background jobs
@@ -16,5 +16,5 @@ type StdoutReporter struct{}
 
 // Report writes errors to stdout
 func (s *StdoutReporter) Report(ctx context.Context, err error) {
-	fmt.Println("error:", err)
+	log.Println("error:", err)
 }

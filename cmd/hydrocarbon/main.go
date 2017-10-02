@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"net/http"
 	"os"
@@ -14,13 +15,19 @@ import (
 )
 
 func main() {
+	var (
+		autoExplain = flag.Bool("autoexplain", false, "run EXPLAIN on every database query")
+	)
+
+	flag.Parse()
+
 	log.Println("starting hydrocarbon on port", getPort())
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
 		log.Fatal("no postgres dsn found")
 	}
 
-	db, err := hydrocarbon.NewDB(dsn)
+	db, err := hydrocarbon.NewDB(dsn, *autoExplain)
 	if err != nil {
 		log.Fatal("could not connect to postgres", err)
 	}

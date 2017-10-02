@@ -1,6 +1,6 @@
 import {
   NOTIFICATION_LEVEL_INFO,
-  NOTIFICATION_LEVEL_WARNING,
+  NOTIFICATION_LEVEL_WARNING
 } from "../state/notifications/types";
 
 import { Store } from "../state/store";
@@ -11,7 +11,7 @@ import { ajax } from "nanoajax";
 export function RequestLoginToken(email) {
   ajax(
     {
-      url: "/api/token/request",
+      url: "/api/token/create",
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -51,7 +51,7 @@ export function RequestLoginToken(email) {
 export function ActivateLoginToken(dispatch, token) {
   ajax(
     {
-      url: "/api/token/activate",
+      url: "/api/key/create",
       method: "POST",
       headers: {
         "Content-Type": "application/json"

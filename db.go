@@ -20,7 +20,7 @@ type DB struct {
 }
 
 // NewDB returns a new database
-func NewDB(dsn string) (*DB, error) {
+func NewDB(dsn string, autoExplain bool) (*DB, error) {
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
@@ -29,6 +29,11 @@ func NewDB(dsn string) (*DB, error) {
 	err = runMigrations(db)
 	if err != nil {
 		return nil, err
+	}
+
+	if autoExplain {
+		db.Exec(`LOAD 'auto_explain';`)
+		db.Exec(`SET auto_explain.log_min_duration = 0;`)
 	}
 
 	return &DB{

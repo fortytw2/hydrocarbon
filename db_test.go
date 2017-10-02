@@ -12,7 +12,7 @@ func setupTestDB(t *testing.T) (*DB, func()) {
 
 	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
 		var err error
-		db, err = NewDB("postgres://postgres:postgres@" + addr + "?sslmode=disable")
+		db, err = NewDB("postgres://postgres:postgres@"+addr+"?sslmode=disable", false)
 		return err
 	})
 	if err != nil {
