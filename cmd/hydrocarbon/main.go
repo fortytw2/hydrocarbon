@@ -68,6 +68,11 @@ func main() {
 
 	// enable stripe
 	stripePrivKey, paymentEnabled := os.LookupEnv("STRIPE_PRIVATE_TOKEN")
+	if paymentEnabled {
+		log.Println("payment enabled, tokens required to login")
+	} else {
+		log.Println("payment not enabled, set STRIPE_PRIVATE_TOKEN to enable")
+	}
 
 	ks := hydrocarbon.NewKeySigner(signingKey)
 
