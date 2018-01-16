@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 	"net/http"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
-	"github.com/fortytw2/hydrocarbon/plugins/rss"
 	"github.com/fortytw2/hydrocarbon/postmark"
 )
 
@@ -21,7 +19,7 @@ func main() {
 
 	flag.Parse()
 
-	log.Println("starting hydrocarbon on port", getPort())
+	log.Println("starting hydrocarbon on port", getPort("PORT", ":8080"))
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
 		log.Fatal("no postgres dsn found")
@@ -37,7 +35,7 @@ func main() {
 		// assume port is OK
 		domain = os.Getenv("DOMAIN")
 	} else {
-		domain = "http://localhost" + getPort()
+		domain = "http://localhost" + getPort("PORT", ":8080")
 	}
 	log.Println("ui will target", domain+"/api", "for api requests")
 
@@ -59,7 +57,7 @@ func main() {
 
 	var signingKey string
 	{
-		if sk := os.Getenv("SIGNING_kEY"); sk != "" {
+		if sk := os.Getenv("SIGNING_KEY"); sk != "" {
 			log.Println("using signing key from env")
 			signingKey = sk
 		} else {
@@ -72,23 +70,25 @@ func main() {
 	stripePrivKey, paymentEnabled := os.LookupEnv("STRIPE_PRIVATE_TOKEN")
 
 	ks := hydrocarbon.NewKeySigner(signingKey)
-	pl := hydrocarbon.NewPluginList(&rss.Reader{Client: http.DefaultClient})
-	rf := hydrocarbon.NewRefresher(db, pl, &hydrocarbon.StdoutReporter{})
-	go rf.Refresh(context.Background())
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, ks, pl), domain)
-	err = http.ListenAndServe(getPort(), httpLogger(gziphandler.GzipHandler(r)))
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, ks), domain)
+
+	log.Println("serving private api on port", getPort("MACHINE_PORT", ":6060"))
+	go http.ListenAndServe(getPort("MACHINE_PORT", ":6060"), httpLogger(gziphandler.GzipHandler(hydrocarbon.NewMachineRouter(db))))
+
+	err = http.ListenAndServe(getPort("PORT", ":8080"), httpLogger(gziphandler.GzipHandler(r)))
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func getPort() string {
-	p := os.Getenv("PORT")
+func getPort(env string, def string) string {
+	p := os.Getenv(env)
 	if p != "" {
 		return ":" + p
 	}
-	return ":8080"
+
+	return def
 }
 
 func httpLogger(router http.Handler) http.Handler {

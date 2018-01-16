@@ -56,6 +56,7 @@ type Post struct {
 	Extra map[string]interface{} `json:"extra"`
 }
 
+// ContentHash returns the stable hex encoded SHA256 of a post
 func (p *Post) ContentHash() string {
 	h := sha256.New()
 	h.Write([]byte(fmt.Sprintf("%s:%s:%s", p.Title, p.Author, p.Body)))
@@ -68,15 +69,13 @@ func (p *Post) ContentHash() string {
 type FeedAPI struct {
 	s  FeedStore
 	ks *KeySigner
-	p  *PluginList
 }
 
 // NewFeedAPI returns a new Feed API
-func NewFeedAPI(s FeedStore, ks *KeySigner, p *PluginList) *FeedAPI {
+func NewFeedAPI(s FeedStore, ks *KeySigner) *FeedAPI {
 	return &FeedAPI{
 		s:  s,
 		ks: ks,
-		p:  p,
 	}
 }
 
@@ -106,19 +105,9 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	plug, err := fa.p.ByName(feed.Plugin)
-	if err != nil {
-		writeErr(w, err)
-		return
-	}
+	// TODO(fortytw2): implement plugin validation against the hydrocollect list
 
-	title, baseURL, err := plug.Info(r.Context(), feed.URL)
-	if err != nil {
-		writeErr(w, err)
-		return
-	}
-
-	err = fa.s.AddFeed(r.Context(), key, feed.FolderID, title, feed.Plugin, baseURL)
+	err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
 	if err != nil {
 		writeErr(w, err)
 		return

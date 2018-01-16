@@ -70,7 +70,6 @@ CREATE TABLE feeds (
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-	last_enqueued_at TIMESTAMPTZ,
 
 	plugin TEXT NOT NULL,
 	url TEXT NOT NULL,
@@ -80,8 +79,6 @@ CREATE TABLE feeds (
 );
 
 CREATE UNIQUE INDEX feeds_plugin_url_public_uniq_idx ON feeds (plugin, url) WHERE public;
-
-CREATE INDEX feeds_last_enqueued_at_idx ON feeds (last_enqueued_at);
 
 -- feed_folders is a join table between feeds and folders
 CREATE TABLE feed_folders (

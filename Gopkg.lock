@@ -2,16 +2,16 @@
 
 
 [[projects]]
-  branch = "master"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
-  revision = "97ae7fbaf81620fe97840685304a78a306a39c64"
+  revision = "d6f46609c7629af3a02d791a4666866eed3cbd3e"
+  version = "v1.0.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/bouk/httprouter"
   packages = ["."]
   revision = "ee8b3818a7f51fbc94cc709b5744b52c2c725e91"
+  version = "v2.0"
 
 [[projects]]
   branch = "master"
@@ -23,35 +23,23 @@
   branch = "master"
   name = "github.com/fortytw2/dockertest"
   packages = ["."]
-  revision = "d3a414f43fc65848bd96d2c6e344dd8119b1b250"
+  revision = "a73397bdeff4b713648d4b2e7fc655eb9a85fb6b"
 
 [[projects]]
   branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid"]
-  revision = "23da1db4f16d9658a86ae9b717c245fc078f10f1"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/microcosm-cc/bluemonday"
-  packages = ["."]
-  revision = "68fecaef60268522d2ac3f0123cec9d3bcab7b6e"
+  revision = "83612a56d3dd153a94a629cd64925371c9adad78"
 
 [[projects]]
   name = "github.com/stripe/stripe-go"
-  packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
-  revision = "fd984f4cf0352b66a98d2e7902ee8a71c11d65d1"
-  version = "v27.0.1"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = ["html","html/atom"]
-  revision = "0744d001aa8470aaa53df28d32e5ceeb8af9bd70"
+  packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","exchangerate","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
+  revision = "0a93e406acee553dcece6034a0b3f4ab62b228b5"
+  version = "v28.8.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "40148e2a100c629c26a921c9dd10dbce3c9d50d3962e9b21c9ca48a8f1c5930c"
+  inputs-digest = "e047f53cd8a9d2457f1dc7eefe72c5a1c2b1fae3cf00179b202de971131a3086"
   solver-name = "gps-cdcl"
   solver-version = 1

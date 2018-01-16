@@ -1,32 +1,23 @@
 {
+  "private": true,
+  "name": "ui",
+  "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
-    "build-css": "tachyons tachyons/tachyons.css --minify > build/css/bundle.min.css",
-    "build-js": "rollup -c --output=build/js/bundle.min.js -- main.jsx"
-  },
-  "dependencies": {
-    "history": "^4.6.1",
-    "nanoajax": "^0.4.3",
-    "preact": "^8.1.0",
-    "preact-redux": "^2.0.1",
-    "preact-router": "^2.5.2",
-    "preact-router-redux": "^4.1.0",
-    "redux": "^3.6.0",
-    "redux-persist": "^4.8.0"
+    "start": "if-env NODE_ENV=production && npm run -s serve || npm run -s dev",
+    "build": "preact build",
+    "serve": "preact build && preact serve",
+    "dev": "preact watch"
   },
   "devDependencies": {
-    "babel-plugin-external-helpers": "^6.22.0",
-    "babel-plugin-transform-object-assign": "^6.22.0",
-    "babel-plugin-transform-object-rest-spread": "^6.23.0",
-    "babel-plugin-transform-react-jsx": "^6.24.1",
-    "babel-preset-babili": "^0.0.12",
-    "babel-preset-env": "^1.4.0",
-    "rollup": "^0.41.6",
-    "rollup-plugin-babel": "^2.7.1",
-    "rollup-plugin-babili": "^3.0.0",
-    "rollup-plugin-commonjs": "^8.0.2",
-    "rollup-plugin-node-resolve": "^3.0.0",
-    "rollup-plugin-replace": "^1.1.1",
-    "tachyons": "^4.7.0",
-    "tachyons-cli": "^1.0.10"
+    "if-env": "^1.0.0",
+    "preact-cli": "^2.0.0"
+  },
+  "dependencies": {
+    "preact": "^8.2.1",
+    "preact-compat": "^3.17.0",
+    "preact-material-components": "^1.2.4",
+    "preact-router": "^2.5.5",
+    "unistore": "^3.0.3"
   }
 }

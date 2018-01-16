@@ -12,8 +12,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/public"
 )
 
-//go:generate bash -c "pushd ui && yarn run build-js && popd"
-//go:generate bash -c "pushd ui && yarn run build-css && popd"
+//go:generate bash -c "pushd ui && preact build && popd"
 //go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/build/..."
 
 // NewRouter configures a new http.Handler that serves hydrocarbon
@@ -29,7 +28,6 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 		})
 
 	m.Handle("GET", "/static/*file", http.StripPrefix("/static/", fs).ServeHTTP)
-	m.Handle("GET", "/favicon.ico", fs.ServeHTTP)
 
 	// serve the single page app for every other route, it has a 404 page builtin
 	m.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -44,23 +42,23 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	})
 
 	// login tokens
-	m.POST("/api/token/create", ua.RequestToken)
+	m.POST("/v1/token/create", ua.RequestToken)
 
 	// payment managemnet
-	m.POST("/api/payment/create", ua.CreatePayment)
+	m.POST("/v1/payment/create", ua.CreatePayment)
 
 	// api keys
-	m.POST("/api/key/create", ua.Activate)
-	m.POST("/api/key/delete", ua.Deactivate)
-	m.POST("/api/key/list", ua.ListSessions)
+	m.POST("/v1/key/create", ua.Activate)
+	m.POST("/v1/key/delete", ua.Deactivate)
+	m.POST("/v1/key/list", ua.ListSessions)
 
 	// feed management
-	m.POST("/api/feed/create", fa.AddFeed)
-	m.POST("/api/feed/delete", fa.RemoveFeed)
-	m.POST("/api/feed/list", fa.GetFeed)
+	m.POST("/v1/feed/create", fa.AddFeed)
+	m.POST("/v1/feed/delete", fa.RemoveFeed)
+	m.POST("/v1/feed/list", fa.GetFeed)
 
 	// folder management
-	m.POST("/api/folder/create", fa.GetFolders)
+	m.POST("/v1/folder/create", fa.GetFolders)
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)

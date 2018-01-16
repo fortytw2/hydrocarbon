@@ -93,7 +93,7 @@ func (db *DB) CreateLoginToken(ctx context.Context, userID, userAgent, ip string
 func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `
 	UPDATE login_tokens
-	SET (used) = (true)
+	SET used = true
 	WHERE token = $1
 	AND expires_at > now()
 	AND used = false
@@ -180,23 +180,6 @@ func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 	return err
 }
 
-// ActiveUserFromKey returns the active user ID from the session key
-func (db *DB) ActiveUserFromKey(ctx context.Context, key string) (string, error) {
-	row := db.sql.QueryRowContext(ctx, `
-	SELECT user_id 
-	FROM sessions 
-	WHERE key = $1
-	AND active = true;`, key)
-
-	var userID string
-	err := row.Scan(&userID)
-	if err != nil {
-		return "", err
-	}
-
-	return userID, nil
-}
-
 // AddFeed adds the given URL to the users default folder
 // and links it across feed_folder
 func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (err error) {
@@ -213,6 +196,7 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	if err != nil {
 		return err
 	}
+
 	row := tx.QueryRowContext(ctx, `
 	INSERT INTO feeds
 	(title, plugin, url)
@@ -387,47 +371,8 @@ func (db *DB) GetFeed(ctx context.Context, feedID string, limit, offset int) (*F
 	return feed, nil
 }
 
-// GetFeedsToRefresh returns feeds that are not currently being updated AND
-// are past their time to be updated
-func (db *DB) GetFeedsToRefresh(ctx context.Context, num int) ([]*Feed, error) {
-	rows, err := db.sql.QueryContext(ctx, `
-	WITH cte AS (
-		SELECT id
-		FROM feeds 
-		WHERE last_enqueued_at < (now() - interval '10 minutes')
-		LIMIT $1
-	) UPDATE feeds fe
-	SET last_enqueued_at = now()
-	FROM cte
-	WHERE fe.id = cte.id
-	RETURNING fe.id, fe.title, fe.plugin, fe.url`, num)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	feeds := make([]*Feed, 0)
-	for rows.Next() {
-		var id, title, plugin, url string
-
-		err := rows.Scan(&id, &title, &plugin, &url)
-		if err != nil {
-			return nil, err
-		}
-
-		feeds = append(feeds, &Feed{
-			ID:      id,
-			Title:   title,
-			Plugin:  plugin,
-			BaseURL: url,
-		})
-	}
-
-	return feeds, nil
-}
-
-// UpdateFeedFromRefresh UPSERTS all posts returned into the DB
-func (db *DB) UpdateFeedFromRefresh(ctx context.Context, feedID string, posts []*Post) error {
+// UpdatePosts inserts a smattering of posts into the db
+func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*Post) error {
 	for _, p := range posts {
 		var contentHash string
 		err := db.sql.QueryRow(`

@@ -20,18 +20,16 @@ cache:
   directories:
     - ui/node_modules
 
-script:
+install:
   - export PATH="$PATH:`yarn global bin`"
+    # Ensure all js is formatted. gopherCI takes care of Go
+  - yarn global add prettier preact-cli
+  - pushd ui && yarn install && popd
   - go get -u github.com/lestrrat/go-bindata/...
   - dep ensure
-  - pushd ui && yarn install && popd
-  # Ensure all js is formatted. gopherCI takes care of Go
-  - yarn global add prettier
-  - prettier --write "ui/**.js"
-  - go generate $(go list ./... | grep -v vendor)
-  - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
-  - go test -race -v ./...
 
-notifications:
-  slack: hydrocarbon:czrQMquiw5uA7yR3mhpMrdQM
-  email: false
+script:
+  - prettier --write "ui/**.js"
+  - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
+  - go generate ./...
+  - go test -race -v ./...
