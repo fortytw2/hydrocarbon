@@ -37,7 +37,6 @@ func main() {
 	} else {
 		domain = "http://localhost" + getPort("PORT", ":8080")
 	}
-	log.Println("ui will target", domain+"/api", "for api requests")
 
 	var m hydrocarbon.Mailer
 	{
