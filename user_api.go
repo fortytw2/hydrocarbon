@@ -53,7 +53,7 @@ func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey st
 }
 
 var (
-	registerSuccess = []byte(`{"status":"success", "note": "email sent, token expires in 24 hours"}`)
+	registerSuccess = []byte(`{"status":"success", "note": "check your email for a login token, token expires in 24 hours"}`)
 )
 
 func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {

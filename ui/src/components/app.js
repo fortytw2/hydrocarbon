@@ -5,6 +5,7 @@ import Layout from "./layout";
 import Home from "../routes/home";
 import Profile from "../routes/profile";
 import NotFound from "../routes/notfound";
+import Login from "../routes/login";
 
 import Feed from "async!../routes/feed";
 // import Profile from 'async!../routes/profile';
@@ -28,6 +29,8 @@ export default class App extends Component {
             <Profile path="/profile/:user" />
             <Feed path="/feed/" id="0" />
             <Feed path="/feed/:id" />
+            <Login path="/login" />
+            <Login path="/login-callback" callback={true} />
             <NotFound default />
           </Router>
         </Layout>
