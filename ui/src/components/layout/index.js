@@ -30,7 +30,7 @@ export default class Layout extends Component {
   };
 
   goHome = this.linkTo("/");
-  goFeed = this.linkTo("/feed");
+  goFeed = this.linkTo("/folders");
   goToMyProfile = this.linkTo("/profile");
 
   toggleDarkTheme = () => {
@@ -53,35 +53,18 @@ export default class Layout extends Component {
       <div class={style.layout}>
         <Toolbar className="toolbar">
           <Toolbar.Row>
-            <Toolbar.Section align-start>
+            <Toolbar.Section align-start onClick={this.goHome}>
               <Toolbar.Title>Hydrocarbon</Toolbar.Title>
+            </Toolbar.Section>
+            <Toolbar.Section align-start onClick={this.goFeed}>
+              <Toolbar.Title style="font-size: 14px;">Feed</Toolbar.Title>
             </Toolbar.Section>
             <Toolbar.Section align-end onClick={this.openSettings}>
               <Toolbar.Icon>settings</Toolbar.Icon>
             </Toolbar.Section>
           </Toolbar.Row>
         </Toolbar>
-        <div class={style.content}>
-          <Drawer.PermanentDrawer spacer={false} ref={this.drawerRef}>
-            <Drawer.PermanentDrawerContent>
-              <List>
-                <List.LinkItem onClick={this.goHome}>
-                  <List.ItemIcon>home</List.ItemIcon>
-                  Home
-                </List.LinkItem>
-                <List.LinkItem onClick={this.goFeed}>
-                  <List.ItemIcon>view_headline</List.ItemIcon>
-                  Feed
-                </List.LinkItem>
-                <List.LinkItem onClick={this.goToMyProfile}>
-                  <List.ItemIcon>account_circle</List.ItemIcon>
-                  Profile
-                </List.LinkItem>
-              </List>
-            </Drawer.PermanentDrawerContent>
-          </Drawer.PermanentDrawer>
-          {this.props.children}
-        </div>
+        <div class={style.content}>{this.props.children}</div>
         <Dialog ref={this.dialogRef}>
           <Dialog.Header>Settings</Dialog.Header>
           <Dialog.Body>

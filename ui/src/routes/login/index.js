@@ -42,7 +42,7 @@ export default class Login extends Component {
           window.localStorage.setItem("hydrocarbon-key", json.key);
           window.localStorage.setItem("email", json.email);
 
-          route("/feed");
+          route("/folders");
         });
     }
   }

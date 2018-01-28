@@ -6,6 +6,7 @@ import Home from "../routes/home";
 import Profile from "../routes/profile";
 import NotFound from "../routes/notfound";
 import Login from "../routes/login";
+import FolderList from "../routes/folderlist";
 import Feed from "../routes/feed";
 // import Profile from 'async!../routes/profile';
 
@@ -26,8 +27,9 @@ export default class App extends Component {
             <Home path="/" />
             <Profile path="/profile/" user="me" />
             <Profile path="/profile/:user" />
-            <Feed path="/feed/" id="0" />
-            <Feed path="/feed/:id" />
+            <FolderList path="/folders/" id="0" />
+            <FolderList path="/folders/:id" />
+            <FolderList path="/folders/:id/:feedID" />
             <Login path="/login" />
             <Login path="/login-callback" callback={true} />
             <NotFound default />
