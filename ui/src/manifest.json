@@ -1,6 +1,6 @@
 {
-  "name": "ui",
-  "short_name": "ui",
+  "name": "hydrocarbon",
+  "short_name": "hc",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",

@@ -114,3 +114,13 @@ CREATE TABLE posts (
 
 	UNIQUE (content_hash)
 );
+
+-- read statuses tracking
+CREATE TABLE read_statuses (
+	post_id UUID NOT NULL REFERENCES posts,
+	user_id UUID NOT NULL REFERENCES users,
+
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+	PRIMARY KEY (post_id, user_id)
+);

@@ -329,13 +329,15 @@ func addFolderOrFeed(folders []*Folder, name, id string, feed *Feed) []*Folder {
 }
 
 // GetFeed returns a single feed
-func (db *DB) GetFeed(ctx context.Context, feedID string, limit, offset int) (*Feed, error) {
+func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at
-	FROM feeds fe
-	LEFT JOIN posts po ON (fe.id = po.feed_id)
-	WHERE fe.id = $1
-	LIMIT $2 OFFSET $3;`, feedID, limit, offset)
+	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at, rs.user_id 
+ 	FROM feeds fe
+ 	FROM feeds fe
+ 	LEFT JOIN posts po ON (fe.id = po.feed_id)
+	LEFT JOIN read_statuses rs ON (rs.post_id = po.id AND rs.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
+	WHERE fe.id = $2
+	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -347,9 +349,10 @@ func (db *DB) GetFeed(ctx context.Context, feedID string, limit, offset int) (*F
 	}
 	for rows.Next() {
 		var feedID, feedTitle, postID, postTitle, postAuthor, postBody, url string
+		var userID sql.NullString
 		var createdAt, updatedAt time.Time
 
-		err := rows.Scan(&feedID, &feedTitle, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt)
+		err := rows.Scan(&feedID, &feedTitle, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt, &userID)
 		if err != nil {
 			return nil, err
 		}
@@ -364,6 +367,7 @@ func (db *DB) GetFeed(ctx context.Context, feedID string, limit, offset int) (*F
 			Title:       postTitle,
 			Body:        postBody,
 			OriginalURL: url,
+			Read:        userID.Valid,
 		})
 
 	}
