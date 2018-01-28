@@ -9,28 +9,32 @@ import { route } from "preact-router";
 import PostList from "../postlist";
 
 export default class Feed extends Component {
-  componentWillMount() {
-    console.log("fetch feed list here");
+  constructor(props) {
+    super(props);
 
     this.setState({
-      feeds: [
-        {
-          name: "ars technica",
-          unread: 14,
-          id: "arse-technical"
-        },
-        {
-          name: "fucker jones",
-          unread: 4,
-          id: "fu-jonz"
-        },
-        {
-          name: "test 42",
-          unread: 234,
-          id: "test-42"
-        }
-      ]
+      loading: true,
+      feeds: []
     });
+  }
+
+  componentDidMount() {
+    let key = window.localStorage.getItem("hydrocarbon-key");
+
+    fetch("/v1/folder/list", {
+      method: "POST",
+      headers: {
+        "x-hydrocarbon-key": key
+      }
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(json => {
+        this.setState({ loading: false, feeds: json[0].feeds });
+      });
   }
 
   linkTo = path => () => {
@@ -48,7 +52,11 @@ export default class Feed extends Component {
     return <h1>Select a Post!</h1>;
   }
 
-  render({ id }, { feeds }) {
+  render({ id }, { loading, feeds }) {
+    if (loading) {
+      return <div class={styles.content}>Loading Feeds...</div>;
+    }
+
     return (
       <div class={styles.content}>
         <Drawer.PermanentDrawer spacer={false}>
@@ -57,7 +65,7 @@ export default class Feed extends Component {
               {feeds.map(f => {
                 return (
                   <List.LinkItem onClick={this.goToFeed(f.id)}>
-                    {f.name}
+                    {f.title} {f.unread}
                   </List.LinkItem>
                 );
               })}

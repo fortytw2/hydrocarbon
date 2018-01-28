@@ -6,8 +6,7 @@ import Home from "../routes/home";
 import Profile from "../routes/profile";
 import NotFound from "../routes/notfound";
 import Login from "../routes/login";
-
-import Feed from "async!../routes/feed";
+import Feed from "../routes/feed";
 // import Profile from 'async!../routes/profile';
 
 export default class App extends Component {
