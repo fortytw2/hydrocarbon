@@ -10,6 +10,8 @@ import FolderList from "../routes/folderlist";
 import Feed from "../routes/feed";
 // import Profile from 'async!../routes/profile';
 
+import "preact/devtools";
+
 export default class App extends Component {
   /** Gets fired when the route changes.
    *	@param {Object} event		"change" event from [preact-router](http://git.io/preact-router)

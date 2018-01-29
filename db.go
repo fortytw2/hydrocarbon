@@ -333,9 +333,8 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at, rs.user_id 
  	FROM feeds fe
- 	FROM feeds fe
  	LEFT JOIN posts po ON (fe.id = po.feed_id)
-	LEFT JOIN read_statuses rs ON (rs.post_id = po.id AND rs.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
+	JOIN read_statuses rs ON (rs.post_id = po.id AND rs.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
 	WHERE fe.id = $2
 	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {

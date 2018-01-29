@@ -3,37 +3,48 @@ import Drawer from "preact-material-components/Drawer";
 import List from "preact-material-components/List";
 import "preact-material-components/Drawer/style.css";
 import "preact-material-components/List/style.css";
+import Feed from "../feed";
+
 import { route } from "preact-router";
 
 import style from "./style";
 
 export default class FolderView extends Component {
   getContent(feedID) {
+    console.log(feedID);
     if (feedID === undefined) {
       return <h1> No Feed ID </h1>;
     }
-    return <h2> feed content for {feedID} </h2>;
+    return <Feed id={feedID} />;
   }
 
   linkTo = path => () => {
     route(path);
   };
 
-  render({ id, feedID }, {}) {
+  render({ id, feedID, feeds }, {}) {
+    if (feeds === undefined || feeds.length === 0) {
+      return (
+        <div class={style.content}>
+          <h3>No Feeds Found, try adding one? </h3>
+        </div>
+      );
+    }
+
     return (
       <div class={style.content}>
         <Drawer.PermanentDrawer spacer={false}>
           <Drawer.PermanentDrawerContent>
             <List>
-              <List.LinkItem
-                onClick={this.linkTo("/folders/" + id + "/feedID")}
-              >
-                Ars Technical
-              </List.LinkItem>
-              <List.LinkItem>Ars Technical</List.LinkItem>
-              <List.LinkItem>Ars Technical</List.LinkItem>
-              <List.LinkItem>Ars Technical</List.LinkItem>
-              <List.LinkItem>Ars Technical</List.LinkItem>
+              {feeds.map(f => {
+                return (
+                  <List.LinkItem
+                    onClick={this.linkTo("/folders/" + id + "/" + f.id)}
+                  >
+                    {f.title}
+                  </List.LinkItem>
+                );
+              })}
             </List>
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>

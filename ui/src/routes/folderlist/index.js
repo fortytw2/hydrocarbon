@@ -45,14 +45,14 @@ export default class FolderList extends Component {
     return this.linkTo("/folders/" + id);
   }
 
-  getContent(id, feedID) {
-    if (id !== "0" && feedID === undefined) {
-      return <FolderView id={id} />;
-    } else if (feedID !== undefined) {
-      return <FolderView id={id} feedID={feedID} />;
-    }
-    return <h1>Select a Post!</h1>;
-  }
+  getFeedsForFolder = id => {
+    let feeds = this.state.folders.map(e => {
+      if (e.id === id) {
+        return e.feeds;
+      }
+    });
+    return feeds[0];
+  };
 
   render({ id, feedID }, { loading, folders }) {
     if (loading) {
@@ -74,7 +74,13 @@ export default class FolderList extends Component {
             </List>
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>
-        <div>{this.getContent(id, feedID)}</div>
+        <div>
+          <FolderView
+            id={id}
+            feeds={this.getFeedsForFolder(id)}
+            feedID={feedID}
+          />
+        </div>
       </div>
     );
   }

@@ -41,7 +41,7 @@ type Feed struct {
 
 	Unread int `json:"unread"`
 
-	Posts []*Post `json:"posts,omitempty"`
+	Posts []*Post `json:"posts"`
 }
 
 // A Post is a single post on a feed
