@@ -11,7 +11,6 @@ import style from "./style";
 
 export default class FolderView extends Component {
   getContent(feedID) {
-    console.log(feedID);
     if (feedID === undefined) {
       return <h1> No Feed ID </h1>;
     }

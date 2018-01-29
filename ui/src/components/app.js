@@ -11,6 +11,7 @@ import Feed from "../routes/feed";
 // import Profile from 'async!../routes/profile';
 
 import "preact/devtools";
+import style from "./style";
 
 export default class App extends Component {
   /** Gets fired when the route changes.
@@ -23,7 +24,7 @@ export default class App extends Component {
 
   render() {
     return (
-      <div id="app">
+      <div id="app" class={style.themed}>
         <Layout>
           <Router onChange={this.handleRoute}>
             <Home path="/" />

@@ -53,7 +53,11 @@ export default class Layout extends Component {
       <div class={style.layout}>
         <Toolbar className="toolbar">
           <Toolbar.Row>
-            <Toolbar.Section align-start onClick={this.goHome}>
+            <Toolbar.Section
+              align-start
+              style="flex-grow: 0.3;"
+              onClick={this.goHome}
+            >
               <Toolbar.Title>Hydrocarbon</Toolbar.Title>
             </Toolbar.Section>
             <Toolbar.Section align-start onClick={this.goFeed}>
