@@ -1,0 +1,19 @@
+.logindiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 60%;
+}
+
+.loginemail {
+  max-width: 400px;
+  padding-right: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.labeltext {
+  font-size: 14px;
+}

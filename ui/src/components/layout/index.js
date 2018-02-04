@@ -24,15 +24,6 @@ export default class Layout extends Component {
   drawerRef = drawer => (this.drawer = drawer);
   dialogRef = dialog => (this.dialog = dialog);
 
-  linkTo = path => () => {
-    route(path);
-    this.closeDrawer();
-  };
-
-  goHome = this.linkTo("/");
-  goFeed = this.linkTo("/folders");
-  goToMyProfile = this.linkTo("/profile");
-
   toggleDarkTheme = () => {
     this.setState(
       {
@@ -53,18 +44,26 @@ export default class Layout extends Component {
       <div class={style.layout}>
         <Toolbar className="toolbar">
           <Toolbar.Row>
-            <Toolbar.Section
-              align-start
-              style="flex-grow: 0.3;"
-              onClick={this.goHome}
-            >
-              <Toolbar.Title>Hydrocarbon</Toolbar.Title>
+            <Toolbar.Section align-start style="flex-grow: 0.35;">
+              <Toolbar.Title>
+                <a class={style.toolbarlink} href="/">
+                  Hydrocarbon
+                </a>
+              </Toolbar.Title>
             </Toolbar.Section>
-            <Toolbar.Section align-start onClick={this.goFeed}>
-              <Toolbar.Title style="font-size: 14px;">Feed</Toolbar.Title>
+            <Toolbar.Section align-start>
+              <Toolbar.Title style="font-size: 14px;">
+                <a class={style.toolbarlink} href="/folders">
+                  Feed
+                </a>
+              </Toolbar.Title>
             </Toolbar.Section>
-            <Toolbar.Section align-end onClick={this.openSettings}>
-              <Toolbar.Icon>settings</Toolbar.Icon>
+            <Toolbar.Section align-end>
+              <Toolbar.Title style="font-size: 14px;">
+                <a class={style.toolbarlink} href="/login">
+                  Login
+                </a>
+              </Toolbar.Title>
             </Toolbar.Section>
           </Toolbar.Row>
         </Toolbar>

@@ -7,7 +7,6 @@ import Profile from "../routes/profile";
 import NotFound from "../routes/notfound";
 import Login from "../routes/login";
 import FolderList from "../routes/folderlist";
-import Feed from "../routes/feed";
 // import Profile from 'async!../routes/profile';
 
 import "preact/devtools";

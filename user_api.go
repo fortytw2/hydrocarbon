@@ -67,8 +67,8 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(registerData.Email) > 256 || !strings.Contains(registerData.Email, "@") {
-		writeErr(w, err)
+	if len(registerData.Email) == 0 || len(registerData.Email) > 128 || !strings.Contains(registerData.Email, "@") {
+		writeErr(w, errors.New("no valid email sent"))
 		return
 	}
 

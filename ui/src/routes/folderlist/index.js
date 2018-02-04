@@ -6,7 +6,7 @@ import "preact-material-components/List/style.css";
 import styles from "./style";
 import { route } from "preact-router";
 
-import FolderView from "../folderview";
+import FeedList from "../feedlist";
 
 export default class FolderList extends Component {
   constructor(props) {
@@ -75,7 +75,7 @@ export default class FolderList extends Component {
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>
         <div>
-          <FolderView
+          <FeedList
             id={id}
             feeds={this.getFeedsForFolder(id)}
             feedID={feedID}

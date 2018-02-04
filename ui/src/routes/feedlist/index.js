@@ -3,18 +3,22 @@ import Drawer from "preact-material-components/Drawer";
 import List from "preact-material-components/List";
 import "preact-material-components/Drawer/style.css";
 import "preact-material-components/List/style.css";
-import Feed from "../feed";
+import PostList from "../postlist";
 
 import { route } from "preact-router";
 
 import style from "./style";
 
-export default class FolderView extends Component {
+export default class FeedList extends Component {
   getContent(feedID) {
     if (feedID === undefined) {
-      return <h1> No Feed ID </h1>;
+      return (
+        <div style="padding: 24px;">
+          <h1> No Feed ID </h1>
+        </div>
+      );
     }
-    return <Feed id={feedID} />;
+    return <PostList id={feedID} />;
   }
 
   linkTo = path => () => {

@@ -5,6 +5,7 @@ import "preact-material-components/Theme/style.css";
 import { route } from "preact-router";
 import LinearProgress from "preact-material-components/LinearProgress";
 import "preact-material-components/LinearProgress/style.css";
+import style from "./style";
 
 export default class Login extends Component {
   constructor(props) {
@@ -96,11 +97,26 @@ export default class Login extends Component {
     }
 
     return (
-      <div>
-        <label>
-          <input type="email" value={email} onChange={this.update} />
+      <div class={style.logindiv}>
+        <label class={style.loginemail}>
+          <p class={style.labeltext}>
+            Hydrocarbon only logs you in through an email with a signed link. If
+            you don't have an account, one will be created for you. There are no
+            passwords.
+          </p>
+          <input
+            type="email"
+            placeholder="example@example.com"
+            value={email}
+            onChange={this.update}
+          />
         </label>
-        <Button ripple raised onClick={this.submit}>
+        <Button
+          style="display: flex; margin-top: 32px;"
+          ripple
+          raised
+          onClick={this.submit}
+        >
           Login (or Register)
         </Button>
       </div>

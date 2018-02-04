@@ -13,3 +13,12 @@
   height: 100%;
   box-sizing: border-box;
 }
+
+.toolbarlink {
+  padding: 16px;
+  font-family: inherit;
+  font-style: normal;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+}

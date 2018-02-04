@@ -1,6 +1,7 @@
 import { h, Component } from "preact";
+import style from "./style";
 
-export default class Feed extends Component {
+export default class PostList extends Component {
   constructor(props) {
     super(props);
 
@@ -37,15 +38,15 @@ export default class Feed extends Component {
 
   render({ id }, { loading, currentPostIdx, posts }) {
     if (loading) {
-      return <div>loading..</div>;
+      return <div class={style.content}>loading..</div>;
     }
 
     if (posts.length === 0) {
-      return <div> no posts </div>;
+      return <div class={style.content}> no posts </div>;
     }
 
     return (
-      <div>
+      <div class={style.content}>
         <h1>{posts[currentPostIdx].title}</h1>
         <p>{posts[currentPostIdx].body}</p>
       </div>
