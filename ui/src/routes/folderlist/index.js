@@ -1,8 +1,12 @@
 import { h, Component } from "preact";
 import Drawer from "preact-material-components/Drawer";
 import List from "preact-material-components/List";
+import Dialog from "preact-material-components/Dialog";
 import "preact-material-components/Drawer/style.css";
 import "preact-material-components/List/style.css";
+import "preact-material-components/Dialog/style.css";
+import Button from "preact-material-components/Button";
+import "preact-material-components/Button/style.css";
 import styles from "./style";
 import { route } from "preact-router";
 
@@ -12,13 +16,14 @@ export default class FolderList extends Component {
   constructor(props) {
     super(props);
 
-    this.setState({
-      loading: true,
-      folders: []
-    });
+    this.setState({ loading: true, folders: [], newFolderName: "" });
   }
 
   componentDidMount() {
+    this.loadFolders();
+  }
+
+  loadFolders() {
     let key = window.localStorage.getItem("hydrocarbon-key");
 
     fetch("/v1/folder/list", {
@@ -54,7 +59,26 @@ export default class FolderList extends Component {
     return feeds[0];
   };
 
-  render({ id, feedID }, { loading, folders }) {
+  openWizard = () => {
+    this.dialog.MDComponent.show();
+  };
+
+  updateNewFolder = e => {
+    e.preventDefault();
+
+    let newFolderName = e.target.value;
+    this.setState({ newFolderName });
+  };
+
+  submitNewFolder = e => {
+    e.preventDefault();
+
+    console.log("lol can't make folders rn");
+  };
+
+  dialogRef = dialog => (this.dialog = dialog);
+
+  render({ id, feedID }, { loading, folders, newFolderName }) {
     if (loading) {
       return <div class={styles.content}>Loading Folders...</div>;
     }
@@ -64,6 +88,7 @@ export default class FolderList extends Component {
         <Drawer.PermanentDrawer spacer={false}>
           <Drawer.PermanentDrawerContent>
             <List>
+              <List.Item onClick={this.openWizard}>Create Folder</List.Item>
               {folders.map(f => {
                 return (
                   <List.LinkItem onClick={this.goToFolder(f.id)}>
@@ -74,6 +99,25 @@ export default class FolderList extends Component {
             </List>
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>
+        <Dialog ref={this.dialogRef}>
+          <Dialog.Header>Add Folder</Dialog.Header>
+          <Dialog.Body>
+            <div>
+              <input
+                type="text"
+                placeholder="example folder"
+                value={newFolderName}
+                onChange={this.updateNewFolder}
+              />
+              <Button ripple raised onClick={this.submitNewFolder}>
+                Create Folder
+              </Button>
+            </div>
+          </Dialog.Body>
+          <Dialog.Footer>
+            <Dialog.FooterButton accept>okay</Dialog.FooterButton>
+          </Dialog.Footer>
+        </Dialog>
         <div>
           <FeedList
             id={id}
