@@ -86,7 +86,7 @@ export default class Login extends Component {
     if (callback) {
       return (
         <div>
-          <h4> Logging you in... </h4>
+          <h4>Logging you in...</h4>
         </div>
       );
     }
