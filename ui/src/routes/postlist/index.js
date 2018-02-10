@@ -13,7 +13,7 @@ export default class PostList extends Component {
   }
 
   componentDidMount() {
-    fetch("/v1/feed/list", {
+    fetch(window.baseURL + "/v1/feed/list", {
       method: "POST",
       body: JSON.stringify({
         id: this.props.id

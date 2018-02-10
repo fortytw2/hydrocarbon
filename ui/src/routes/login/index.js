@@ -28,7 +28,7 @@ export default class Login extends Component {
       let params = new URLSearchParams(location.search.slice(1));
       let token = params.get("token");
 
-      fetch("/v1/key/create", {
+      fetch(window.baseURL + "/v1/key/create", {
         method: "POST",
         body: JSON.stringify({
           token: token
@@ -40,8 +40,16 @@ export default class Login extends Component {
           }
         })
         .then(json => {
+          let { key, email } = json;
+          if (key === undefined || email === undefined) {
+            console.log("lol invalid key or smthn");
+            return;
+          }
+
           window.localStorage.setItem("hydrocarbon-key", json.key);
           window.localStorage.setItem("email", json.email);
+
+          this.props.loginSwapper();
 
           route("/folders");
         });
@@ -58,7 +66,7 @@ export default class Login extends Component {
   submit = e => {
     e.preventDefault();
 
-    fetch("/v1/token/create", {
+    fetch(window.baseURL + "/v1/token/create", {
       method: "POST",
       body: JSON.stringify({
         email: this.state.email
@@ -70,12 +78,7 @@ export default class Login extends Component {
         }
       })
       .then(json => {
-        this.setState({
-          success: {
-            submitted: true,
-            message: json.note
-          }
-        });
+        this.setState({ success: { submitted: true, message: json.note } });
       });
   };
 

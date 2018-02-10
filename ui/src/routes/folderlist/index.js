@@ -26,7 +26,7 @@ export default class FolderList extends Component {
   loadFolders() {
     let key = window.localStorage.getItem("hydrocarbon-key");
 
-    fetch("/v1/folder/list", {
+    fetch(window.baseURL + "/v1/folder/list", {
       method: "POST",
       headers: {
         "x-hydrocarbon-key": key

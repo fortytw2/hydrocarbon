@@ -39,7 +39,47 @@ export default class Layout extends Component {
     );
   };
 
-  render() {
+  feedSections(loggedIn) {
+    if (loggedIn) {
+      return (
+        <Toolbar.Section align-start>
+          <Toolbar.Title style="font-size: 14px;">
+            <a class={style.toolbarlink} href="/folders">
+              Feed
+            </a>
+          </Toolbar.Title>
+        </Toolbar.Section>
+      );
+    } else {
+      return <div />;
+    }
+  }
+
+  loginSection(loggedIn) {
+    if (loggedIn) {
+      return (
+        <Toolbar.Section align-end>
+          <Toolbar.Title style="font-size: 14px;">
+            <a class={style.toolbarlink} href="/logout">
+              Logout
+            </a>
+          </Toolbar.Title>
+        </Toolbar.Section>
+      );
+    } else {
+      return (
+        <Toolbar.Section align-end>
+          <Toolbar.Title style="font-size: 14px;">
+            <a class={style.toolbarlink} href="/login">
+              Login
+            </a>
+          </Toolbar.Title>
+        </Toolbar.Section>
+      );
+    }
+  }
+
+  render({ loggedIn }, {}) {
     return (
       <div class={style.layout}>
         <Toolbar className="toolbar">
@@ -51,20 +91,8 @@ export default class Layout extends Component {
                 </a>
               </Toolbar.Title>
             </Toolbar.Section>
-            <Toolbar.Section align-start>
-              <Toolbar.Title style="font-size: 14px;">
-                <a class={style.toolbarlink} href="/folders">
-                  Feed
-                </a>
-              </Toolbar.Title>
-            </Toolbar.Section>
-            <Toolbar.Section align-end>
-              <Toolbar.Title style="font-size: 14px;">
-                <a class={style.toolbarlink} href="/login">
-                  Login
-                </a>
-              </Toolbar.Title>
-            </Toolbar.Section>
+            {this.feedSections(loggedIn)}
+            {this.loginSection(loggedIn)}
           </Toolbar.Row>
         </Toolbar>
         <div class={style.content}>{this.props.children}</div>
