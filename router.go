@@ -12,7 +12,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/public"
 )
 
-//go:generate bash -c "pushd ui && preact build && popd"
+//go:generate bash -c "pushd ui && preact build --service-worker false --no-prerender && popd"
 //go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/build/..."
 
 // NewRouter configures a new http.Handler that serves hydrocarbon
