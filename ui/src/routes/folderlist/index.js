@@ -73,7 +73,30 @@ export default class FolderList extends Component {
   submitNewFolder = e => {
     e.preventDefault();
 
-    console.log("lol can't make folders rn");
+    let key = window.localStorage.getItem("hydrocarbon-key");
+    let fName = this.state.newFolderName;
+    fetch(window.baseURL + "/v1/folder/create", {
+      method: "POST",
+      headers: {
+        "x-hydrocarbon-key": key
+      },
+      body: JSON.stringify({
+        name: fName
+      })
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(json => {
+        let f = this.state.folders;
+        f.push({ id: json.id, title: fName });
+        this.setState({
+          folders: f,
+          newFolderName: ""
+        });
+      });
   };
 
   dialogRef = dialog => (this.dialog = dialog);

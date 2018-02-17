@@ -260,6 +260,19 @@ func (db *DB) getDefaultFolderID(ctx context.Context, sessionKey string) (string
 	return fid, nil
 }
 
+func (db *DB) AddFolder(ctx context.Context, sessionKey, name string) (string, error) {
+	row := db.sql.QueryRow(`
+	INSERT INTO folders (user_id, name) VALUES ((SELECT user_id FROM sessions WHERE key = $1), $2)`, sessionKey, name)
+
+	var id string
+	err := row.Scan(&id)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
 // RemoveFeed removes the given feed ID from the user
 func (db *DB) RemoveFeed(ctx context.Context, sessionKey, folderID, feedID string) error {
 	_, err := db.sql.ExecContext(ctx, `
@@ -275,12 +288,10 @@ func (db *DB) RemoveFeed(ctx context.Context, sessionKey, folderID, feedID strin
 // default folder
 func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*Folder, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fo.name as folder_name, fo.id as folder_id, fe.title as feed_title, fe.id as feed_id, fe.url, fe.plugin, fe.created_at, fe.updated_at
-	FROM feed_folders ff
-	LEFT JOIN folders fo ON (fo.id = ff.folder_id)
-	LEFT JOIN feeds fe ON (fe.id = ff.feed_id)
-	WHERE ff.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1) 
-	ORDER BY ff.priority DESC;`, sessionKey)
+	SELECT fo.name as folder_name, fo.id as folder_id
+	FROM folders fo
+	WHERE fo.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1) 
+	ORDER BY fo.created_at DESC;`, sessionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -288,44 +299,20 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*Folder, err
 
 	folders := make([]*Folder, 0)
 	for rows.Next() {
-		var folderName, folderID, feedTitle, feedID, feedURL, plugin string
-		var createdAt, updatedAt time.Time
+		var folderName, folderID string
 
-		err := rows.Scan(&folderName, &folderID, &feedTitle, &feedID, &feedURL, &plugin, &createdAt, &updatedAt)
+		err := rows.Scan(&folderName, &folderID)
 		if err != nil {
 			return nil, err
 		}
 
-		folders = addFolderOrFeed(folders, folderName, folderID, &Feed{
-			ID:        feedID,
-			Title:     feedTitle,
-			Plugin:    plugin,
-			BaseURL:   feedURL,
-			CreatedAt: createdAt,
-			UpdatedAt: updatedAt,
+		folders = append(folders, &Folder{
+			ID:    folderID,
+			Title: folderName,
 		})
 	}
 
 	return folders, nil
-}
-
-func addFolderOrFeed(folders []*Folder, name, id string, feed *Feed) []*Folder {
-	for _, f := range folders {
-		if f.Title == name && f.ID == id {
-			f.Feeds = append(f.Feeds, feed)
-			return folders
-		}
-	}
-
-	folders = append(folders, &Folder{
-		ID:    id,
-		Title: name,
-		Feeds: []*Feed{
-			feed,
-		},
-	})
-
-	return folders
 }
 
 // GetFeed returns a single feed

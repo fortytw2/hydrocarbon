@@ -1,8 +1,9 @@
 CREATE EXTENSION IF NOT EXISTS pgcrypto;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS citext;
 
 CREATE TABLE users (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -19,7 +20,7 @@ CREATE TABLE users (
 
 -- login tokens are one-time tokens used to login if oauth 2.0 is not used
 CREATE TABLE login_tokens (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 	user_id UUID REFERENCES users NOT NULL,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -37,7 +38,7 @@ CREATE UNIQUE INDEX login_tokens_token_idx ON login_tokens (token);
 
 -- session tokens are used to authenticate sessions
 CREATE TABLE sessions (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 	user_id UUID REFERENCES users NOT NULL,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -53,7 +54,7 @@ CREATE UNIQUE INDEX sessions_key_idx ON sessions (key);
 
 -- folders are used to maintain collections of feeds
 CREATE TABLE folders (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 	user_id UUID REFERENCES USERS NOT NULL,
 	
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -66,7 +67,7 @@ CREATE TABLE folders (
 
 -- feeds are individual feeds
 CREATE TABLE feeds (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -98,7 +99,7 @@ CREATE TABLE feed_folders (
 );
 
 CREATE TABLE posts (
-	id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
 	feed_id UUID REFERENCES feeds,
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),

@@ -80,7 +80,7 @@ func main() {
 	log.Println("serving private api on port", getPort("MACHINE_PORT", ":6060"))
 	go http.ListenAndServe(getPort("MACHINE_PORT", ":6060"), httpLogger(gziphandler.GzipHandler(hydrocarbon.NewMachineRouter(db))))
 
-	err = http.ListenAndServe(getPort("PORT", ":8080"), httpLogger(gziphandler.GzipHandler(r)))
+	err = http.ListenAndServe(getPort("PORT", ":8080"), allCORS(httpLogger(gziphandler.GzipHandler(r))))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,6 +93,14 @@ func getPort(env string, def string) string {
 	}
 
 	return def
+}
+
+func allCORS(router http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("‘Access-Control-Allow-Headers", "X-Hydrocarbon-Key")
+		router.ServeHTTP(w, r)
+	})
 }
 
 func httpLogger(router http.Handler) http.Handler {

@@ -58,6 +58,7 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	m.POST("/v1/feed/list", fa.GetFeed)
 
 	// folder management
+	m.POST("/v1/folder/create", fa.AddFolder)
 	m.POST("/v1/folder/list", fa.GetFolders)
 
 	if httpsOnly(domain) {

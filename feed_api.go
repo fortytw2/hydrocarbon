@@ -18,6 +18,8 @@ type FeedStore interface {
 	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) error
 	RemoveFeed(ctx context.Context, sessionKey, folderID, feedID string) error
 
+	AddFolder(ctx context.Context, sessionKey, name string) (string, error)
+
 	// GetFolders should not return any Posts in the nested Feeds
 	GetFolders(ctx context.Context, sessionKey string) ([]*Folder, error)
 	GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error)
@@ -112,6 +114,39 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
 	// TODO(fortytw2): implement plugin validation against the hydrocollect list
 
 	err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+}
+
+// AddFolder creates a new folder
+func (fa *FeedAPI) AddFolder(w http.ResponseWriter, r *http.Request) {
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	var folder struct {
+		Name string `json:"name"`
+	}
+
+	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&folder)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	id, err := fa.s.AddFolder(r.Context(), key, folder.Name)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(map[string]string{
+		"id": id,
+	})
 	if err != nil {
 		writeErr(w, err)
 		return

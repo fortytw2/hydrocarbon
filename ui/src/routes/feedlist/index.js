@@ -18,9 +18,12 @@ export default class FeedList extends Component {
     super(props);
     this.setState({
       newFeedPlugin: "",
-      newFeedURL: ""
+      newFeedURL: "",
+      feeds: []
     });
   }
+
+  componentDidMount() {}
 
   getContent(feedID) {
     if (feedID === undefined) {
@@ -67,8 +70,8 @@ export default class FeedList extends Component {
 
   dialogRef = dialog => (this.dialog = dialog);
 
-  render({ id, feedID, feeds }, { newFeedPlugin, newFeedURL }) {
-    if (feeds === undefined || feeds.length === 0) {
+  render({ folderID }, { feeds, newFeedPlugin, newFeedURL }) {
+    if (feeds === undefined || feeds === null || feeds.length === 0) {
       return (
         <div class={style.content}>
           <h3>No Feeds Found, try adding one? </h3>
