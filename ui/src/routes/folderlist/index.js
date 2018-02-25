@@ -50,15 +50,6 @@ export default class FolderList extends Component {
     return this.linkTo("/folders/" + id);
   }
 
-  getFeedsForFolder = id => {
-    let feeds = this.state.folders.map(e => {
-      if (e.id === id) {
-        return e.feeds;
-      }
-    });
-    return feeds[0];
-  };
-
   openWizard = () => {
     this.dialog.MDComponent.show();
   };
@@ -91,7 +82,7 @@ export default class FolderList extends Component {
       })
       .then(json => {
         let f = this.state.folders;
-        f.push({ id: json.id, title: fName });
+        f = f.concat({ id: json.id, title: fName });
         this.setState({
           folders: f,
           newFolderName: ""
@@ -132,21 +123,16 @@ export default class FolderList extends Component {
                 value={newFolderName}
                 onChange={this.updateNewFolder}
               />
-              <Button ripple raised onClick={this.submitNewFolder}>
-                Create Folder
-              </Button>
             </div>
           </Dialog.Body>
           <Dialog.Footer>
-            <Dialog.FooterButton accept>okay</Dialog.FooterButton>
+            <Dialog.FooterButton accept onClick={this.submitNewFolder}>
+              Create Folder
+            </Dialog.FooterButton>
           </Dialog.Footer>
         </Dialog>
         <div>
-          <FeedList
-            id={id}
-            feeds={this.getFeedsForFolder(id)}
-            feedID={feedID}
-          />
+          <FeedList folderID={id} feedID={feedID} />
         </div>
       </div>
     );

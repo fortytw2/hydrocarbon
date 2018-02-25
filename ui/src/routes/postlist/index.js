@@ -12,29 +12,7 @@ export default class PostList extends Component {
     });
   }
 
-  componentDidMount() {
-    fetch(window.baseURL + "/v1/feed/list", {
-      method: "POST",
-      body: JSON.stringify({
-        id: this.props.id
-      }),
-      headers: {
-        "X-Hydrocarbon-Key": window.localStorage.getItem("hydrocarbon-key")
-      }
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        this.setState({
-          loading: false,
-          currentPostIdx: 0,
-          posts: json.posts
-        });
-      });
-  }
+  componentDidMount() {}
 
   render({ id }, { loading, currentPostIdx, posts }) {
     if (loading) {

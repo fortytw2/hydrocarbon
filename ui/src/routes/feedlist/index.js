@@ -23,10 +23,30 @@ export default class FeedList extends Component {
     });
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    let key = window.localStorage.getItem("hydrocarbon-key");
+
+    fetch(window.baseURL + "/v1/feed/list", {
+      method: "POST",
+      headers: {
+        "x-hydrocarbon-key": key
+      },
+      body: JSON.stringify({
+        id: this.props.feedID
+      })
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(json => {
+        this.setState({ loading: false, posts: json.posts });
+      });
+  }
 
   getContent(feedID) {
-    if (feedID === undefined) {
+    if (typeof feedID === "undefined") {
       return (
         <div style="padding: 24px;">
           <h1> No Feed ID </h1>
@@ -70,13 +90,9 @@ export default class FeedList extends Component {
 
   dialogRef = dialog => (this.dialog = dialog);
 
-  render({ folderID }, { feeds, newFeedPlugin, newFeedURL }) {
+  render({ folderID, feedID }, { feeds, newFeedPlugin, newFeedURL }) {
     if (feeds === undefined || feeds === null || feeds.length === 0) {
-      return (
-        <div class={style.content}>
-          <h3>No Feeds Found, try adding one? </h3>
-        </div>
-      );
+      feeds = [];
     }
 
     return (
