@@ -262,7 +262,11 @@ func (db *DB) getDefaultFolderID(ctx context.Context, sessionKey string) (string
 
 func (db *DB) AddFolder(ctx context.Context, sessionKey, name string) (string, error) {
 	row := db.sql.QueryRow(`
-	INSERT INTO folders (user_id, name) VALUES ((SELECT user_id FROM sessions WHERE key = $1), $2)`, sessionKey, name)
+	INSERT INTO folders 
+	(user_id, name) 
+	VALUES 
+	((SELECT user_id FROM sessions WHERE key = $1), $2)
+	RETURNING id;`, sessionKey, name)
 
 	var id string
 	err := row.Scan(&id)
