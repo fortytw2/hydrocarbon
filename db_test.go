@@ -110,7 +110,7 @@ func addFeed(db *DB) func(t *testing.T) {
 			t.Fatalf("could not create session %s", err)
 		}
 
-		err = db.AddFeed(context.Background(), key, "", "testfeed", "testplugin", "https://www.goole.com")
+		_, err = db.AddFeed(context.Background(), key, "", "testfeed", "testplugin", "https://www.goole.com")
 		if err != nil {
 			t.Fatal(err)
 		}
