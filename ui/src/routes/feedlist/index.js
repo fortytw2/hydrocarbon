@@ -29,10 +29,10 @@ export default class FeedList extends Component {
   }
 
   componentWillReceiveProps({ folderID }) {
-    if (this.props.folderID === folderID && this.state.feeds.length !== 0) {
+    if (this.props.folderID === folderID) {
       return;
     }
-    this.setState({ loading: true });
+    this.setState({ feeds: [], loading: true });
     this.updateFeeds(folderID);
   }
 
@@ -54,6 +54,12 @@ export default class FeedList extends Component {
         }
       })
       .then(json => {
+        if (json === null || json.length === 0) {
+          this.setState({
+            loading: false,
+            feeds: []
+          });
+        }
         this.setState({
           loading: false,
           feeds: json
@@ -118,6 +124,9 @@ export default class FeedList extends Component {
       })
       .then(json => {
         let f = this.state.feeds;
+        if (f === null) {
+          f = [];
+        }
         f = f.concat({
           id: json.id,
           title: fURL,
@@ -134,6 +143,31 @@ export default class FeedList extends Component {
 
   dialogRef = dialog => (this.dialog = dialog);
 
+  renderFeeds(feeds, folderID, activeFeedID) {
+    if (feeds.length === 0) {
+      return <List.Item>No Feeds Found</List.Item>;
+    }
+    return feeds.map(f => {
+      if (f.id === activeFeedID) {
+        return (
+          <a
+            onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
+            class="mdc-list-item mdc-list-item--activated"
+          >
+            {f.title}
+          </a>
+        );
+      }
+      return (
+        <List.LinkItem
+          onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
+        >
+          {f.title}
+        </List.LinkItem>
+      );
+    });
+  }
+
   render({ folderID, feedID }, { loading, feeds, newFeedPlugin, newFeedURL }) {
     if (feeds === undefined || feeds === null || feeds.length === 0) {
       feeds = [];
@@ -144,10 +178,10 @@ export default class FeedList extends Component {
         <div class={styles.content}>
           <Drawer.PermanentDrawer spacer={false}>
             <Drawer.PermanentDrawerContent>
-              <List.Item onClick={this.openWizard}>
-                Add Feed to Folder
-              </List.Item>
               <List>
+                <List.Item onClick={this.openWizard}>
+                  Add Feed to Folder
+                </List.Item>
                 <List.Item>Loading...</List.Item>
               </List>
             </Drawer.PermanentDrawerContent>
@@ -160,27 +194,11 @@ export default class FeedList extends Component {
       <div class={styles.content}>
         <Drawer.PermanentDrawer spacer={false}>
           <Drawer.PermanentDrawerContent>
-            <List.Item onClick={this.openWizard}>Add Feed to Folder</List.Item>
             <List>
-              {feeds.map(f => {
-                if (f.id === feedID) {
-                  return (
-                    <a
-                      onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
-                      class="mdc-list-item mdc-list-item--activated"
-                    >
-                      {f.title}
-                    </a>
-                  );
-                }
-                return (
-                  <List.LinkItem
-                    onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
-                  >
-                    {f.title}
-                  </List.LinkItem>
-                );
-              })}
+              <List.Item onClick={this.openWizard}>
+                Add Feed to Folder
+              </List.Item>
+              {this.renderFeeds(feeds, folderID, feedID)}
             </List>
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>

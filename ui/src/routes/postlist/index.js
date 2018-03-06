@@ -6,19 +6,27 @@ export default class PostList extends Component {
     super(props);
 
     this.setState({
-      loading: true,
+      loading: false,
       currentPostIdx: 0,
       posts: []
     });
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (!this.state.loading && this.props.feedID === nextProps.feedID) {
+  componentDidMount() {
+    this.setState({ loading: true });
+    this.updatePosts(this.props.feedID);
+  }
+
+  componentWillReceiveProps({ feedID }) {
+    if (this.props.feedID === feedID) {
       return;
     }
 
     this.setState({ loading: true });
+    this.updatePosts(feedID);
+  }
 
+  updatePosts = feedID => {
     let key = window.localStorage.getItem("hydrocarbon-key");
 
     fetch(window.baseURL + "/v1/post/list", {
@@ -27,7 +35,7 @@ export default class PostList extends Component {
         "x-hydrocarbon-key": key
       },
       body: JSON.stringify({
-        feed_id: this.props.feedID
+        feed_id: feedID
       })
     })
       .then(res => {
@@ -38,7 +46,7 @@ export default class PostList extends Component {
       .then(json => {
         this.setState({ loading: false, posts: json.posts });
       });
-  }
+  };
 
   render({ feedID }, { loading, currentPostIdx, posts }) {
     if (loading) {

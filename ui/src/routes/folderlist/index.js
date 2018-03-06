@@ -23,7 +23,7 @@ export default class FolderList extends Component {
     this.loadFolders();
   }
 
-  loadFolders() {
+  loadFolders = () => {
     let key = window.localStorage.getItem("hydrocarbon-key");
 
     fetch(window.baseURL + "/v1/folder/list", {
@@ -40,7 +40,7 @@ export default class FolderList extends Component {
       .then(json => {
         this.setState({ loading: false, folders: json });
       });
-  }
+  };
 
   linkTo = path => () => {
     route(path);
@@ -92,6 +92,13 @@ export default class FolderList extends Component {
 
   dialogRef = dialog => (this.dialog = dialog);
 
+  getList(folderID, feedID) {
+    if (typeof folderID === "undefined") {
+      return <div>No folder id</div>;
+    }
+    return <FeedList folderID={folderID} feedID={feedID} />;
+  }
+
   render({ id, feedID }, { loading, folders, newFolderName }) {
     if (loading) {
       return <div class={styles.content}>Loading Folders...</div>;
@@ -141,9 +148,7 @@ export default class FolderList extends Component {
             </Dialog.FooterButton>
           </Dialog.Footer>
         </Dialog>
-        <div>
-          <FeedList folderID={id} feedID={feedID} />
-        </div>
+        <div>{this.getList(id, feedID)}</div>
       </div>
     );
   }
