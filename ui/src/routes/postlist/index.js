@@ -12,9 +12,35 @@ export default class PostList extends Component {
     });
   }
 
-  componentDidMount() {}
+  componentWillReceiveProps(nextProps) {
+    if (!this.state.loading && this.props.feedID === nextProps.feedID) {
+      return;
+    }
 
-  render({ id }, { loading, currentPostIdx, posts }) {
+    this.setState({ loading: true });
+
+    let key = window.localStorage.getItem("hydrocarbon-key");
+
+    fetch(window.baseURL + "/v1/post/list", {
+      method: "POST",
+      headers: {
+        "x-hydrocarbon-key": key
+      },
+      body: JSON.stringify({
+        feed_id: this.props.feedID
+      })
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(json => {
+        this.setState({ loading: false, posts: json.posts });
+      });
+  }
+
+  render({ feedID }, { loading, currentPostIdx, posts }) {
     if (loading) {
       return <div class={style.content}>loading..</div>;
     }

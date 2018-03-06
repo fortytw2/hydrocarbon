@@ -11,19 +11,31 @@ import PostList from "../postlist";
 
 import { route } from "preact-router";
 
-import style from "./style";
+import styles from "./style";
 
 export default class FeedList extends Component {
   constructor(props) {
     super(props);
     this.setState({
+      loading: true,
       newFeedPlugin: "",
       newFeedURL: "",
       feeds: []
     });
   }
 
-  componentDidMount() {
+  componentDidMount(props) {
+    this.componentWillReceiveProps();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (this.props.folderID === nextProps.folderID) {
+      return;
+    }
+
+    this.setState({
+      loading: true
+    });
     let key = window.localStorage.getItem("hydrocarbon-key");
 
     fetch(window.baseURL + "/v1/feed/list", {
@@ -32,7 +44,7 @@ export default class FeedList extends Component {
         "x-hydrocarbon-key": key
       },
       body: JSON.stringify({
-        id: this.props.feedID
+        folder_id: nextProps.folderID
       })
     })
       .then(res => {
@@ -41,7 +53,10 @@ export default class FeedList extends Component {
         }
       })
       .then(json => {
-        this.setState({ loading: false, posts: json.posts });
+        this.setState({
+          loading: false,
+          feeds: json
+        });
       });
   }
 
@@ -53,7 +68,7 @@ export default class FeedList extends Component {
         </div>
       );
     }
-    return <PostList id={feedID} />;
+    return <PostList feedID={feedID} />;
   }
 
   linkTo = path => () => {
@@ -68,43 +83,98 @@ export default class FeedList extends Component {
     e.preventDefault();
 
     let url = e.target.value;
-    this.setState({
-      newFeedURL: url
-    });
+    this.setState({ newFeedURL: url });
   };
 
   updatePlugin = e => {
     e.preventDefault();
 
     let plugin = e.target.value;
-    this.setState({
-      newFeedPlugin: plugin
-    });
+    this.setState({ newFeedPlugin: plugin });
   };
 
   submitNewFeed = e => {
     e.preventDefault();
 
-    console.log("lol can't make feeds rn");
+    let key = window.localStorage.getItem("hydrocarbon-key");
+    let fURL = this.state.newFeedURL;
+    let fPlugin = this.state.newFeedPlugin;
+    fetch(window.baseURL + "/v1/feed/create", {
+      method: "POST",
+      headers: {
+        "x-hydrocarbon-key": key
+      },
+      body: JSON.stringify({
+        url: fURL,
+        plugin: fPlugin,
+        folder_id: this.props.folderID
+      })
+    })
+      .then(res => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then(json => {
+        let f = this.state.feeds;
+        f = f.concat({
+          id: json.id,
+          title: fURL,
+          url: fURL,
+          plugin: fPlugin
+        });
+        this.setState({
+          feeds: f,
+          newFeedPlugin: "",
+          newFeedURL: ""
+        });
+      });
   };
 
   dialogRef = dialog => (this.dialog = dialog);
 
-  render({ folderID, feedID }, { feeds, newFeedPlugin, newFeedURL }) {
+  render({ folderID, feedID }, { loading, feeds, newFeedPlugin, newFeedURL }) {
     if (feeds === undefined || feeds === null || feeds.length === 0) {
       feeds = [];
     }
 
+    if (loading) {
+      return (
+        <div class={styles.content}>
+          <Drawer.PermanentDrawer spacer={false}>
+            <Drawer.PermanentDrawerContent>
+              <List.Item onClick={this.openWizard}>
+                Add Feed to Folder
+              </List.Item>
+              <List>
+                <List.Item>Loading...</List.Item>
+              </List>
+            </Drawer.PermanentDrawerContent>
+          </Drawer.PermanentDrawer>
+        </div>
+      );
+    }
+
     return (
-      <div class={style.content}>
+      <div class={styles.content}>
         <Drawer.PermanentDrawer spacer={false}>
           <Drawer.PermanentDrawerContent>
             <List.Item onClick={this.openWizard}>Add Feed to Folder</List.Item>
             <List>
               {feeds.map(f => {
+                if (f.id === feedID) {
+                  return (
+                    <a
+                      onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
+                      class="mdc-list-item mdc-list-item--activated"
+                    >
+                      {f.title}
+                    </a>
+                  );
+                }
                 return (
                   <List.LinkItem
-                    onClick={this.linkTo("/folders/" + id + "/" + f.id)}
+                    onClick={this.linkTo("/folders/" + folderID + "/" + f.id)}
                   >
                     {f.title}
                   </List.LinkItem>

@@ -15,13 +15,14 @@ import (
 // A FeedStore is an interface used to seperate the FeedAPI from knowledge of the
 // actual underlying database
 type FeedStore interface {
-	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) error
+	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (string, error)
 	RemoveFeed(ctx context.Context, sessionKey, folderID, feedID string) error
 
 	AddFolder(ctx context.Context, sessionKey, name string) (string, error)
 
 	// GetFolders should not return any Posts in the nested Feeds
 	GetFolders(ctx context.Context, sessionKey string) ([]*Folder, error)
+	GetFeedsForFolder(ctx context.Context, sessionKey string, folderID string, limit, offset int) ([]*Feed, error)
 	GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error)
 }
 
@@ -112,8 +113,16 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO(fortytw2): implement plugin validation against the hydrocollect list
+	// TODO(fortytw2): set title appropriately
+	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
 
-	err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
+	err = json.NewEncoder(w).Encode(map[string]string{
+		"id": id,
+	})
 	if err != nil {
 		writeErr(w, err)
 		return
@@ -205,6 +214,37 @@ func (fa *FeedAPI) GetFolders(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// GetFeedsForFolder writes a specific feed
+func (fa *FeedAPI) GetFeedsForFolder(w http.ResponseWriter, r *http.Request) {
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	var id struct {
+		FolderID string `json:"folder_id"`
+	}
+
+	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&id)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	feed, err := fa.s.GetFeedsForFolder(r.Context(), key, id.FolderID, 50, 0)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+
+	err = json.NewEncoder(w).Encode(feed)
+	if err != nil {
+		writeErr(w, err)
+		return
+	}
+}
+
 // GetFeed writes a specific feed
 func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) {
 	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
@@ -214,7 +254,7 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var id struct {
-		ID string `json:"id"`
+		FeedID string `json:"feed_id"`
 	}
 
 	err = json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&id)
@@ -223,7 +263,7 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	feed, err := fa.s.GetFeed(r.Context(), key, id.ID, 50, 0)
+	feed, err := fa.s.GetFeed(r.Context(), key, id.FeedID, 50, 0)
 	if err != nil {
 		writeErr(w, err)
 		return

@@ -182,19 +182,19 @@ func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 
 // AddFeed adds the given URL to the users default folder
 // and links it across feed_folder
-func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (err error) {
+func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (string, error) {
 	if folderID == "" {
 		// ensure we don't shadow folderID
 		var err error
 		folderID, err = db.getDefaultFolderID(ctx, sessionKey)
 		if err != nil {
-			return err
+			return "", err
 		}
 	}
 
 	tx, err := db.sql.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	row := tx.QueryRowContext(ctx, `
@@ -208,9 +208,9 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	if err != nil {
 		txErr := tx.Rollback()
 		if txErr != nil {
-			return fmt.Errorf("%s - %s", err, txErr)
+			return "", fmt.Errorf("%s - %s", err, txErr)
 		}
-		return err
+		return "", err
 	}
 
 	_, err = tx.ExecContext(ctx, `
@@ -220,12 +220,12 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	if err != nil {
 		txErr := tx.Rollback()
 		if txErr != nil {
-			return fmt.Errorf("%s - %s", err, txErr)
+			return "", fmt.Errorf("%s - %s", err, txErr)
 		}
-		return err
+		return "", err
 	}
 
-	return tx.Commit()
+	return feedID, tx.Commit()
 }
 
 // getDefaultFolderID returns a users default folder ID
@@ -319,13 +319,49 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*Folder, err
 	return folders, nil
 }
 
+// GetFeedsForFolder returns a single feed
+func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string, limit, offset int) ([]*Feed, error) {
+	rows, err := db.sql.QueryContext(ctx, `
+	SELECT fe.id, fe.title, fe.url, fe.plugin
+ 	FROM feeds fe
+	RIGHT JOIN feed_folders ff ON (fe.id = ff.feed_id AND ff.user_id = (SELECT user_id FROM sessions WHERE key = $1) AND ff.folder_id = $2)
+	LIMIT $3 OFFSET $4;`, sessionKey, folderID, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var f []*Feed
+	for rows.Next() {
+		var feedID, feedTitle, feedURL, feedPlugin sql.NullString
+
+		err := rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
+		if err != nil {
+			return nil, err
+		}
+
+		if !feedID.Valid {
+			continue
+		}
+
+		f = append(f, &Feed{
+			ID:      feedID.String,
+			Title:   feedTitle.String,
+			Plugin:  feedPlugin.String,
+			BaseURL: feedURL.String,
+		})
+	}
+
+	return f, nil
+}
+
 // GetFeed returns a single feed
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at, rs.user_id 
  	FROM feeds fe
  	LEFT JOIN posts po ON (fe.id = po.feed_id)
-	JOIN read_statuses rs ON (rs.post_id = po.id AND rs.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
+	JOIN read_statuses rs ON (rs.post_id = po.id AND rs.user_id = (SELECT user_id FROM sessions WHERE key = $1))
 	WHERE fe.id = $2
 	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {

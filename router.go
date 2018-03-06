@@ -55,11 +55,17 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	// feed management
 	m.POST("/v1/feed/create", fa.AddFeed)
 	m.POST("/v1/feed/delete", fa.RemoveFeed)
-	m.POST("/v1/feed/list", fa.GetFeed)
+
+	// list all feeds for a folder
+	m.POST("/v1/feed/list", fa.GetFeedsForFolder)
 
 	// folder management
 	m.POST("/v1/folder/create", fa.AddFolder)
+	// list all folders
 	m.POST("/v1/folder/list", fa.GetFolders)
+
+	// list all posts in a feed
+	m.POST("/v1/post/list", fa.GetFeed)
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)

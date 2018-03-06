@@ -2,6 +2,8 @@ import { h, Component } from "preact";
 import Drawer from "preact-material-components/Drawer";
 import List from "preact-material-components/List";
 import Dialog from "preact-material-components/Dialog";
+import Icon from "preact-material-components/Icon";
+import "preact-material-components/Icon/style.css";
 import "preact-material-components/Drawer/style.css";
 import "preact-material-components/List/style.css";
 import "preact-material-components/Dialog/style.css";
@@ -102,8 +104,20 @@ export default class FolderList extends Component {
         <Drawer.PermanentDrawer spacer={false}>
           <Drawer.PermanentDrawerContent>
             <List>
-              <List.Item onClick={this.openWizard}>Create Folder</List.Item>
+              <List.Item onClick={this.openWizard}>
+                <Icon>add_box</Icon>Add Folder
+              </List.Item>
               {folders.map(f => {
+                if (f.id === id) {
+                  return (
+                    <a
+                      class="mdc-list-item mdc-list-item--activated"
+                      onClick={this.goToFolder(f.id)}
+                    >
+                      {f.title} {f.unread}
+                    </a>
+                  );
+                }
                 return (
                   <List.LinkItem onClick={this.goToFolder(f.id)}>
                     {f.title} {f.unread}
