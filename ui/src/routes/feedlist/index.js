@@ -24,18 +24,19 @@ export default class FeedList extends Component {
     });
   }
 
-  componentDidMount(props) {
-    this.componentWillReceiveProps();
+  componentDidMount() {
+    this.updateFeeds(this.props.folderID);
   }
 
-  componentWillReceiveProps(nextProps) {
-    if (this.props.folderID === nextProps.folderID) {
+  componentWillReceiveProps({ folderID }) {
+    if (this.props.folderID === folderID && this.state.feeds.length !== 0) {
       return;
     }
+    this.setState({ loading: true });
+    this.updateFeeds(folderID);
+  }
 
-    this.setState({
-      loading: true
-    });
+  updateFeeds = folderID => {
     let key = window.localStorage.getItem("hydrocarbon-key");
 
     fetch(window.baseURL + "/v1/feed/list", {
@@ -44,7 +45,7 @@ export default class FeedList extends Component {
         "x-hydrocarbon-key": key
       },
       body: JSON.stringify({
-        folder_id: nextProps.folderID
+        folder_id: folderID
       })
     })
       .then(res => {
@@ -58,7 +59,7 @@ export default class FeedList extends Component {
           feeds: json
         });
       });
-  }
+  };
 
   getContent(feedID) {
     if (typeof feedID === "undefined") {
