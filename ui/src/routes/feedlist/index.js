@@ -143,10 +143,15 @@ export default class FeedList extends Component {
 
   dialogRef = dialog => (this.dialog = dialog);
 
-  renderFeeds(feeds, folderID, activeFeedID) {
+  renderFeeds(feeds, folderID, activeFeedID, loading) {
     if (feeds.length === 0) {
       return <List.Item>No Feeds Found</List.Item>;
     }
+
+    if (loading) {
+      return <List.Item>Loading... </List.Item>;
+    }
+
     return feeds.map(f => {
       if (f.id === activeFeedID) {
         return (
@@ -173,23 +178,6 @@ export default class FeedList extends Component {
       feeds = [];
     }
 
-    if (loading) {
-      return (
-        <div class={styles.content}>
-          <Drawer.PermanentDrawer spacer={false}>
-            <Drawer.PermanentDrawerContent>
-              <List>
-                <List.Item onClick={this.openWizard}>
-                  Add Feed to Folder
-                </List.Item>
-                <List.Item>Loading...</List.Item>
-              </List>
-            </Drawer.PermanentDrawerContent>
-          </Drawer.PermanentDrawer>
-        </div>
-      );
-    }
-
     return (
       <div class={styles.content}>
         <Drawer.PermanentDrawer spacer={false}>
@@ -198,7 +186,7 @@ export default class FeedList extends Component {
               <List.Item onClick={this.openWizard}>
                 Add Feed to Folder
               </List.Item>
-              {this.renderFeeds(feeds, folderID, feedID)}
+              {this.renderFeeds(feeds, folderID, feedID, loading)}
             </List>
           </Drawer.PermanentDrawerContent>
         </Drawer.PermanentDrawer>
@@ -226,7 +214,7 @@ export default class FeedList extends Component {
             </Dialog.FooterButton>
           </Dialog.Footer>
         </Dialog>
-        <div>{this.getContent(feedID)}</div>
+        {this.getContent(feedID)}
       </div>
     );
   }

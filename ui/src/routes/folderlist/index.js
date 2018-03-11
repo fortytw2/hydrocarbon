@@ -93,7 +93,7 @@ export default class FolderList extends Component {
   dialogRef = dialog => (this.dialog = dialog);
 
   getList(folderID, feedID) {
-    if (typeof folderID === "undefined") {
+    if (!(folderID.length >= 2)) {
       return <div>No folder id</div>;
     }
     return <FeedList folderID={folderID} feedID={feedID} />;

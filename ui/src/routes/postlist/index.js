@@ -13,7 +13,6 @@ export default class PostList extends Component {
   }
 
   componentDidMount() {
-    this.setState({ loading: true });
     this.updatePosts(this.props.feedID);
   }
 
@@ -22,13 +21,17 @@ export default class PostList extends Component {
       return;
     }
 
-    this.setState({ loading: true });
     this.updatePosts(feedID);
   }
 
   updatePosts = feedID => {
-    let key = window.localStorage.getItem("hydrocarbon-key");
+    this.setState({
+      loading: true,
+      currentPostIdx: 0,
+      posts: []
+    });
 
+    let key = window.localStorage.getItem("hydrocarbon-key");
     fetch(window.baseURL + "/v1/post/list", {
       method: "POST",
       headers: {
@@ -60,7 +63,7 @@ export default class PostList extends Component {
     return (
       <div class={style.content}>
         <h1>{posts[currentPostIdx].title}</h1>
-        <p>{posts[currentPostIdx].body}</p>
+        <p class={style.body}>{posts[currentPostIdx].body}</p>
       </div>
     );
   }
