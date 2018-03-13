@@ -9,6 +9,8 @@ import Button from "preact-material-components/Button";
 import "preact-material-components/Button/style.css";
 import PostList from "../postlist";
 
+import { listFeeds, createFeed } from "../../http";
+
 import { route } from "preact-router";
 
 import styles from "./style";
@@ -37,34 +39,18 @@ export default class FeedList extends Component {
   }
 
   updateFeeds = folderID => {
-    let key = window.localStorage.getItem("hydrocarbon-key");
-
-    fetch(window.baseURL + "/v1/feed/list", {
-      method: "POST",
-      headers: {
-        "x-hydrocarbon-key": key
-      },
-      body: JSON.stringify({
-        folder_id: folderID
-      })
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        if (json.data === null || json.data.length === 0) {
-          this.setState({
-            loading: false,
-            feeds: []
-          });
-        }
+    listFeeds({ folderID }).then(json => {
+      if (json.data === null || json.data.length === 0) {
         this.setState({
           loading: false,
-          feeds: json.data
+          feeds: []
         });
+      }
+      this.setState({
+        loading: false,
+        feeds: json.data
       });
+    });
   };
 
   getContent(feedID) {
@@ -103,42 +89,27 @@ export default class FeedList extends Component {
   submitNewFeed = e => {
     e.preventDefault();
 
-    let key = window.localStorage.getItem("hydrocarbon-key");
-    let fURL = this.state.newFeedURL;
-    let fPlugin = this.state.newFeedPlugin;
-    fetch(window.baseURL + "/v1/feed/create", {
-      method: "POST",
-      headers: {
-        "x-hydrocarbon-key": key
-      },
-      body: JSON.stringify({
-        url: fURL,
-        plugin: fPlugin,
-        folder_id: this.props.folderID
-      })
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        let f = this.state.feeds;
-        if (f === null) {
-          f = [];
-        }
-        f = f.concat({
-          id: json.data.id,
-          title: fURL,
-          url: fURL,
-          plugin: fPlugin
-        });
-        this.setState({
-          feeds: f,
-          newFeedPlugin: "",
-          newFeedURL: ""
-        });
+    createFeed({
+      url: this.state.newFeedURL,
+      plugin: this.state.newFeedPlugin,
+      folderID: this.props.folderID
+    }).then(json => {
+      let f = this.state.feeds;
+      if (f === null) {
+        f = [];
+      }
+      f = f.concat({
+        id: json.data.id,
+        title: this.state.newFeedURL,
+        url: this.state.newFeedURL,
+        plugin: this.state.newFeedPlugin
       });
+      this.setState({
+        feeds: f,
+        newFeedPlugin: "",
+        newFeedURL: ""
+      });
+    });
   };
 
   dialogRef = dialog => (this.dialog = dialog);

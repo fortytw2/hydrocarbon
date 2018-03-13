@@ -5,6 +5,7 @@ import "preact-material-components/Theme/style.css";
 import { route } from "preact-router";
 import LinearProgress from "preact-material-components/LinearProgress";
 import "preact-material-components/LinearProgress/style.css";
+import { requestToken, createKey } from "../../http";
 import style from "./style";
 
 export default class Login extends Component {
@@ -28,31 +29,20 @@ export default class Login extends Component {
       let params = new URLSearchParams(location.search.slice(1));
       let token = params.get("token");
 
-      fetch(window.baseURL + "/v1/key/create", {
-        method: "POST",
-        body: JSON.stringify({
-          token: token
-        })
-      })
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          }
-        })
-        .then(json => {
-          let { key, email } = json.data;
-          if (key === undefined || email === undefined) {
-            console.log("lol invalid key or smthn");
-            return;
-          }
+      createKey({ token }).then(json => {
+        let { key, email } = json.data;
+        if (key === undefined || email === undefined) {
+          console.log("lol invalid key or smthn");
+          return;
+        }
 
-          window.localStorage.setItem("hydrocarbon-key", key);
-          window.localStorage.setItem("email", email);
+        window.localStorage.setItem("hydrocarbon-key", key);
+        window.localStorage.setItem("email", email);
 
-          this.props.loginSwapper();
+        this.props.loginSwapper();
 
-          route("/folders");
-        });
+        route("/folders");
+      });
     }
   }
 
@@ -66,20 +56,9 @@ export default class Login extends Component {
   submit = e => {
     e.preventDefault();
 
-    fetch(window.baseURL + "/v1/token/create", {
-      method: "POST",
-      body: JSON.stringify({
-        email: this.state.email
-      })
-    })
-      .then(response => {
-        if (response.ok) {
-          return response.json();
-        }
-      })
-      .then(json => {
-        this.setState({ success: { submitted: true, message: json.data } });
-      });
+    requestToken({ email: this.state.email }).then(json => {
+      this.setState({ success: { submitted: true, message: json.data } });
+    });
   };
 
   render({ callback }, { success, email }) {

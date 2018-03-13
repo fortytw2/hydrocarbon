@@ -9,6 +9,7 @@ import Button from "preact-material-components/Button";
 import "preact-material-components/Button/style.css";
 import styles from "./style";
 import { route } from "preact-router";
+import { listFolders, createFolder } from "../../http";
 
 import FeedList from "../feedlist";
 
@@ -24,22 +25,9 @@ export default class FolderList extends Component {
   }
 
   loadFolders = () => {
-    let key = window.localStorage.getItem("hydrocarbon-key");
-
-    fetch(window.baseURL + "/v1/folder/list", {
-      method: "POST",
-      headers: {
-        "x-hydrocarbon-key": key
-      }
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        this.setState({ loading: false, folders: json.data });
-      });
+    listFolders().then(json => {
+      this.setState({ loading: false, folders: json.data });
+    });
   };
 
   linkTo = path => () => {
@@ -64,31 +52,16 @@ export default class FolderList extends Component {
   submitNewFolder = e => {
     e.preventDefault();
 
-    let key = window.localStorage.getItem("hydrocarbon-key");
     let fName = this.state.newFolderName;
-    fetch(window.baseURL + "/v1/folder/create", {
-      method: "POST",
-      headers: {
-        "x-hydrocarbon-key": key
-      },
-      body: JSON.stringify({
-        name: fName
-      })
-    })
-      .then(res => {
-        if (res.ok) {
-          return res.json();
-        }
-      })
-      .then(json => {
-        let { id } = json.data;
-        let f = this.state.folders;
-        f = f.concat({ id: id, title: fName });
-        this.setState({
-          folders: f,
-          newFolderName: ""
-        });
+    createFolder({ name: fName }).then(json => {
+      let { id } = json.data;
+      let f = this.state.folders;
+      f = f.concat({ id: id, title: fName });
+      this.setState({
+        folders: f,
+        newFolderName: ""
       });
+    });
   };
 
   dialogRef = dialog => (this.dialog = dialog);
