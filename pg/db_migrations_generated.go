@@ -4,7 +4,7 @@
 // schema/02_updated_at_triggers.sql
 // DO NOT EDIT!
 
-package hydrocarbon
+package pg
 
 import (
 	"bytes"
@@ -161,7 +161,7 @@ func AssetNames() []string {
 
 // _bindata is a table, holding each asset generator, mapped to its name.
 var _bindata = map[string]func() (*asset, error){
-	"schema/01_init.sql": schema01_initSQL,
+	"schema/01_init.sql":                schema01_initSQL,
 	"schema/02_updated_at_triggers.sql": schema02_updated_at_triggersSQL,
 }
 
@@ -207,7 +207,7 @@ type bintree struct {
 
 var _bintree = &bintree{nil, map[string]*bintree{
 	"schema": {nil, map[string]*bintree{
-		"01_init.sql": {schema01_initSQL, map[string]*bintree{}},
+		"01_init.sql":                {schema01_initSQL, map[string]*bintree{}},
 		"02_updated_at_triggers.sql": {schema02_updated_at_triggersSQL, map[string]*bintree{}},
 	}},
 }}

@@ -1,4 +1,4 @@
-package hydrocarbon
+package pg
 
 import (
 	"database/sql"
@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-//go:generate go-bindata -pkg hydrocarbon -mode 0644 -modtime 499137600 -o db_migrations_generated.go schema/
+//go:generate go-bindata -pkg pg -mode 0644 -modtime 499137600 -o db_migrations_generated.go schema/
 
 func runMigrations(db *sql.DB) error {
 	err := verifyMigrationsTable(db)

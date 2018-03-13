@@ -9,6 +9,7 @@ import (
 
 	"github.com/NYTimes/gziphandler"
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/pg"
 	"github.com/fortytw2/hydrocarbon/postmark"
 )
 
@@ -25,7 +26,7 @@ func main() {
 		log.Fatal("no postgres dsn found")
 	}
 
-	db, err := hydrocarbon.NewDB(dsn, *autoExplain)
+	db, err := pg.NewDB(dsn, *autoExplain)
 	if err != nil {
 		log.Fatal("could not connect to postgres", err)
 	}
