@@ -1,6 +1,9 @@
 cmd/hydrocarbon/hydrocarbon
 cmd/hydrocarbon/hydrocarbon.exe
 
+cmd/hydrocollect/hydrocollect
+cmd/hydrocollect/hydrocollect.exe
+
 vendor/
 
 .DS_Store

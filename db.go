@@ -359,10 +359,9 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at
- 	FROM feeds fe
- 	LEFT JOIN posts po ON (fe.id = po.feed_id)
+ 	FROM posts po
+ 	LEFT JOIN feeds fe ON (fe.id = po.feed_id AND fe.id = $2)
 	WHERE EXISTS (SELECT 1 FROM sessions WHERE key = $1)
-	AND fe.id = $2
 	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
