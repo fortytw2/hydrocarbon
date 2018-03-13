@@ -19,8 +19,10 @@ import (
 type UserStore interface {
 	CreateOrGetUser(ctx context.Context, email string) (string, bool, error)
 	SetStripeIDs(ctx context.Context, userID, customerID, subscriptionID string) error
+
 	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
+
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, string, error)
 	ListSessions(ctx context.Context, key string, page int) ([]*Session, error)
 	DeactivateSession(ctx context.Context, key string) error
