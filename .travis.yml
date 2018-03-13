@@ -29,7 +29,7 @@ install:
   - dep ensure
 
 script:
-  - prettier --write "ui/**.js"
+  - prettier --write "ui/**/*.js"
   - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
   - go generate ./...
   - go test -race -v ./...
