@@ -47,7 +47,7 @@ export default class PostList extends Component {
         }
       })
       .then(json => {
-        this.setState({ loading: false, posts: json.posts });
+        this.setState({ loading: false, posts: json.data.posts });
       });
   };
 

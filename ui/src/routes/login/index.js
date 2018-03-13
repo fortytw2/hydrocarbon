@@ -40,14 +40,14 @@ export default class Login extends Component {
           }
         })
         .then(json => {
-          let { key, email } = json;
+          let { key, email } = json.data;
           if (key === undefined || email === undefined) {
             console.log("lol invalid key or smthn");
             return;
           }
 
-          window.localStorage.setItem("hydrocarbon-key", json.key);
-          window.localStorage.setItem("email", json.email);
+          window.localStorage.setItem("hydrocarbon-key", key);
+          window.localStorage.setItem("email", email);
 
           this.props.loginSwapper();
 
@@ -78,7 +78,7 @@ export default class Login extends Component {
         }
       })
       .then(json => {
-        this.setState({ success: { submitted: true, message: json.note } });
+        this.setState({ success: { submitted: true, message: json.data } });
       });
   };
 

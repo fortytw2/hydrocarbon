@@ -38,7 +38,7 @@ export default class FolderList extends Component {
         }
       })
       .then(json => {
-        this.setState({ loading: false, folders: json });
+        this.setState({ loading: false, folders: json.data });
       });
   };
 
@@ -81,8 +81,9 @@ export default class FolderList extends Component {
         }
       })
       .then(json => {
+        let { id } = json.data;
         let f = this.state.folders;
-        f = f.concat({ id: json.id, title: fName });
+        f = f.concat({ id: id, title: fName });
         this.setState({
           folders: f,
           newFolderName: ""

@@ -54,7 +54,7 @@ export default class FeedList extends Component {
         }
       })
       .then(json => {
-        if (json === null || json.length === 0) {
+        if (json.data === null || json.data.length === 0) {
           this.setState({
             loading: false,
             feeds: []
@@ -62,7 +62,7 @@ export default class FeedList extends Component {
         }
         this.setState({
           loading: false,
-          feeds: json
+          feeds: json.data
         });
       });
   };
@@ -128,7 +128,7 @@ export default class FeedList extends Component {
           f = [];
         }
         f = f.concat({
-          id: json.id,
+          id: json.data.id,
           title: fURL,
           url: fURL,
           plugin: fPlugin
