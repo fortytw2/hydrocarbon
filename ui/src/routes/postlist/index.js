@@ -1,4 +1,5 @@
 import { h, Component } from "preact";
+import { listPosts } from "../../http";
 import style from "./style";
 
 export default class PostList extends Component {
@@ -31,16 +32,7 @@ export default class PostList extends Component {
       posts: []
     });
 
-    let key = window.localStorage.getItem("hydrocarbon-key");
-    fetch(window.baseURL + "/v1/post/list", {
-      method: "POST",
-      headers: {
-        "x-hydrocarbon-key": key
-      },
-      body: JSON.stringify({
-        feed_id: feedID
-      })
-    })
+    listPosts({ feedID })
       .then(res => {
         if (res.ok) {
           return res.json();
