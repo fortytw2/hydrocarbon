@@ -2,10 +2,8 @@ package hydrocarbon
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net"
 	"net/http"
 	"strings"
@@ -38,6 +36,7 @@ type UserAPI struct {
 	ks              *KeySigner
 }
 
+// NewUserAPI sets up a new UserAPI used for user/session management
 func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey string, paymentRequired bool) *UserAPI {
 	c := &client.API{}
 	c.Init(stripeKey, nil)
@@ -52,59 +51,47 @@ func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey st
 	}
 }
 
-var (
-	registerSuccess = []byte(`{"status":"success", "note": "check your email for a login token, token expires in 24 hours"}`)
-)
-
-func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) {
+// RequestToken emails a token that can be exchanged for a session
+func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 	var registerData struct {
 		Email string `json:"email"`
 	}
 
-	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&registerData)
+	err := limitDecoder(r, &registerData)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	if len(registerData.Email) == 0 || len(registerData.Email) > 128 || !strings.Contains(registerData.Email, "@") {
-		writeErr(w, errors.New("no valid email sent"))
-		return
+		return errors.New("invalid email")
 	}
 
 	userID, paid, err := ua.s.CreateOrGetUser(r.Context(), registerData.Email)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	if ua.paymentRequired && !paid {
-		w.Write([]byte(`{"status":"payment_required", "note":"you must create a payment"}`))
-		return
+		return errors.New("payment is required")
 	}
 
 	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/login-callback?token=%s to login", ua.m.RootDomain(), lt))
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	w.Write(registerSuccess)
+	return writeSuccess(w, "check your email for a login token, token expires in 24 hours")
 }
 
-var paymentSuccess = []byte(`{"status":"success", "note":"subscription created"}`)
-
 // CreatePayment sets up the initial stripe stuff for a user
-func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) {
+func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) error {
 	if !ua.paymentRequired {
-		w.WriteHeader(http.StatusExpectationFailed)
-		return
+		return errors.New("payments are not enabled on this instance")
 	}
 
 	var stripeData struct {
@@ -113,32 +100,31 @@ func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) {
 		Token  string `json:"token"`
 	}
 
-	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&stripeData)
+	err := limitDecoder(r, &stripeData)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	userID, paid, err := ua.s.CreateOrGetUser(r.Context(), stripeData.Email)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	if paid {
-		writeErr(w, errors.New("subscription already exists"))
-		return
+		return errors.New("subscription already exists")
 	}
 
 	params := &stripe.CustomerParams{
 		Email: stripeData.Email,
 	}
-	params.SetSource(stripeData.Token)
+	err = params.SetSource(stripeData.Token)
+	if err != nil {
+		return err
+	}
 
 	customer, err := customer.New(params)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	sp := &stripe.SubParams{
@@ -155,108 +141,83 @@ func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) {
 
 	s, err := sub.New(sp)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	ua.s.SetStripeIDs(r.Context(), userID, customer.ID, s.ID)
+	err = ua.s.SetStripeIDs(r.Context(), userID, customer.ID, s.ID)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	w.Write(paymentSuccess)
+	return writeSuccess(w, "stripe subscription created")
 }
 
 // ListSessions writes out all of a users current / past sessions
-func (ua *UserAPI) ListSessions(w http.ResponseWriter, r *http.Request) {
+func (ua *UserAPI) ListSessions(w http.ResponseWriter, r *http.Request) error {
 	key, err := ua.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	sess, err := ua.s.ListSessions(r.Context(), key, 0)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	err = json.NewEncoder(w).Encode(sess)
-	if err != nil {
-		writeErr(w, err)
-		return
-	}
+	return writeSuccess(w, sess)
 }
 
-func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) {
+// Activate exchanges a token for a session key that can be used to make
+// authenticated requests
+func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) error {
 	var activateData struct {
 		Token string `json:"token"`
 	}
 
-	err := json.NewDecoder(io.LimitReader(r.Body, 4*1024)).Decode(&activateData)
+	err := limitDecoder(r, &activateData)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	userID, err := ua.s.ActivateLoginToken(r.Context(), activateData.Token)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	email, key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	key, err = ua.ks.Sign(key)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	var activateSuccess = struct {
-		Status string `json:"status"`
-		Email  string `json:"email"`
-		Key    string `json:"key"`
+	var activationData = struct {
+		Email string `json:"email"`
+		Key   string `json:"key"`
 	}{
-		"success",
 		email,
 		key,
 	}
 
-	err = json.NewEncoder(w).Encode(&activateSuccess)
-	if err != nil {
-		// do something
-	}
+	return writeSuccess(w, activationData)
 }
 
-func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) {
+// Deactivate disables a key that the user is currently using
+func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) error {
 	key, err := ua.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
 	err = ua.s.DeactivateSession(r.Context(), key)
 	if err != nil {
-		writeErr(w, err)
-		return
+		return err
 	}
 
-	var deactivateSuccess = struct {
-		Status string `json:"status"`
-	}{
-		"success",
-	}
-
-	err = json.NewEncoder(w).Encode(&deactivateSuccess)
-	if err != nil {
-		// do something
-	}
+	return writeSuccess(w, nil)
 }
 
 func getRemoteIP(r *http.Request) string {
@@ -273,17 +234,4 @@ func getRemoteIP(r *http.Request) string {
 		return r.RemoteAddr
 	}
 	return ip
-}
-
-func writeErr(w http.ResponseWriter, err error) {
-	var s = struct {
-		Status string `json:"status"`
-		Error  string `json:"error"`
-	}{
-		"error",
-		err.Error(),
-	}
-
-	json.NewEncoder(w).Encode(s)
-	w.WriteHeader(http.StatusOK)
 }

@@ -7,11 +7,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fortytw2/hydrocarbon"
+	// postgres driver
 	_ "github.com/lib/pq"
-)
-
-var (
-	ErrInvalidSession = errors.New("invalid session token")
 )
 
 // A DB is responsible for all interactions with postgres
@@ -32,8 +30,16 @@ func NewDB(dsn string, autoExplain bool) (*DB, error) {
 	}
 
 	if autoExplain {
-		db.Exec(`LOAD 'auto_explain';`)
-		db.Exec(`SET auto_explain.log_min_duration = 0;`)
+		_, err = db.Exec(`LOAD 'auto_explain';`)
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = db.Exec(`SET auto_explain.log_min_duration = 0;`)
+		if err != nil {
+			return nil, err
+		}
+
 	}
 
 	return &DB{
@@ -136,16 +142,8 @@ func (db *DB) CreateSession(ctx context.Context, userID, userAgent, ip string) (
 	return email, key, nil
 }
 
-// A Session is a session
-type Session struct {
-	CreatedAt time.Time `json:"created_at"`
-	UserAgent string    `json:"user_agent"`
-	IP        string    `json:"ip"`
-	Active    bool      `json:"active"`
-}
-
 // ListSessions lists all sessions a user has
-func (db *DB) ListSessions(ctx context.Context, key string, page int) ([]*Session, error) {
+func (db *DB) ListSessions(ctx context.Context, key string, page int) ([]*hydrocarbon.Session, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT created_at, user_agent, ip, active
 	FROM sessions
@@ -157,14 +155,19 @@ func (db *DB) ListSessions(ctx context.Context, key string, page int) ([]*Sessio
 	}
 	defer rows.Close()
 
-	var out []*Session
+	var out []*hydrocarbon.Session
 	for rows.Next() {
-		var s Session
+		var s hydrocarbon.Session
 		err = rows.Scan(&s.CreatedAt, &s.UserAgent, &s.IP, &s.Active)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, &s)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return out, nil
@@ -216,7 +219,8 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	_, err = tx.ExecContext(ctx, `
 	INSERT INTO feed_folders
 	(user_id, folder_id, feed_id)
-	VALUES ((SELECT user_id FROM sessions WHERE key = $1), $2, $3);`, sessionKey, folderID, feedID)
+	VALUES
+	((SELECT user_id FROM sessions WHERE key = $1), $2, $3);`, sessionKey, folderID, feedID)
 	if err != nil {
 		txErr := tx.Rollback()
 		if txErr != nil {
@@ -243,10 +247,11 @@ func (db *DB) getDefaultFolderID(ctx context.Context, sessionKey string) (string
 			row := db.sql.QueryRowContext(ctx, `
 			INSERT INTO folders
 			(user_id)
-			VALUES ((SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
+			VALUES 
+			((SELECT user_id FROM sessions WHERE key = $1 LIMIT 1))
 			RETURNING id;`, sessionKey)
 
-			err := row.Scan(&fid)
+			err = row.Scan(&fid)
 			if err != nil {
 				return "", fmt.Errorf("could not create default folder: %s", err)
 			}
@@ -260,6 +265,7 @@ func (db *DB) getDefaultFolderID(ctx context.Context, sessionKey string) (string
 	return fid, nil
 }
 
+// AddFolder creates a new folder
 func (db *DB) AddFolder(ctx context.Context, sessionKey, name string) (string, error) {
 	row := db.sql.QueryRow(`
 	INSERT INTO folders 
@@ -290,7 +296,7 @@ func (db *DB) RemoveFeed(ctx context.Context, sessionKey, folderID, feedID strin
 
 // GetFolders returns all of the folders for a user - if there are none it creates a
 // default folder
-func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*Folder, error) {
+func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon.Folder, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fo.name as folder_name, fo.id as folder_id
 	FROM folders fo
@@ -301,37 +307,45 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*Folder, err
 	}
 	defer rows.Close()
 
-	folders := make([]*Folder, 0)
+	folders := make([]*hydrocarbon.Folder, 0)
 	for rows.Next() {
 		var folderName, folderID string
 
-		err := rows.Scan(&folderName, &folderID)
+		err = rows.Scan(&folderName, &folderID)
 		if err != nil {
 			return nil, err
 		}
 
-		folders = append(folders, &Folder{
+		folders = append(folders, &hydrocarbon.Folder{
 			ID:    folderID,
 			Title: folderName,
 		})
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return folders, nil
 }
 
 // GetFeedsForFolder returns a single feed
-func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string, limit, offset int) ([]*Feed, error) {
+func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string, limit, offset int) ([]*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, fe.url, fe.plugin
  	FROM feeds fe
-	RIGHT JOIN feed_folders ff ON (fe.id = ff.feed_id AND ff.user_id = (SELECT user_id FROM sessions WHERE key = $1) AND ff.folder_id = $2)
+	RIGHT JOIN feed_folders ff ON 
+		(fe.id = ff.feed_id
+		AND ff.user_id = (SELECT user_id FROM sessions WHERE key = $1) 
+		AND ff.folder_id = $2)
 	LIMIT $3 OFFSET $4;`, sessionKey, folderID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var f []*Feed
+	var f []*hydrocarbon.Feed
 	for rows.Next() {
 		var feedID, feedTitle, feedURL, feedPlugin sql.NullString
 
@@ -344,7 +358,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 			continue
 		}
 
-		f = append(f, &Feed{
+		f = append(f, &hydrocarbon.Feed{
 			ID:      feedID.String,
 			Title:   feedTitle.String,
 			Plugin:  feedPlugin.String,
@@ -352,11 +366,16 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 		})
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return f, nil
 }
 
 // GetFeed returns a single feed
-func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error) {
+func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at
  	FROM posts po
@@ -368,22 +387,22 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	}
 	defer rows.Close()
 
-	feed := &Feed{
+	feed := &hydrocarbon.Feed{
 		ID:    feedID,
-		Posts: make([]*Post, 0),
+		Posts: make([]*hydrocarbon.Post, 0),
 	}
 	for rows.Next() {
 		var feedID, feedTitle, postID, postTitle, postAuthor, postBody, url string
 		var createdAt, updatedAt time.Time
 
-		err := rows.Scan(&feedID, &feedTitle, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt)
+		err := rows.Scan(&feedID, &feed.Title, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt)
 		if err != nil {
 			return nil, err
 		}
 
 		feed.Title = feedTitle
 
-		feed.Posts = append(feed.Posts, &Post{
+		feed.Posts = append(feed.Posts, &hydrocarbon.Post{
 			ID:          postID,
 			CreatedAt:   createdAt,
 			UpdatedAt:   updatedAt,
@@ -399,8 +418,8 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	return feed, nil
 }
 
-// UpdatePosts inserts a smattering of posts into the db
-func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*Post) error {
+// UpdatePosts upserts a smattering of posts into the db
+func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarbon.Post) error {
 	for _, p := range posts {
 		var contentHash string
 		err := db.sql.QueryRow(`

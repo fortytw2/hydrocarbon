@@ -7,11 +7,10 @@ import (
 
 	"github.com/fortytw2/discollect"
 	"github.com/fortytw2/discollect/api"
+	"github.com/oklog/run"
 
 	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"
 	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
-
-	"github.com/oklog/oklog/pkg/group"
 )
 
 func main() {
@@ -48,7 +47,7 @@ func main() {
 		Handler: r,
 	}
 
-	var g group.Group
+	var g run.Group
 	{
 		g.Add(h.ListenAndServe, func(error) {
 			h.Shutdown(context.Background())

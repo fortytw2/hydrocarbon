@@ -1,19 +1,66 @@
 package hydrocarbon
 
 import (
-	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/url"
-	"strings"
-	"sync"
 
-	"github.com/bouk/httprouter"
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/fortytw2/hydrocarbon/public"
+	"github.com/julienschmidt/httprouter"
 )
 
 //go:generate bash -c "pushd ui && preact build --service-worker false --no-prerender && popd"
 //go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/build/..."
+
+// ErrorHandler wraps up common error handling patterns for http routers
+type ErrorHandler func(w http.ResponseWriter, r *http.Request) error
+
+func (eh ErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	err := eh(w, r)
+	if err != nil {
+		writeErr(w, err)
+	}
+}
+
+func limitDecoder(r *http.Request, x interface{}) error {
+	return json.NewDecoder(io.LimitReader(r.Body, 1024*8)).Decode(x)
+}
+
+var (
+	statusOK    = "success"
+	statusError = "error"
+)
+
+// writeSuccess is a helper for writing the same format of JSON for every reply
+func writeSuccess(w http.ResponseWriter, x interface{}) error {
+	var s = struct {
+		Status string      `json:"status"`
+		Data   interface{} `json:"data,omitempty"`
+	}{
+		statusOK,
+		x,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	return json.NewEncoder(w).Encode(s)
+}
+
+// writeErr is the only way to write an error
+func writeErr(w http.ResponseWriter, uErr error) {
+	var s = struct {
+		Status string `json:"status"`
+		Error  string `json:"error"`
+	}{
+		statusError,
+		uErr.Error(),
+	}
+	err := json.NewEncoder(w).Encode(s)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+}
 
 // NewRouter configures a new http.Handler that serves hydrocarbon
 func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
@@ -21,88 +68,64 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 
 	fs := http.FileServer(
 		&assetfs.AssetFS{
-			Asset:     rewriteAsset(domain, public.Asset),
+			Asset:     public.Asset,
 			AssetDir:  public.AssetDir,
 			AssetInfo: public.AssetInfo,
 			Prefix:    "ui/build/",
 		})
 
-	m.Handle("GET", "/static/*file", http.StripPrefix("/static/", fs).ServeHTTP)
+	m.Handler("GET", "/static/*file", http.StripPrefix("/static/", fs))
 
 	// serve the single page app for every other route, it has a 404 page builtin
-	m.NotFound = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	m.NotFound = ErrorHandler(func(w http.ResponseWriter, r *http.Request) error {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)
-			return
+			return nil
 		}
 
 		buf := public.MustAsset("ui/build/index.html")
 		w.Header().Set("Content-Type", "text/html")
-		w.Write(buf)
+		_, err := w.Write(buf)
+		return err
 	})
 
-	// login tokens
-	m.POST("/v1/token/create", ua.RequestToken)
+	routes := map[string]ErrorHandler{
+		// login tokens
+		"/v1/token/create": ua.RequestToken,
 
-	// payment managemnet
-	m.POST("/v1/payment/create", ua.CreatePayment)
+		// payment managemnet
+		"/v1/payment/create": ua.CreatePayment,
 
-	// api keys
-	m.POST("/v1/key/create", ua.Activate)
-	m.POST("/v1/key/delete", ua.Deactivate)
-	m.POST("/v1/key/list", ua.ListSessions)
+		// api keys
+		"/v1/key/create": ua.Activate,
+		"/v1/key/delete": ua.Deactivate,
+		"/v1/key/list":   ua.ListSessions,
 
-	// feed management
-	m.POST("/v1/feed/create", fa.AddFeed)
-	m.POST("/v1/feed/delete", fa.RemoveFeed)
+		// feed management
+		"/v1/feed/create": fa.AddFeed,
+		"/v1/feed/delete": fa.RemoveFeed,
 
-	// list all feeds for a folder
-	m.POST("/v1/feed/list", fa.GetFeedsForFolder)
+		// list all feeds for a folder
+		"/v1/feed/list": fa.GetFeedsForFolder,
 
-	// folder management
-	m.POST("/v1/folder/create", fa.AddFolder)
-	// list all folders
-	m.POST("/v1/folder/list", fa.GetFolders)
+		// folder management
+		"/v1/folder/create": fa.AddFolder,
+		// list all folders
+		"/v1/folder/list": fa.GetFolders,
 
-	// list all posts in a feed
-	m.POST("/v1/post/list", fa.GetFeed)
+		// list all posts in a feed
+		"/v1/post/list": fa.GetFeed,
+	}
+
+	for route, handler := range routes {
+		m.Handler(http.MethodPost, route, handler)
+	}
 
 	if httpsOnly(domain) {
 		return redirectHTTPS(m)
 	}
 
 	return m
-}
-
-func rewriteAsset(domain string, fileFunc func(name string) ([]byte, error)) func(name string) ([]byte, error) {
-	var cacheMu sync.RWMutex
-	cache := make(map[string][]byte)
-
-	return func(name string) ([]byte, error) {
-		// return rewritten assets from cache if possible
-		cacheMu.RLock()
-		if body, ok := cache[name]; ok {
-			cacheMu.RUnlock()
-			return body, nil
-		}
-		cacheMu.RUnlock()
-
-		if strings.Contains(name, ".min.js") {
-			buf, err := fileFunc(name)
-			if err != nil {
-				return nil, err
-			}
-			buf = bytes.Replace(buf, []byte("URL_ENDPOINT_CHANGE_ME"), []byte(domain+"/api"), -1)
-
-			// add rewritten assets to cache
-			cacheMu.Lock()
-			cache[name] = buf
-			cacheMu.Unlock()
-
-			return buf, nil
-		}
-		return fileFunc(name)
-	}
 }
 
 func httpsOnly(domain string) bool {

@@ -23,11 +23,11 @@
 
 [[constraint]]
   name = "github.com/NYTimes/gziphandler"
-  version = "1.0.0"
+  branch = "master"
 
 [[constraint]]
-  name = "github.com/bouk/httprouter"
-  version = "2.0.0"
+  name = "github.com/julienschmidt/httprouter"
+  branch = "master"
 
 [[constraint]]
   branch = "master"
@@ -40,7 +40,3 @@
 [[constraint]]
   branch = "master"
   name = "github.com/lib/pq"
-
-[[constraint]]
-  name = "github.com/stripe/stripe-go"
-  version = "28.8.0"

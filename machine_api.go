@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bouk/httprouter"
+	"github.com/julienschmidt/httprouter"
 )
 
 // MachineStore is used to abstract machine->machine database calls
@@ -17,7 +17,7 @@ type MachineStore interface {
 func NewMachineRouter(ms MachineStore) *httprouter.Router {
 	r := httprouter.New()
 
-	r.PATCH("/posts", upsertPosts(ms))
+	r.Handler("POST", "/posts", upsertPosts(ms))
 
 	return r
 }

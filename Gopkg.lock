@@ -2,22 +2,34 @@
 
 
 [[projects]]
+  branch = "master"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
-  revision = "d6f46609c7629af3a02d791a4666866eed3cbd3e"
-  version = "v1.0.0"
+  revision = "5032c8878b9dd46cfe8c625c0d9b9f258a560ee8"
 
 [[projects]]
-  name = "github.com/bouk/httprouter"
+  name = "github.com/Puerkitobio/goquery"
   packages = ["."]
-  revision = "ee8b3818a7f51fbc94cc709b5744b52c2c725e91"
-  version = "v2.0"
+  revision = "09540e565986583836b5fc792fe951ec5fd201dd"
+  version = "v1.3.0"
+
+[[projects]]
+  name = "github.com/andybalholm/cascadia"
+  packages = ["."]
+  revision = "901648c87902174f774fac311d7f176f8647bdaa"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
   name = "github.com/elazarl/go-bindata-assetfs"
   packages = ["."]
-  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+  revision = "38087fe4dafb822e541b3f7955075cc1c30bd294"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/fortytw2/discollect"
+  packages = [".","api"]
+  revision = "b5f264b7b4d4c3c1c606196699079c651cbb7a7d"
 
 [[projects]]
   branch = "master"
@@ -27,19 +39,55 @@
 
 [[projects]]
   branch = "master"
+  name = "github.com/julienschmidt/httprouter"
+  packages = ["."]
+  revision = "d1898390779332322e6b5ca5011da4bf249bb056"
+
+[[projects]]
+  branch = "master"
   name = "github.com/lib/pq"
   packages = [".","oid"]
-  revision = "83612a56d3dd153a94a629cd64925371c9adad78"
+  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/lunny/html2md"
+  packages = ["."]
+  revision = "c8a29f8bf153a444423fd83f1ab373088ba19f47"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/microcosm-cc/bluemonday"
+  packages = ["."]
+  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
+
+[[projects]]
+  name = "github.com/oklog/run"
+  packages = ["."]
+  revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
+  version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/oklog/ulid"
+  packages = ["."]
+  revision = "d311cb43c92434ec4072dfbbda3400741d0a6337"
+  version = "v0.3.0"
 
 [[projects]]
   name = "github.com/stripe/stripe-go"
   packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","exchangerate","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
-  revision = "0a93e406acee553dcece6034a0b3f4ab62b228b5"
-  version = "v28.8.0"
+  revision = "a1f223a736fa18e73da42be302fe8c65379e1a40"
+  version = "v29.3.1"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/net"
+  packages = ["html","html/atom"]
+  revision = "ae89d30ce0c63142b652837da33d782e2b0a9b25"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e047f53cd8a9d2457f1dc7eefe72c5a1c2b1fae3cf00179b202de971131a3086"
+  inputs-digest = "e3a7425f82f7e5fc402421fe1d219d57831e0dcd9070cc5871e81acd4a7b620d"
   solver-name = "gps-cdcl"
   solver-version = 1
