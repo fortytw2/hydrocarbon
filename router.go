@@ -83,8 +83,16 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 			return nil
 		}
 
-		buf := public.MustAsset("ui/build/index.html")
-		w.Header().Set("Content-Type", "text/html")
+		var buf []byte
+		if r.URL.Path == "/favicon.ico" {
+			w.Header().Set("Content-Type", "image/png")
+			buf = public.MustAsset("ui/build/favicon.ico")
+		} else {
+
+			w.Header().Set("Content-Type", "text/html")
+			buf = public.MustAsset("ui/build/index.html")
+		}
+
 		_, err := w.Write(buf)
 		return err
 	})
