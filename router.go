@@ -5,10 +5,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	assetfs "github.com/elazarl/go-bindata-assetfs"
 	"github.com/fortytw2/hydrocarbon/public"
-	"github.com/julienschmidt/httprouter"
 )
 
 //go:generate bash -c "pushd ui && preact build --service-worker false --no-prerender && popd"
@@ -64,7 +64,9 @@ func writeErr(w http.ResponseWriter, uErr error) {
 
 // NewRouter configures a new http.Handler that serves hydrocarbon
 func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
-	m := httprouter.New()
+	fpr := &fixedPathRouter{
+		paths: make(map[string]http.Handler),
+	}
 
 	fs := http.FileServer(
 		&assetfs.AssetFS{
@@ -74,10 +76,10 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 			Prefix:    "ui/build/",
 		})
 
-	m.Handler("GET", "/static/*file", http.StripPrefix("/static/", fs))
+	fpr.static = http.StripPrefix("/static/", fs)
 
 	// serve the single page app for every other route, it has a 404 page builtin
-	m.NotFound = ErrorHandler(func(w http.ResponseWriter, r *http.Request) error {
+	fpr.def = ErrorHandler(func(w http.ResponseWriter, r *http.Request) error {
 		if r.Method != http.MethodGet {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return nil
@@ -126,14 +128,46 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 	}
 
 	for route, handler := range routes {
-		m.Handler(http.MethodPost, route, handler)
+		fpr.paths[route] = handler
 	}
 
 	if httpsOnly(domain) {
-		return redirectHTTPS(m)
+		return redirectHTTPS(fpr)
 	}
 
-	return m
+	return fpr
+}
+
+// fixedPathRouter is a brutally simple http router that can handle three cases
+// a static file handler for /static/*
+// a default handler that should serve index.html
+// exact match HTTP POST routes
+type fixedPathRouter struct {
+	// default
+	def    http.Handler
+	static http.Handler
+
+	paths map[string]http.Handler
+}
+
+func (fpr *fixedPathRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if strings.Contains(r.URL.Path, "static") {
+		fpr.static.ServeHTTP(w, r)
+		return
+	}
+
+	h, ok := fpr.paths[r.URL.Path]
+	if ok {
+		if r.Method != http.MethodPost {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+
+		h.ServeHTTP(w, r)
+		return
+	}
+
+	fpr.def.ServeHTTP(w, r)
 }
 
 func httpsOnly(domain string) bool {

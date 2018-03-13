@@ -3,8 +3,6 @@ package hydrocarbon
 import (
 	"context"
 	"net/http"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 // MachineStore is used to abstract machine->machine database calls
@@ -14,12 +12,14 @@ type MachineStore interface {
 
 // NewMachineRouter returns an *httprouter.Router suitable for PRIVATE
 // communication only
-func NewMachineRouter(ms MachineStore) *httprouter.Router {
-	r := httprouter.New()
+func NewMachineRouter(ms MachineStore) http.Handler {
+	fpr := &fixedPathRouter{
+		paths: make(map[string]http.Handler),
+	}
 
-	r.Handler("POST", "/posts", upsertPosts(ms))
+	fpr.paths["/posts"] = upsertPosts(ms)
 
-	return r
+	return fpr
 }
 
 func upsertPosts(ms MachineStore) http.HandlerFunc {

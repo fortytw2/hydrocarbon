@@ -26,10 +26,6 @@
   branch = "master"
 
 [[constraint]]
-  name = "github.com/julienschmidt/httprouter"
-  branch = "master"
-
-[[constraint]]
   branch = "master"
   name = "github.com/elazarl/go-bindata-assetfs"
 
