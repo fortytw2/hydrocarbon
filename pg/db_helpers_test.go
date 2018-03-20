@@ -22,6 +22,9 @@ func setupTestDB(t *testing.T) (*DB, func()) {
 }
 
 func truncateTables(t *testing.T, db *DB) {
+	// https://stackoverflow.com/a/12082038
+	// TODO(fortytw2): this can be optimized by creating a template DB
+	// and cloning / dropping it after running migrations
 	_, err := db.sql.Exec(`
 	DO
 	$func$
