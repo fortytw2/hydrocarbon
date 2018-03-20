@@ -32,6 +32,24 @@ func userTests(db *DB) func(t *testing.T) {
 			nil,
 		},
 		{
+			// test that our test database is truncated after every run
+			"test-test-truncation",
+			func(t *testing.T) error {
+				row := db.sql.QueryRow(`SELECT count(id) FROM users;`)
+				var x int
+				err := row.Scan(&x)
+				if err != nil {
+					return err
+				}
+				if x != 0 {
+					return errors.New("truncation must not be working")
+				}
+
+				return nil
+			},
+			nil,
+		},
+		{
 			"create-token",
 			func(t *testing.T) error {
 				id := createUserHelper(t)

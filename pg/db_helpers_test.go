@@ -6,23 +6,6 @@ import (
 	"github.com/fortytw2/dockertest"
 )
 
-const truncateAllTables string = `
-CREATE OR REPLACE FUNCTION truncate_tables(_username text)
-	RETURNS void AS
-$func$
-BEGIN
-	RAISE NOTICE '%', 
-	-- EXECUTE  -- dangerous, test before you execute!
-	(SELECT 'TRUNCATE TABLE '
-		|| string_agg(format('%I.%I', schemaname, tablename), ', ')
-		|| ' CASCADE'
-	FROM pg_tables
-	WHERE tableowner = _username
-	AND schemaname = 'public'
-	);
-END
-$func$ LANGUAGE plpgsql;`
-
 func setupTestDB(t *testing.T) (*DB, func()) {
 	var db *DB
 
@@ -35,16 +18,20 @@ func setupTestDB(t *testing.T) (*DB, func()) {
 		t.Fatalf("could not start postgres, %s", err)
 	}
 
-	_, err = db.sql.Exec(truncateAllTables)
-	if err != nil {
-		t.Fatalf("couldn't create truncate tables script")
-	}
-
 	return db, container.Shutdown
 }
 
 func truncateTables(t *testing.T, db *DB) {
-	_, err := db.sql.Exec(`SELECT truncate_tables('postgres')`)
+	_, err := db.sql.Exec(`
+	DO
+	$func$
+	BEGIN
+	EXECUTE (SELECT 'TRUNCATE TABLE ' || string_agg(oid::regclass::text, ', ') || ' CASCADE'
+		FROM pg_class
+		WHERE relkind = 'r'  -- only tables
+		AND relnamespace = 'public'::regnamespace);
+	END
+	$func$;`)
 	if err != nil {
 		t.Fatal(err)
 	}
