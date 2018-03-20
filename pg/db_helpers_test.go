@@ -57,6 +57,8 @@ type testCase struct {
 }
 
 func runCases(t *testing.T, db *DB, cases []testCase) {
+	t.Helper()
+
 	for _, tt := range cases {
 		truncateTables(t, db)
 
