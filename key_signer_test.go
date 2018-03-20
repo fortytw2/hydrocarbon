@@ -6,6 +6,8 @@ import (
 )
 
 func TestKeySigner(t *testing.T) {
+	t.Parallel()
+
 	var cases = []struct {
 		name string
 		run  func(k *KeySigner) error
