@@ -1,3 +1,5 @@
+//+build integration
+
 package pg
 
 import (
@@ -5,7 +7,7 @@ import (
 )
 
 func TestMigrations(t *testing.T) {
-	db, shutdown := setupTestDB(t)
+	db, shutdown := SetupTestDB(t)
 	defer shutdown()
 
 	count, err := countMigrations(db.sql)

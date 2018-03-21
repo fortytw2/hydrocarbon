@@ -1,3 +1,5 @@
+//+build integration
+
 package pg
 
 import (
@@ -7,7 +9,7 @@ import (
 )
 
 func TestPG(t *testing.T) {
-	db, shutdown := setupTestDB(t)
+	db, shutdown := SetupTestDB(t)
 	defer shutdown()
 
 	t.Run("users", userTests(db))
@@ -22,7 +24,7 @@ func userTests(db *DB) func(t *testing.T) {
 		return id
 	}
 
-	var cases = []testCase{
+	var cases = []TestCase{
 		{
 			"create-user",
 			func(t *testing.T) error {
@@ -77,6 +79,6 @@ func userTests(db *DB) func(t *testing.T) {
 	}
 
 	return func(t *testing.T) {
-		runCases(t, db, cases)
+		RunCases(t, db, cases)
 	}
 }

@@ -1,3 +1,5 @@
+//+build integration
+
 package pg
 
 import (
@@ -6,7 +8,7 @@ import (
 	"github.com/fortytw2/dockertest"
 )
 
-func setupTestDB(t *testing.T) (*DB, func()) {
+func SetupTestDB(t *testing.T) (*DB, func()) {
 	var db *DB
 
 	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
@@ -40,13 +42,13 @@ func truncateTables(t *testing.T, db *DB) {
 	}
 }
 
-type testCase struct {
+type TestCase struct {
 	name string
 	do   func(t *testing.T) error
 	want func(t *testing.T) error
 }
 
-func runCases(t *testing.T, db *DB, cases []testCase) {
+func RunCases(t *testing.T, db *DB, cases []TestCase) {
 	t.Helper()
 
 	for _, tt := range cases {
