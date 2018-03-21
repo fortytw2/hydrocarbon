@@ -23,7 +23,7 @@ func SetupTestDB(t *testing.T) (*DB, func()) {
 	return db, container.Shutdown
 }
 
-func truncateTables(t *testing.T, db *DB) {
+func (db *DB) TruncateTables(t *testing.T) {
 	// https://stackoverflow.com/a/12082038
 	// TODO(fortytw2): this can be optimized by creating a template DB
 	// and cloning / dropping it after running migrations
@@ -45,26 +45,18 @@ func truncateTables(t *testing.T, db *DB) {
 type TestCase struct {
 	name string
 	do   func(t *testing.T) error
-	want func(t *testing.T) error
 }
 
 func RunCases(t *testing.T, db *DB, cases []TestCase) {
 	t.Helper()
 
 	for _, tt := range cases {
-		truncateTables(t, db)
+		db.TruncateTables(t)
 
 		t.Run(tt.name, func(t *testing.T) {
 			err := tt.do(t)
 			if err != nil {
 				t.Fatal(err)
-			}
-
-			if tt.want != nil {
-				err = tt.want(t)
-				if err != nil {
-					t.Fatal(err)
-				}
 			}
 		})
 	}

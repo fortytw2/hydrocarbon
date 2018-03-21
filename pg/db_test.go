@@ -31,7 +31,6 @@ func userTests(db *DB) func(t *testing.T) {
 				createUserHelper(t)
 				return nil
 			},
-			nil,
 		},
 		{
 			// test that our test database is truncated after every run
@@ -49,7 +48,6 @@ func userTests(db *DB) func(t *testing.T) {
 
 				return nil
 			},
-			nil,
 		},
 		{
 			"create-token",
@@ -65,7 +63,6 @@ func userTests(db *DB) func(t *testing.T) {
 
 				return nil
 			},
-			nil,
 		},
 		{
 			"create-session",
@@ -74,7 +71,6 @@ func userTests(db *DB) func(t *testing.T) {
 				_, _, err := db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
 				return err
 			},
-			nil,
 		},
 	}
 

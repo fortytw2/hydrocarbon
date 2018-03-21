@@ -40,8 +40,11 @@ type UserAPI struct {
 
 // NewUserAPI sets up a new UserAPI used for user/session management
 func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey string, paymentRequired bool) *UserAPI {
-	c := &client.API{}
-	c.Init(stripeKey, nil)
+	var c *client.API
+	if paymentRequired {
+		c = &client.API{}
+		c.Init(stripeKey, nil)
+	}
 
 	return &UserAPI{
 		s:               s,
