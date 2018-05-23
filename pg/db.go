@@ -3,9 +3,9 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 
 	"github.com/fortytw2/hydrocarbon"
 	// postgres driver
@@ -377,10 +377,14 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 // GetFeed returns a single feed
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at
- 	FROM posts po
- 	LEFT JOIN feeds fe ON (fe.id = po.feed_id AND fe.id = $2)
-	WHERE EXISTS (SELECT 1 FROM sessions WHERE key = $1)
+	SELECT fe.id, fe.title, jsonb_agg(
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author,'body', po.body, 'url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at)
+	) FILTER (WHERE po.id IS NOT NULL)
+	FROM feeds fe
+	LEFT JOIN posts po ON (fe.id = po.feed_id)
+	WHERE fe.id = $2
+	AND EXISTS (SELECT 1 FROM sessions WHERE key = $1)
+	GROUP BY fe.id, fe.title
 	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -392,27 +396,21 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 		Posts: make([]*hydrocarbon.Post, 0),
 	}
 	for rows.Next() {
-		var feedID, feedTitle, postID, postTitle, postAuthor, postBody, url string
-		var createdAt, updatedAt time.Time
+		var feedID, feedTitle string
+		var jsonBody []byte
 
-		err := rows.Scan(&feedID, &feed.Title, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt)
+		err := rows.Scan(&feedID, &feedTitle, &jsonBody)
 		if err != nil {
 			return nil, err
 		}
-
 		feed.Title = feedTitle
 
-		feed.Posts = append(feed.Posts, &hydrocarbon.Post{
-			ID:          postID,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			Author:      postAuthor,
-			Title:       postTitle,
-			Body:        postBody,
-			OriginalURL: url,
-			Read:        false,
-		})
-
+		if len(jsonBody) > 0 {
+			err = json.Unmarshal(jsonBody, &feed.Posts)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return feed, nil

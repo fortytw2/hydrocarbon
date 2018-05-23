@@ -13,7 +13,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/httpx"
 	"github.com/lunny/html2md"
 
-	dc "github.com/fortytw2/discollect"
+	dc "github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // Plugin is a plugin that can scrape fictionpress

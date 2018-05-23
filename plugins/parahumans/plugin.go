@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/Puerkitobio/goquery"
-	dc "github.com/fortytw2/discollect"
+	dc "github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/httpx"
 	"github.com/lunny/html2md"
 )
