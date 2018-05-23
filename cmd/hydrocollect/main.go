@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/fortytw2/discollect"
-	"github.com/fortytw2/discollect/api"
+	"github.com/fortytw2/hydrocarbon/discollect"
+	"github.com/fortytw2/hydrocarbon/discollect/api"
 	"github.com/oklog/run"
 
 	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"

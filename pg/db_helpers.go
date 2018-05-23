@@ -23,6 +23,8 @@ func SetupTestDB(t *testing.T) (*DB, func()) {
 	return db, container.Shutdown
 }
 
+// TruncateTables is hidden behind build tags so we can use it in
+// package hydrocarbon_test without fear of it being anywhere near a real build
 func (db *DB) TruncateTables(t *testing.T) {
 	// https://stackoverflow.com/a/12082038
 	// TODO(fortytw2): this can be optimized by creating a template DB
