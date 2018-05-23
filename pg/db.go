@@ -349,7 +349,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 	for rows.Next() {
 		var feedID, feedTitle, feedURL, feedPlugin sql.NullString
 
-		err := rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
+		err = rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
 		if err != nil {
 			return nil, err
 		}
@@ -378,7 +378,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, jsonb_agg(
-		json_build_object('id', po.id, 'title', po.title, 'author', po.author,'body', po.body, 'url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at)
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at)
 	) FILTER (WHERE po.id IS NOT NULL)
 	FROM feeds fe
 	LEFT JOIN posts po ON (fe.id = po.feed_id)
