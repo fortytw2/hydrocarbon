@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sort"
 
 	"github.com/fortytw2/hydrocarbon/discollect"
 )
@@ -206,7 +207,10 @@ func (fa *FeedAPI) ListPlugins(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	p := fa.dc.ListPlugins()
+	sort.Strings(p)
+
 	return writeSuccess(w, map[string][]string{
-		"plugins": fa.dc.ListPlugins(),
+		"plugins": p,
 	})
 }

@@ -105,7 +105,7 @@ export default class FeedList extends Component {
   updatePlugin = e => {
     this.setState({
       chosenIndex: e.target.selectedIndex,
-      newFeedPlugin: this.state.plugins[e.target.selectedIndex]
+      newFeedPlugin: this.state.plugins[e.target.selectedIndex - 1]
     });
   };
 
