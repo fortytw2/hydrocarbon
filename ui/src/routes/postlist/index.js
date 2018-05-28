@@ -1,6 +1,9 @@
 import { h, Component } from "preact";
 import { listPosts } from "../../http";
+import Button from "preact-material-components/Button";
+import "preact-material-components/Button/style.css";
 import style from "./style";
+import { bind } from "decko";
 
 export default class PostList extends Component {
   constructor(props) {
@@ -43,6 +46,14 @@ export default class PostList extends Component {
       });
   };
 
+  @bind
+  advancePage() {
+    this.setState({
+      ...this.state,
+      currentPostIdx: this.state.currentPostIdx + 1
+    });
+  }
+
   render({ feedID }, { loading, currentPostIdx, posts }) {
     if (loading) {
       return <div class={style.content}>loading..</div>;
@@ -54,6 +65,9 @@ export default class PostList extends Component {
 
     return (
       <div class={style.content}>
+        <Button accept onClick={this.advancePage}>
+          Next Page
+        </Button>
         <h1>{posts[currentPostIdx].title}</h1>
         <p
           class={style.body}
