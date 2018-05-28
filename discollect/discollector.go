@@ -3,6 +3,7 @@ package discollect
 import (
 	"context"
 	"errors"
+	"log"
 	"sync"
 
 	"github.com/oklog/ulid"
@@ -64,12 +65,11 @@ func New(opts ...OptionFn) (*Discollector, error) {
 // Start starts the scraping loops
 func (d *Discollector) Start(workers int) error {
 	d.workerMu.Lock()
-	defer d.workerMu.Unlock()
-
 	for i := workers; i > 0; i-- {
 		w := NewWorker(d.r, d.ro, d.l, d.q, d.w, d.er)
 		d.workers = append(d.workers, w)
 	}
+	d.workerMu.Unlock()
 
 	var wg sync.WaitGroup
 	for _, w := range d.workers {
@@ -85,8 +85,9 @@ func (d *Discollector) Start(workers int) error {
 // their current tasks
 func (d *Discollector) Shutdown(ctx context.Context) {
 	d.workerMu.Lock()
-	defer d.workerMu.RUnlock()
+	defer d.workerMu.Unlock()
 
+	log.Println("stopping workers")
 	for _, w := range d.workers {
 		w.Stop()
 	}

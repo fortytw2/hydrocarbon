@@ -8,6 +8,7 @@ import (
 )
 
 var (
+	// ErrRateLimitExceeded is thrown when the rate limit is exceeded
 	ErrRateLimitExceeded = errors.New("discollect: rate limit exceeded")
 )
 
