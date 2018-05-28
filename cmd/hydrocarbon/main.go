@@ -85,6 +85,9 @@ func main() {
 	}
 
 	dc, err := discollect.New(
+		// pg.DB is a discollect writer
+		discollect.WithWriter(db),
+		discollect.WithMetastore(db),
 		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin),
 	)
 	if err != nil {

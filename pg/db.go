@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
+	"github.com/google/uuid"
 	// postgres driver
 	_ "github.com/lib/pq"
 )
@@ -435,5 +438,50 @@ func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarb
 		}
 	}
 
+	return nil
+}
+
+// Write saves off the post to the db
+func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) error {
+	hcp, ok := f.(*hydrocarbon.Post)
+	if !ok {
+		log.Println("did not get a post back from the scraper, skipping")
+		return nil
+	}
+
+	_, err := db.sql.ExecContext(ctx, `
+	INSERT INTO posts 
+	(feed_id, content_hash, title, author, body, url)
+	VALUES 
+	(
+		(SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6
+	)
+	ON CONFLICT DO NOTHING;`, scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, hcp.Body, hcp.OriginalURL)
+	return err
+}
+
+// Close implements io.Closer for pg.DB
+func (db *DB) Close() error {
+	return nil
+}
+
+func (db *DB) StartScrape(ctx context.Context, pluginName string, cfg *discollect.Config) (uuid.UUID, error) {
+	row := db.sql.QueryRowContext(ctx, `
+	INSERT INTO scrapes 
+	(feed_id)
+	VALUES 
+	($1)
+	RETURNING id`, cfg.ExternalID)
+
+	var id uuid.UUID
+	err := row.Scan(&id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
+func (db *DB) EndScrape(ctx context.Context, id string, datums, tasks int) error {
 	return nil
 }

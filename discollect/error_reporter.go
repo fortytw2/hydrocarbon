@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/oklog/ulid"
+	"github.com/google/uuid"
 )
 
 // An ErrorReporter is used to send forward faulty handler runs to
@@ -18,7 +18,7 @@ type ErrorReporter interface {
 
 // ReporterOpts is used to attach additional information to an error
 type ReporterOpts struct {
-	ScrapeID ulid.ULID
+	ScrapeID uuid.UUID
 	Plugin   string
 	URL      string
 }

@@ -6,7 +6,7 @@ import (
 	"log"
 	"sync"
 
-	"github.com/oklog/ulid"
+	"github.com/google/uuid"
 )
 
 // A Discollector ties every element of Discollect together
@@ -167,14 +167,14 @@ func WithMetastore(ms Metastore) OptionFn {
 
 // A Scrape is a human readable representation of a scrape
 type Scrape struct {
-	ID             ulid.ULID `json:"id"`
+	ID             uuid.UUID `json:"id"`
 	PluginName     string    `json:"plugin"`
 	EnqueuedTasks  int       `json:"enqueued_tasks"`
 	CompletedTasks int       `json:"completed_tasks"`
 }
 
 // GetScrape returns a currently running scrape by ID
-func (d *Discollector) GetScrape(ctx context.Context, id ulid.ULID) (*Scrape, error) {
+func (d *Discollector) GetScrape(ctx context.Context, id uuid.UUID) (*Scrape, error) {
 	return nil, nil
 }
 

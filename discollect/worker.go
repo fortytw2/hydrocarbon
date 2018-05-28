@@ -169,7 +169,7 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 		defer wg.Done()
 
 		for _, f := range resp.Facts {
-			err := w.w.Write(ctx, f)
+			err := w.w.Write(ctx, q.ScrapeID, f)
 			if err != nil {
 				errs <- err
 			}

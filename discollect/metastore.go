@@ -2,16 +2,15 @@ package discollect
 
 import (
 	"context"
-	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/google/uuid"
 )
 
 // A Metastore is used to store the history of all scrape runs
 type Metastore interface {
 	// StartScrape attempts to start the scrape, returning `true, nil` if the scrape is
 	// able to be started
-	StartScrape(ctx context.Context, pluginName string, cfg *Config) (id ulid.ULID, err error)
+	StartScrape(ctx context.Context, pluginName string, cfg *Config) (id uuid.UUID, err error)
 	EndScrape(ctx context.Context, id string, datums, tasks int) error
 }
 
@@ -19,8 +18,8 @@ type Metastore interface {
 type MemMetastore struct{}
 
 // StartScrape creates an id and starts a scrape in memory
-func (MemMetastore) StartScrape(ctx context.Context, pluginName string, cfg *Config) (ulid.ULID, error) {
-	return ulid.New(ulid.Timestamp(time.Now()), nil)
+func (MemMetastore) StartScrape(ctx context.Context, pluginName string, cfg *Config) (uuid.UUID, error) {
+	return uuid.NewRandom()
 }
 
 // EndScrape records the end of a scrape

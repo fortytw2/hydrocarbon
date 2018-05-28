@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Puerkitobio/goquery"
+	"github.com/fortytw2/hydrocarbon"
 	dc "github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/httpx"
 	"github.com/lunny/html2md"
@@ -74,12 +75,12 @@ func phPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResp
 	body = html2md.Convert(strings.TrimSpace(body))
 
 	return dc.Response([]interface{}{
-		&phChapter{
-			Author:    "wildbow",
-			PostedAt:  dateTs,
-			Title:     title,
-			Body:      strings.Replace(strings.TrimSpace(body), `  `, ` `, -1),
-			WordCount: len(strings.Split(body, " ")),
+		&hydrocarbon.Post{
+			Author:      "wildbow",
+			CreatedAt:   dateTs,
+			OriginalURL: t.URL,
+			Title:       title,
+			Body:        strings.Replace(strings.TrimSpace(body), `  `, ` `, -1),
 		},
 	}, &dc.Task{
 		URL: nextPageURL,

@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/google/uuid"
 )
 
 // A Queue is used to submit and retrieve individual tasks
@@ -14,16 +14,16 @@ type Queue interface {
 	Pop(ctx context.Context) (*QueuedTask, error)
 	Push(ctx context.Context, tasks []*QueuedTask) error
 
-	Finish(ctx context.Context, taskID ulid.ULID) error
+	Finish(ctx context.Context, taskID uuid.UUID) error
 
-	Status(ctx context.Context, scrapeID ulid.ULID) (*ScrapeStatus, error)
+	Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStatus, error)
 }
 
 // A QueuedTask is the struct for a task that goes on the Queue
 type QueuedTask struct {
 	// set by the TaskQueue
-	TaskID   ulid.ULID `json:"task_id"`
-	ScrapeID ulid.ULID `json:"scrape_id"`
+	TaskID   uuid.UUID `json:"task_id"`
+	ScrapeID uuid.UUID `json:"scrape_id"`
 
 	QueuedAt time.Time `json:"queued_at"`
 	Config   *Config   `json:"config"`
@@ -87,11 +87,11 @@ func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
 }
 
 // Finish is a no-op for the MemQueue
-func (mq *MemQueue) Finish(ctx context.Context, taskID ulid.ULID) error {
+func (mq *MemQueue) Finish(ctx context.Context, taskID uuid.UUID) error {
 	return nil
 }
 
 // Status returns the status for a given scrape
-func (mq *MemQueue) Status(ctx context.Context, scrapeID ulid.ULID) (*ScrapeStatus, error) {
+func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStatus, error) {
 	return &ScrapeStatus{}, nil
 }

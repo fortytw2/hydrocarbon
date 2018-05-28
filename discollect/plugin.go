@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/oklog/ulid"
+	"github.com/google/uuid"
 )
 
 // A Plugin is capable of running scrapes, ideally of a common type or against a single site
@@ -27,6 +27,8 @@ type Plugin struct {
 type Config struct {
 	// friendly identifier for this config
 	Name string
+	// external system ID
+	ExternalID string
 	// Entrypoints is used to start a scrape
 	Entrypoints []string
 	// DynamicEntry specifies whether this config was created dynamically
@@ -101,7 +103,7 @@ func launchScrape(ctx context.Context, p *Plugin, cfg *Config, q Queue, ms Metas
 
 	qts := make([]*QueuedTask, len(cfg.Entrypoints))
 	for _, e := range cfg.Entrypoints {
-		u, err := ulid.New(ulid.Timestamp(time.Now()), nil)
+		u, err := uuid.NewRandom()
 		if err != nil {
 			return err
 		}
