@@ -7,11 +7,10 @@ import (
 	"html"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/Puerkitobio/goquery"
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/httpx"
-	"github.com/lunny/html2md"
 
 	dc "github.com/fortytw2/hydrocarbon/discollect"
 )
@@ -30,13 +29,6 @@ var Plugin = &dc.Plugin{
 	Routes: map[string]dc.Handler{
 		`https:\/\/www.(fictionpress.com|fanfiction.net)\/s\/(.*)\/(\d+)(.*)`: storyPage,
 	},
-}
-
-type chapter struct {
-	Author    string    `json:"author,omitempty"`
-	PostedAt  time.Time `json:"posted_at,omitempty"`
-	Body      string    `json:"body,omitempty"`
-	WordCount int       `json:"word_count,omitempty"`
 }
 
 func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResponse {
@@ -60,12 +52,9 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 		return dc.ErrorResponse(err)
 	}
 
-	markdownBody := html2md.Convert(html.UnescapeString(strings.TrimSpace(body)))
-	c := &chapter{
-		Author:    strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
-		PostedAt:  time.Now(),
-		Body:      markdownBody,
-		WordCount: len(strings.Split(markdownBody, " ")),
+	c := &hydrocarbon.Post{
+		Author: strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
+		Body:   html.UnescapeString(strings.TrimSpace(body)),
 	}
 
 	// find all chapters if this is the first one

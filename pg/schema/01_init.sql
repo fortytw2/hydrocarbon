@@ -116,6 +116,8 @@ CREATE TABLE posts (
 	UNIQUE (content_hash)
 );
 
+CREATE INDEX posts_feed_idx ON posts (feed_id);
+
 -- read statuses tracking
 CREATE TABLE read_statuses (
 	post_id UUID NOT NULL REFERENCES posts,

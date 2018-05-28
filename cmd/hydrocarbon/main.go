@@ -94,7 +94,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, ks), domain)
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, dc, ks), domain)
 
 	h := &http.Server{
 		Addr:    getPort("PORT", ":8080"),

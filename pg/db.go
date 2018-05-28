@@ -42,7 +42,6 @@ func NewDB(dsn string, autoExplain bool) (*DB, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return &DB{
@@ -209,7 +208,7 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	VALUES ($1, $2, $3)
 	RETURNING id;`, title, plugin, feedURL)
 
-	var feedID string
+	var feedID uuid.UUID
 	err = row.Scan(&feedID)
 	if err != nil {
 		txErr := tx.Rollback()
@@ -232,7 +231,7 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 		return "", err
 	}
 
-	return feedID, tx.Commit()
+	return feedID.String(), tx.Commit()
 }
 
 // getDefaultFolderID returns a users default folder ID

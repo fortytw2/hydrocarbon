@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
+
+	"github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // A FeedStore is an interface used to seperate the FeedAPI from knowledge of the
@@ -24,13 +26,15 @@ type FeedStore interface {
 type FeedAPI struct {
 	s  FeedStore
 	ks *KeySigner
+	dc *discollect.Discollector
 }
 
 // NewFeedAPI returns a new Feed API
-func NewFeedAPI(s FeedStore, ks *KeySigner) *FeedAPI {
+func NewFeedAPI(s FeedStore, dc *discollect.Discollector, ks *KeySigner) *FeedAPI {
 	return &FeedAPI{
 		s:  s,
 		ks: ks,
+		dc: dc,
 	}
 }
 
@@ -60,6 +64,17 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 	// TODO(fortytw2): implement plugin validation against the hydrocollect list
 	// TODO(fortytw2): set title appropriately
 	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
+	if err != nil {
+		return err
+	}
+
+	err = fa.dc.LaunchScrape(feed.Plugin, &discollect.Config{
+		DynamicEntry: true,
+		Entrypoints:  []string{feed.URL},
+		Type:         "full",
+		ExternalID:   id,
+		Name:         feed.URL,
+	})
 	if err != nil {
 		return err
 	}

@@ -55,7 +55,10 @@ export default class PostList extends Component {
     return (
       <div class={style.content}>
         <h1>{posts[currentPostIdx].title}</h1>
-        <p class={style.body}>{posts[currentPostIdx].body}</p>
+        <p
+          class={style.body}
+          dangerouslySetInnerHTML={{ __html: posts[currentPostIdx].body }}
+        />
       </div>
     );
   }
