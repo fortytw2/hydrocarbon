@@ -183,6 +183,15 @@ func (d *Discollector) ListScrapes(ctx context.Context) ([]*Scrape, error) {
 	return nil, nil
 }
 
+// ListPlugins lists all registered plugins
+func (d *Discollector) ListPlugins() []string {
+	var out []string
+	for _, p := range d.r.plugins {
+		out = append(out, p.Name)
+	}
+	return out
+}
+
 // StartScrape launches a new scrape
 func (d *Discollector) StartScrape(ctx context.Context, pluginName string, config *Config) (string, error) {
 	return "", nil

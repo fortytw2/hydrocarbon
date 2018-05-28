@@ -132,6 +132,9 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 
 		// list all posts in a feed
 		"/v1/post/list": fa.GetFeed,
+
+		// list all plugins in hc
+		"/v1/plugin/list": fa.ListPlugins,
 	}
 
 	for route, handler := range routes {

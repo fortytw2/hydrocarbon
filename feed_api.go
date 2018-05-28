@@ -68,6 +68,8 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	// TODO(fortytw2): immediately launching a scrape is only a good idea
+	// if the feed is actually new
 	err = fa.dc.LaunchScrape(feed.Plugin, &discollect.Config{
 		DynamicEntry: true,
 		Entrypoints:  []string{feed.URL},
@@ -195,4 +197,16 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return writeSuccess(w, feed)
+}
+
+// ListPlugins lists all available plugins
+func (fa *FeedAPI) ListPlugins(w http.ResponseWriter, r *http.Request) error {
+	_, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		return err
+	}
+
+	return writeSuccess(w, map[string][]string{
+		"plugins": fa.dc.ListPlugins(),
+	})
 }

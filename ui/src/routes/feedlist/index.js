@@ -8,8 +8,12 @@ import "preact-material-components/Dialog/style.css";
 import Button from "preact-material-components/Button";
 import "preact-material-components/Button/style.css";
 import PostList from "../postlist";
+import Select from "preact-material-components/Select";
+import "preact-material-components/List/style.css";
+import "preact-material-components/Menu/style.css";
+import "preact-material-components/Select/style.css";
 
-import { listFeeds, createFeed } from "../../http";
+import { listFeeds, createFeed, listPlugins } from "../../http";
 
 import { route } from "preact-router";
 
@@ -22,12 +26,17 @@ export default class FeedList extends Component {
       loading: true,
       newFeedPlugin: "",
       newFeedURL: "",
+
+      chosenIndex: 0,
+      pluginsLoading: false,
+      plugins: [],
       feeds: []
     });
   }
 
   componentDidMount() {
     this.updateFeeds(this.props.folderID);
+    this.getPlugins();
   }
 
   componentWillReceiveProps({ folderID }) {
@@ -38,7 +47,7 @@ export default class FeedList extends Component {
     this.updateFeeds(folderID);
   }
 
-  updateFeeds = folderID => {
+  updateFeeds = async folderID => {
     listFeeds({ folderID }).then(json => {
       if (json.data === null || json.data.length === 0) {
         this.setState({
@@ -49,6 +58,20 @@ export default class FeedList extends Component {
       this.setState({
         loading: false,
         feeds: json.data
+      });
+    });
+  };
+
+  getPlugins = async folderID => {
+    listPlugins().then(json => {
+      if (json.data === null || json.data.length === 0) {
+        this.setState({
+          pluginsLoading: false
+        });
+      }
+      this.setState({
+        pluginsLoading: false,
+        plugins: json.data.plugins
       });
     });
   };
@@ -80,10 +103,10 @@ export default class FeedList extends Component {
   };
 
   updatePlugin = e => {
-    e.preventDefault();
-
-    let plugin = e.target.value;
-    this.setState({ newFeedPlugin: plugin });
+    this.setState({
+      chosenIndex: e.target.selectedIndex,
+      newFeedPlugin: this.state.plugins[e.target.selectedIndex]
+    });
   };
 
   submitNewFeed = e => {
@@ -144,7 +167,10 @@ export default class FeedList extends Component {
     });
   }
 
-  render({ folderID, feedID }, { loading, feeds, newFeedPlugin, newFeedURL }) {
+  render(
+    { folderID, feedID },
+    { loading, plugins, chosenIndex, feeds, newFeedPlugin, newFeedURL }
+  ) {
     if (feeds === undefined || feeds === null || feeds.length === 0) {
       feeds = [];
     }
@@ -171,12 +197,16 @@ export default class FeedList extends Component {
                 value={newFeedURL}
                 onChange={this.updateUrl}
               />
-              <input
-                type="text"
-                placeholder="example plugin"
-                value={newFeedPlugin}
+              <Select
+                basic
+                hintText="Select a plugin"
+                selectedIndex={chosenIndex}
                 onChange={this.updatePlugin}
-              />
+              >
+                {plugins.map(p => {
+                  return <Select.Item>{p}</Select.Item>;
+                })}
+              </Select>
             </div>
           </Dialog.Body>
           <Dialog.Footer>
