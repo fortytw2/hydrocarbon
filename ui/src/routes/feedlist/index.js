@@ -47,7 +47,7 @@ export default class FeedList extends Component {
     this.updateFeeds(folderID);
   }
 
-  updateFeeds = async folderID => {
+  updateFeeds = folderID => {
     listFeeds({ folderID }).then(json => {
       if (json.data === null || json.data.length === 0) {
         this.setState({
@@ -62,7 +62,7 @@ export default class FeedList extends Component {
     });
   };
 
-  getPlugins = async folderID => {
+  getPlugins = folderID => {
     listPlugins().then(json => {
       if (json.data === null || json.data.length === 0) {
         this.setState({

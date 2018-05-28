@@ -36,7 +36,7 @@ func runCases(t *testing.T, db *pg.DB, cases []apiCase) {
 		ks := hydrocarbon.NewKeySigner("test")
 		h := hydrocarbon.NewRouter(
 			hydrocarbon.NewUserAPI(db, ks, mm, "", "", false),
-			hydrocarbon.NewFeedAPI(db, ks),
+			hydrocarbon.NewFeedAPI(db, nil, ks),
 			"http://localhost:3000",
 		)
 
