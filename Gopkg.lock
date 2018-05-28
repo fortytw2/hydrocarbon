@@ -46,14 +46,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/lib/pq"
-  packages = [".","oid"]
+  packages = [
+    ".",
+    "oid"
+  ]
   revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/lunny/html2md"
-  packages = ["."]
-  revision = "13aaeeae9fb293668db3ef1e145064684735f3ce"
 
 [[projects]]
   branch = "master"
@@ -75,19 +72,63 @@
 
 [[projects]]
   name = "github.com/stripe/stripe-go"
-  packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","exchangerate","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
+  packages = [
+    ".",
+    "account",
+    "balance",
+    "bankaccount",
+    "bitcoinreceiver",
+    "bitcointransaction",
+    "card",
+    "charge",
+    "client",
+    "countryspec",
+    "coupon",
+    "customer",
+    "discount",
+    "dispute",
+    "ephemeralkey",
+    "event",
+    "exchangerate",
+    "fee",
+    "feerefund",
+    "fileupload",
+    "form",
+    "invoice",
+    "invoiceitem",
+    "loginlink",
+    "order",
+    "orderitem",
+    "orderreturn",
+    "paymentsource",
+    "payout",
+    "plan",
+    "product",
+    "recipient",
+    "refund",
+    "reversal",
+    "sku",
+    "source",
+    "sub",
+    "subitem",
+    "token",
+    "transfer"
+  ]
   revision = "3545a680e2fce8f80ee1fadfba54c1c1803105ba"
   version = "v30.8.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom"]
+  packages = [
+    "html",
+    "html/atom"
+  ]
   revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "e93959c199a646ad0fe99b15c4f0a6157753ea1606ab69d19d86a8a087c120ba"
+  inputs-digest = "6962d213d709ec39287f078d147781f72153c485ccadc100411e97d248ffcebf"
   solver-name = "gps-cdcl"
   solver-version = 1
