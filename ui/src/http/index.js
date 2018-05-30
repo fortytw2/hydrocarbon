@@ -9,11 +9,18 @@ export const listFeeds = ({ folderID }) => {
     body: JSON.stringify({
       folder_id: folderID
     })
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const createFeed = ({ url, plugin, folderID }) => {
@@ -29,11 +36,18 @@ export const createFeed = ({ url, plugin, folderID }) => {
       plugin: plugin,
       folder_id: folderID
     })
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const listFolders = () => {
@@ -44,11 +58,18 @@ export const listFolders = () => {
     headers: {
       "x-hydrocarbon-key": key
     }
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const listPlugins = () => {
@@ -59,11 +80,18 @@ export const listPlugins = () => {
     headers: {
       "x-hydrocarbon-key": key
     }
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const createFolder = ({ name }) => {
@@ -77,11 +105,18 @@ export const createFolder = ({ name }) => {
     body: JSON.stringify({
       name: name
     })
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const listPosts = ({ feedID }) => {
@@ -95,6 +130,11 @@ export const listPosts = ({ feedID }) => {
     body: JSON.stringify({
       feed_id: feedID
     })
+  }).then(json => {
+    if (json.status === "error") {
+      throw json.error;
+    }
+    return json;
   });
 };
 
@@ -104,11 +144,18 @@ export const createKey = ({ token }) => {
     body: JSON.stringify({
       token: token
     })
-  }).then(response => {
-    if (response.ok) {
-      return response.json();
-    }
-  });
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };
 
 export const requestToken = ({ email }) => {
@@ -117,9 +164,16 @@ export const requestToken = ({ email }) => {
     body: JSON.stringify({
       email: email
     })
-  }).then(response => {
-    if (response.ok) {
-      return response.json();
-    }
-  });
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
 };

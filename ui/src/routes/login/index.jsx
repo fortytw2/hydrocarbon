@@ -1,22 +1,25 @@
 import { h, Component } from "preact";
+import { route } from "preact-router";
 import { bind } from "decko";
 import { requestToken } from "@/http";
 
 import style from "./style.css";
 import textBox from "@/styles/textbox.css";
 
+const initialState = {
+  email: "",
+  success: {
+    error: null,
+    submitted: false,
+    message: ""
+  }
+};
+
 export default class Login extends Component {
   constructor(props) {
     super(props);
 
-    this.setState({
-      email: "",
-      success: {
-        error: null,
-        submitted: false,
-        message: ""
-      }
-    });
+    this.setState(initialState);
   }
 
   @bind
@@ -56,9 +59,19 @@ export default class Login extends Component {
       return (
         <div class={style.loginArea}>
           <div class={style.loginBox}>
-            <div class={style.notifOffset}>
-              <h3>Something went Wrong</h3>
+            <div class={style.formOffset}>
+              <h3>Could not email link</h3>
               <p class={style.labelText}>{success.error}</p>
+              <div class={style.buttonBox}>
+                <button
+                  class={style.submitButton}
+                  onClick={() => {
+                    this.setState(initialState);
+                  }}
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -70,7 +83,7 @@ export default class Login extends Component {
         <div class={style.loginArea}>
           <div class={style.loginBox}>
             <div class={style.notifOffset}>
-              <h3>Login Email Sent!</h3>
+              <h3>Login email sent</h3>
               <p class={style.labelText}>{success.message}</p>
             </div>
           </div>
