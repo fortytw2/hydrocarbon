@@ -1,0 +1,65 @@
+.loginArea {
+  display: flex;
+  justify-content: center;
+}
+
+.loginBox {
+  display: flex;
+  margin-top: 56px;
+  height: 360px;
+  width: 360px;
+  border-radius: 4px;
+  border: 1px solid #d2d8de;
+  background: #fff;
+}
+
+.formOffset {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  margin: 24px;
+}
+
+.notifOffset {
+  display: flex;
+  flex-direction: column;
+  margin: 24px;
+}
+
+.buttonBox {
+  display: flex;
+  margin-top: 16px;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.submitButton {
+  box-sizing: border-box;
+  background-color: #357edd;
+  border: 1px solid #357edd;
+  color: #fff;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  height: 36px;
+  margin: 0;
+  padding: 8px 16px;
+  text-decoration: none;
+  user-select: none;
+}
+
+.submitButton:hover {
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+}
+
+.labelText {
+  font-size: 14px;
+  display: flex;
+  margin-top: 16px;
+}
+
+.loginInput {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}

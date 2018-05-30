@@ -1,4 +1,12 @@
 .layout {
   font-family: "Fira Sans", sans-serif;
   margin-top: 56px;
+  background: #fdfdfd;
+  color: #212121;
+}
+
+@media only screen and (max-width: 440px) {
+  .layout {
+    margin-top: calc(56px * 2);
+  }
 }

@@ -1,0 +1,19 @@
+.input {
+  display: flex;
+  color: #8899a8;
+  border: 1px solid #d2d8de;
+  box-shadow: 0 1px 1px rgba(210, 216, 222, 0.15),
+    0 1px 3px 1px rgba(210, 216, 222, 0.2);
+  outline: none;
+  transition: all 0.25s;
+  height: 24px;
+  width: 100%;
+}
+
+.input:focus {
+  background-color: rgba(52, 156, 244, 0.05);
+  color: #2266a0;
+  border-color: #349cf4;
+  box-shadow: 0 1px 1px rgba(52, 156, 244, 0.15),
+    0 1px 3px 1px rgba(52, 156, 244, 0.2), 0 0 0 1px #349cf4;
+}

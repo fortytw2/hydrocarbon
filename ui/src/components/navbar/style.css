@@ -21,6 +21,10 @@
   }
 }
 
+.logout {
+  cursor: pointer;
+}
+
 .header a {
   text-decoration: none;
   outline: 0;

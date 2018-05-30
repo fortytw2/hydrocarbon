@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
-import Router from "preact-router";
+import { route, Router } from "preact-router";
+import { bind } from "decko";
 
 import Header from "@/components/navbar";
 import Home from "@/routes/home";
@@ -23,10 +24,21 @@ export default class Layout extends Component {
     });
   }
 
+  @bind
+  logout() {
+    console.log("logging out");
+    this.setState({ email: null, loggedIn: false, apiKey: null });
+    route("/");
+  }
+
   render({}, { email, loggedIn, apiKey }) {
     return (
       <div class={style.layout}>
-        <Header />
+        <Header
+          loggedIn={loggedIn}
+          email={email}
+          logoutCallback={this.logout}
+        />
         <Router>
           <Home path="/" />
           <Feed path="/feed" />

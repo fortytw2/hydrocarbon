@@ -141,13 +141,32 @@ module.exports = {
           },
 
           {
-            test: /\.[j|t]s(x?)$/,
+            test: /\.js(x?)$/,
             exclude: /node_modules/,
             use: [
               {
                 loader: require.resolve("babel-loader"),
                 options: {
-                  presets: [require.resolve("babel-preset-env")],
+                  presets: [
+                    "@babel/preset-env",
+                    ["@babel/preset-stage-1", { decoratorsLegacy: true }]
+                  ],
+                  plugins: [
+                    ["@babel/plugin-proposal-decorators", { legacy: true }],
+                    [
+                      "@babel/plugin-proposal-class-properties",
+                      { loose: true }
+                    ],
+                    ["babel-plugin-transform-react-jsx", { pragma: "h" }],
+                    [
+                      "babel-plugin-jsx-pragmatic",
+                      {
+                        module: "preact",
+                        export: "h",
+                        import: "h"
+                      }
+                    ]
+                  ],
                   cacheDirectory: true,
                   compact: true
                 }
