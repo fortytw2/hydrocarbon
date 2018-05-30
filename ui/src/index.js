@@ -1,4 +1,4 @@
-import "./style";
-import App from "./components/app";
+import Layout from "@/components/layout";
+import { h, render } from "preact";
 
-export default App;
+render(<Layout />, document.getElementById("root"));

@@ -1,24 +1,4 @@
 .layout {
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-  box-sizing: border-box;
-  min-height: 100%;
-}
-
-.content {
-  display: flex;
-  flex: 1 1 auto;
-  height: 100%;
-  box-sizing: border-box;
-}
-
-.toolbarlink {
-  padding: 16px;
-  font-family: inherit;
-  font-style: normal;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
+  font-family: "Fira Sans", sans-serif;
+  margin-top: 56px;
 }

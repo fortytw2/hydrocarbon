@@ -11,8 +11,8 @@ import (
 	"github.com/fortytw2/hydrocarbon/public"
 )
 
-//go:generate bash -c "pushd ui && preact build --service-worker false --no-prerender && popd"
-//go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/build/..."
+//go:generate bash -c "pushd ui && NODE_ENV=production yarn build && popd"
+//go:generate bash -c "go-bindata -pkg public -mode 0644 -modtime 499137600 -o public/assets_generated.go ui/dist/..."
 
 // ErrorHandler wraps up common error handling patterns for http routers
 type ErrorHandler func(w http.ResponseWriter, r *http.Request) error
@@ -73,7 +73,7 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 			Asset:     public.Asset,
 			AssetDir:  public.AssetDir,
 			AssetInfo: public.AssetInfo,
-			Prefix:    "ui/build/",
+			Prefix:    "ui/dist/static/",
 		})
 
 	fpr.static = http.StripPrefix("/static/", fs)
@@ -88,11 +88,11 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 		var buf []byte
 		if r.URL.Path == "/favicon.ico" {
 			w.Header().Set("Content-Type", "image/png")
-			buf = public.MustAsset("ui/build/favicon.ico")
+			buf = public.MustAsset("ui/dist/favicon.ico")
 		} else {
 
 			w.Header().Set("Content-Type", "text/html")
-			buf = public.MustAsset("ui/build/index.html")
+			buf = public.MustAsset("ui/dist/index.html")
 		}
 
 		_, err := w.Write(buf)
