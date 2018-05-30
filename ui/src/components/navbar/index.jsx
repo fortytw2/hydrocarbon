@@ -3,8 +3,8 @@ import { Link } from "preact-router/match";
 import style from "./style.css";
 
 export default class Header extends Component {
-  renderUserNav(loggedIn, email, logoutCallback) {
-    if (!loggedIn) {
+  renderUserNav(email, logoutCallback) {
+    if (!email) {
       return (
         <nav>
           <Link tabIndex="0" activeClassName={style.active} href="/login">
@@ -23,19 +23,19 @@ export default class Header extends Component {
           Settings
         </Link>
         <a class={style.logout} onClick={logoutCallback}>
-          Logout
+          Logout {email}
         </a>
       </nav>
     );
   }
 
-  render({ loggedIn, email, logoutCallback }, {}) {
+  render({ email, logoutCallback }, {}) {
     return (
       <header class={style.header}>
         <Link tabIndex="0" href="/">
           <h1>Hydrocarbon</h1>
         </Link>
-        {this.renderUserNav(loggedIn, email, logoutCallback)}
+        {this.renderUserNav(email, logoutCallback)}
       </header>
     );
   }

@@ -8,6 +8,7 @@ import textBox from "@/styles/textbox.css";
 
 const initialState = {
   email: "",
+  presubmitError: null,
   success: {
     error: null,
     submitted: false,
@@ -34,6 +35,14 @@ export default class Login extends Component {
   async submit(e) {
     e.preventDefault();
 
+    var re = /\S+@\S+\.\S+/;
+    if (!re.test(this.state.email)) {
+      this.setState({
+        presubmitError: "invalid email"
+      });
+      return;
+    }
+
     try {
       const json = await requestToken({
         email: this.state.email
@@ -52,6 +61,15 @@ export default class Login extends Component {
         }
       });
     }
+  }
+
+  @bind
+  getPresubmitError() {
+    if (this.state.presubmitError) {
+      return <p class={style.labelText}>{this.state.presubmitError}</p>;
+    }
+
+    return null;
   }
 
   render({}, { email, success }) {
@@ -97,9 +115,8 @@ export default class Login extends Component {
           <div class={style.formOffset}>
             <h3>Login</h3>
             <p class={style.labelText}>
-              Hydrocarbon only logs you in through an email with a signed link.
-              If you don't have an account, one will be created for you. There
-              are no passwords.
+              Hydrocarbon sends an email with a link to login. There are no
+              passwords to generate or remember.
             </p>
             <div class={style.loginInput}>
               <input
@@ -110,6 +127,7 @@ export default class Login extends Component {
                 onChange={this.update}
               />
             </div>
+            {this.getPresubmitError()}
             <div class={style.buttonBox}>
               <button class={style.submitButton} onClick={this.submit}>
                 Login (or Register)

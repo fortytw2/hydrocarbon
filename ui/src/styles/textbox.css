@@ -2,11 +2,13 @@
   display: flex;
   color: #8899a8;
   border: 1px solid #d2d8de;
+  border-radius: 4px;
   box-shadow: 0 1px 1px rgba(210, 216, 222, 0.15),
     0 1px 3px 1px rgba(210, 216, 222, 0.2);
   outline: none;
   transition: all 0.25s;
   height: 24px;
+  font-size: 16px;
   width: 100%;
 }
 

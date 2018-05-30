@@ -37,6 +37,7 @@
 
 .submitButton {
   box-sizing: border-box;
+  border-radius: 4px;
   background-color: #357edd;
   border: 1px solid #357edd;
   color: #fff;

@@ -80,7 +80,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/login-callback?token=%s to login", ua.m.RootDomain(), lt))
+	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
 	if err != nil {
 		return err
 	}

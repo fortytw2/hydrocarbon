@@ -11,40 +11,57 @@ import Callback from "@/routes/callback";
 
 import style from "./style.css";
 
-require("preact/debug");
+require("preact/devtools");
+
+const apiKeyName = "hc-api-key";
+const emailKeyName = "hc-email";
 
 export default class Layout extends Component {
   constructor(props) {
     super(props);
 
+    let email = null;
+    let apiKey = null;
+    apiKey = window.localStorage.getItem(apiKeyName);
+    email = window.localStorage.getItem(emailKeyName);
+
     this.setState({
-      email: null,
-      loggedIn: false,
-      apiKey: null
+      email,
+      apiKey
+    });
+  }
+
+  @bind
+  login(email, apiKey) {
+    window.localStorage.setItem(apiKeyName, apiKey);
+    window.localStorage.setItem(emailKeyName, email);
+
+    this.setState({
+      email,
+      apiKey
     });
   }
 
   @bind
   logout() {
-    console.log("logging out");
-    this.setState({ email: null, loggedIn: false, apiKey: null });
-    route("/");
+    window.localStorage.removeItem(apiKeyName);
+    window.localStorage.removeItem(emailKeyName);
+
+    this.setState({ email: null, apiKey: null });
+
+    route("/login");
   }
 
-  render({}, { email, loggedIn, apiKey }) {
+  render({}, { email, apiKey }) {
     return (
       <div class={style.layout}>
-        <Header
-          loggedIn={loggedIn}
-          email={email}
-          logoutCallback={this.logout}
-        />
+        <Header email={email} logoutCallback={this.logout} />
         <Router>
           <Home path="/" />
           <Feed path="/feed" />
           <Settings path="/settings" />
           <Login path="/login" />
-          <Callback path="/callback" />
+          <Callback path="/callback" loginCallback={this.login} />
         </Router>
       </div>
     );
