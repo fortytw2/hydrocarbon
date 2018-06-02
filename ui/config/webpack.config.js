@@ -5,6 +5,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
+var Visualizer = require("webpack-visualizer-plugin");
 
 const getClientEnvironment = require("./env");
 const paths = require("./paths");
@@ -43,8 +44,6 @@ module.exports = {
   // This means they will be the "root" imports that are included in JS bundle.
   // The first two entry points enable "hot" CSS and auto-refreshes for JS.
   entry: [
-    // We ship a few polyfills by default:
-    require.resolve("./polyfills"),
     // Include an alternative client for WebpackDevServer. A client's job is to
     // connect to WebpackDevServer by a socket and get notified about changes.
     // When you save a file, the client will either apply hot updates (in case
@@ -148,7 +147,19 @@ module.exports = {
                 loader: require.resolve("babel-loader"),
                 options: {
                   presets: [
-                    "@babel/preset-env",
+                    [
+                      "@babel/preset-env",
+                      {
+                        useBuiltIns: "usage",
+                        targets: {
+                          browsers: [
+                            "last 2 versions",
+                            "safari > 10",
+                            "not ie < 11"
+                          ]
+                        }
+                      }
+                    ],
                     ["@babel/preset-stage-1", { decoratorsLegacy: true }]
                   ],
                   plugins: [
@@ -197,6 +208,7 @@ module.exports = {
     ]
   },
   plugins: [
+    new Visualizer(),
     new CleanWebpackPlugin(["dist"], {
       root: paths.root
     }),

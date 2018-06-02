@@ -94,21 +94,6 @@ export const listPlugins = () => {
     });
 };
 
-export const listPlugins = () => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
-  return fetch(window.baseURL + "/v1/plugin/list", {
-    method: "POST",
-    headers: {
-      "x-hydrocarbon-key": key
-    }
-  }).then(res => {
-    if (res.ok) {
-      return res.json();
-    }
-  });
-};
-
 export const createFolder = ({ name }) => {
   let key = window.localStorage.getItem("hydrocarbon-key");
 
