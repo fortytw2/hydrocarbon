@@ -1,0 +1,100 @@
+.feedContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  min-height: 100%;
+}
+
+.feedContainer a {
+  text-decoration: none;
+  user-select: none;
+}
+
+.active {
+  background-color: red;
+}
+
+.folderList {
+  width: 15%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  border-right: 1px solid #d2d8de;
+}
+
+.searchBox {
+  margin-top: 16px;
+  margin-right: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.editBox {
+  margin-top: 16px;
+  margin-right: 8px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.editBox button {
+  background-color: #357edd;
+  border: 1px #357edd;
+  color: white;
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: none;
+  user-select: none;
+  border-radius: 4px;
+}
+
+/* Add a background color on hover */
+.editBox button:hover {
+  filter: brightness(130%);
+}
+
+.folderListInside {
+  list-style-type: none;
+  margin: 16px;
+  padding: 0px;
+}
+
+.folder {
+  font-weight: 500;
+  font-size: 16px;
+  margin-bottom: 16px;
+}
+
+.folderSubList {
+  list-style-type: none;
+  margin-bottom: 16px;
+  margin-top: 16px;
+  padding: 0px 0px 0px 16px;
+}
+
+.feed {
+  font-weight: 400;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.postList {
+  width: 15%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+
+  list-style-type: none;
+  margin: 16px;
+  padding: 0px;
+
+  border-right: 1px solid #d2d8de;
+}
+
+.postContent {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+}
