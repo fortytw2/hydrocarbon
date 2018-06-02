@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"sort"
+
+	"github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // A FeedStore is an interface used to seperate the FeedAPI from knowledge of the
@@ -24,13 +27,15 @@ type FeedStore interface {
 type FeedAPI struct {
 	s  FeedStore
 	ks *KeySigner
+	dc *discollect.Discollector
 }
 
 // NewFeedAPI returns a new Feed API
-func NewFeedAPI(s FeedStore, ks *KeySigner) *FeedAPI {
+func NewFeedAPI(s FeedStore, dc *discollect.Discollector, ks *KeySigner) *FeedAPI {
 	return &FeedAPI{
 		s:  s,
 		ks: ks,
+		dc: dc,
 	}
 }
 
@@ -62,6 +67,21 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
 	if err != nil {
 		return err
+	}
+
+	// TODO(fortytw2): immediately launching a scrape is only a good idea
+	// if the feed is actually new
+	if fa.dc != nil {
+		err = fa.dc.LaunchScrape(feed.Plugin, &discollect.Config{
+			DynamicEntry: true,
+			Entrypoints:  []string{feed.URL},
+			Type:         "full",
+			ExternalID:   id,
+			Name:         feed.URL,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	return writeSuccess(w, map[string]string{
@@ -180,4 +200,19 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return writeSuccess(w, feed)
+}
+
+// ListPlugins lists all available plugins
+func (fa *FeedAPI) ListPlugins(w http.ResponseWriter, r *http.Request) error {
+	_, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		return err
+	}
+
+	p := fa.dc.ListPlugins()
+	sort.Strings(p)
+
+	return writeSuccess(w, map[string][]string{
+		"plugins": p,
+	})
 }

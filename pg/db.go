@@ -3,11 +3,14 @@ package pg
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
+	"log"
 
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
+	"github.com/google/uuid"
 	// postgres driver
 	_ "github.com/lib/pq"
 )
@@ -39,7 +42,6 @@ func NewDB(dsn string, autoExplain bool) (*DB, error) {
 		if err != nil {
 			return nil, err
 		}
-
 	}
 
 	return &DB{
@@ -206,7 +208,7 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	VALUES ($1, $2, $3)
 	RETURNING id;`, title, plugin, feedURL)
 
-	var feedID string
+	var feedID uuid.UUID
 	err = row.Scan(&feedID)
 	if err != nil {
 		txErr := tx.Rollback()
@@ -229,7 +231,7 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 		return "", err
 	}
 
-	return feedID, tx.Commit()
+	return feedID.String(), tx.Commit()
 }
 
 // getDefaultFolderID returns a users default folder ID
@@ -349,7 +351,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 	for rows.Next() {
 		var feedID, feedTitle, feedURL, feedPlugin sql.NullString
 
-		err := rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
+		err = rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
 		if err != nil {
 			return nil, err
 		}
@@ -377,10 +379,14 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 // GetFeed returns a single feed
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fe.id, fe.title, po.id, po.title, po.author, po.body, po.url, po.created_at, po.updated_at
- 	FROM posts po
- 	LEFT JOIN feeds fe ON (fe.id = po.feed_id AND fe.id = $2)
-	WHERE EXISTS (SELECT 1 FROM sessions WHERE key = $1)
+	SELECT fe.id, fe.title, jsonb_agg(
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at)
+	) FILTER (WHERE po.id IS NOT NULL)
+	FROM feeds fe
+	LEFT JOIN posts po ON (fe.id = po.feed_id)
+	WHERE fe.id = $2
+	AND EXISTS (SELECT 1 FROM sessions WHERE key = $1)
+	GROUP BY fe.id, fe.title
 	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -392,27 +398,21 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 		Posts: make([]*hydrocarbon.Post, 0),
 	}
 	for rows.Next() {
-		var feedID, feedTitle, postID, postTitle, postAuthor, postBody, url string
-		var createdAt, updatedAt time.Time
+		var feedID, feedTitle string
+		var jsonBody []byte
 
-		err := rows.Scan(&feedID, &feed.Title, &postID, &postTitle, &postAuthor, &postBody, &url, &createdAt, &updatedAt)
+		err := rows.Scan(&feedID, &feedTitle, &jsonBody)
 		if err != nil {
 			return nil, err
 		}
-
 		feed.Title = feedTitle
 
-		feed.Posts = append(feed.Posts, &hydrocarbon.Post{
-			ID:          postID,
-			CreatedAt:   createdAt,
-			UpdatedAt:   updatedAt,
-			Author:      postAuthor,
-			Title:       postTitle,
-			Body:        postBody,
-			OriginalURL: url,
-			Read:        false,
-		})
-
+		if len(jsonBody) > 0 {
+			err = json.Unmarshal(jsonBody, &feed.Posts)
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	return feed, nil
@@ -437,5 +437,50 @@ func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarb
 		}
 	}
 
+	return nil
+}
+
+// Write saves off the post to the db
+func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) error {
+	hcp, ok := f.(*hydrocarbon.Post)
+	if !ok {
+		log.Println("did not get a post back from the scraper, skipping")
+		return nil
+	}
+
+	_, err := db.sql.ExecContext(ctx, `
+	INSERT INTO posts 
+	(feed_id, content_hash, title, author, body, url)
+	VALUES 
+	(
+		(SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6
+	)
+	ON CONFLICT DO NOTHING;`, scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, hcp.Body, hcp.OriginalURL)
+	return err
+}
+
+// Close implements io.Closer for pg.DB
+func (db *DB) Close() error {
+	return nil
+}
+
+func (db *DB) StartScrape(ctx context.Context, pluginName string, cfg *discollect.Config) (uuid.UUID, error) {
+	row := db.sql.QueryRowContext(ctx, `
+	INSERT INTO scrapes 
+	(feed_id)
+	VALUES 
+	($1)
+	RETURNING id`, cfg.ExternalID)
+
+	var id uuid.UUID
+	err := row.Scan(&id)
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	return id, nil
+}
+
+func (db *DB) EndScrape(ctx context.Context, id string, datums, tasks int) error {
 	return nil
 }

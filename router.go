@@ -2,6 +2,7 @@ package hydrocarbon
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -18,6 +19,12 @@ import (
 type ErrorHandler func(w http.ResponseWriter, r *http.Request) error
 
 func (eh ErrorHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		if r := recover(); r != nil {
+			writeErr(w, fmt.Errorf("%v", r))
+		}
+	}()
+
 	err := eh(w, r)
 	if err != nil {
 		writeErr(w, err)
@@ -125,6 +132,9 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 
 		// list all posts in a feed
 		"/v1/post/list": fa.GetFeed,
+
+		// list all plugins in hc
+		"/v1/plugin/list": fa.ListPlugins,
 	}
 
 	for route, handler := range routes {

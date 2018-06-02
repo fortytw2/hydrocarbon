@@ -29,14 +29,14 @@ func (ks *KeySigner) Sign(val string) (string, error) {
 		return "", nil
 	}
 
-	return fmt.Sprintf("%s:%s", val, hex.EncodeToString(h.Sum(nil))), nil
+	return fmt.Sprintf("%s.%s", val, hex.EncodeToString(h.Sum(nil))), nil
 }
 
 // Verify checks a value signed with Sign
 func (ks *KeySigner) Verify(pubVal string) (string, error) {
 	h := hmac.New(sha256.New, ks.key)
 
-	spl := strings.Split(pubVal, ":")
+	spl := strings.Split(pubVal, ".")
 	if len(spl) != 2 {
 		return "", errors.New("invalid token")
 	}

@@ -100,7 +100,7 @@ CREATE TABLE feed_folders (
 
 CREATE TABLE posts (
 	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
-	feed_id UUID REFERENCES feeds,
+	feed_id UUID NOT NULL REFERENCES feeds (id),
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -116,6 +116,8 @@ CREATE TABLE posts (
 	UNIQUE (content_hash)
 );
 
+CREATE INDEX posts_feed_idx ON posts (feed_id);
+
 -- read statuses tracking
 CREATE TABLE read_statuses (
 	post_id UUID NOT NULL REFERENCES posts,
@@ -124,4 +126,19 @@ CREATE TABLE read_statuses (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
 	PRIMARY KEY (post_id, user_id)
+);
+
+CREATE TABLE scrapes (
+	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
+	feed_id UUID REFERENCES feeds (id),
+
+	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	ended_at TIMESTAMPTZ,
+
+	config JSONB DEFAULT '{}',
+
+	datums INT DEFAULT 0,
+	tasks INT DEFAULT 0,
+
+	errors TEXT[] NOT NULL DEFAULT '{}'
 );

@@ -1,118 +1,80 @@
+//+build integration
+
 package pg
 
 import (
 	"context"
+	"errors"
 	"testing"
-
-	"github.com/fortytw2/dockertest"
 )
 
-func setupTestDB(t *testing.T) (*DB, func()) {
-	var db *DB
-
-	container, err := dockertest.RunContainer("postgres:alpine", "5432", func(addr string) error {
-		var err error
-		db, err = NewDB("postgres://postgres:postgres@"+addr+"?sslmode=disable", false)
-		return err
-	})
-	if err != nil {
-		t.Fatalf("could not start postgres, %s", err)
-	}
-
-	return db, container.Shutdown
-}
-
-func TestUser(t *testing.T) {
-	db, shutdown := setupTestDB(t)
+func TestPG(t *testing.T) {
+	db, shutdown := SetupTestDB(t)
 	defer shutdown()
 
-	t.Run("create", createUser(db))
-	t.Run("defaultFolder", defaultFolder(db))
-	t.Run("addFeed", addFeed(db))
+	t.Run("users", userTests(db))
 }
 
-func createUser(db *DB) func(t *testing.T) {
-	return func(t *testing.T) {
-		_, _, err := db.CreateOrGetUser(context.Background(), "ian@hydrocarbon.io")
+func userTests(db *DB) func(t *testing.T) {
+	var createUserHelper = func(t *testing.T) string {
+		id, _, err := db.CreateOrGetUser(context.Background(), "ian@hydrocarbon.io")
 		if err != nil {
-			t.Fatalf("could not create user %s", err)
+			t.Fatal(err)
 		}
-
-		_, _, err = db.CreateOrGetUser(context.Background(), "ian@HYDroCARBon.io")
-		if err != nil {
-			t.Fatal("error on creating same user twice:", err)
-		}
+		return id
 	}
-}
 
-func TestSession(t *testing.T) {
-	db, shutdown := setupTestDB(t)
-	defer shutdown()
+	var cases = []TestCase{
+		{
+			"create-user",
+			func(t *testing.T) error {
+				createUserHelper(t)
+				return nil
+			},
+		},
+		{
+			// test that our test database is truncated after every run
+			"test-test-truncation",
+			func(t *testing.T) error {
+				row := db.sql.QueryRow(`SELECT count(id) FROM users;`)
+				var x int
+				err := row.Scan(&x)
+				if err != nil {
+					return err
+				}
+				if x != 0 {
+					return errors.New("truncation must not be working")
+				}
 
-	t.Run("create", createSession(db))
-}
+				return nil
+			},
+		},
+		{
+			"create-token",
+			func(t *testing.T) error {
+				id := createUserHelper(t)
+				token, err := db.CreateLoginToken(context.Background(), id, "Firefox", "192.168.1.21")
+				if err != nil {
+					return err
+				}
+				if token == "" {
+					return errors.New("no token made")
+				}
 
-func createSession(db *DB) func(t *testing.T) {
-	return func(t *testing.T) {
-		id, _, err := db.CreateOrGetUser(context.Background(), "ian@createsession.io")
-		if err != nil {
-			t.Fatalf("could not create user %s", err)
-		}
-
-		_, _, err = db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
-		if err != nil {
-			t.Fatalf("could not create session %s", err)
-		}
+				return nil
+			},
+		},
+		{
+			"create-session",
+			func(t *testing.T) error {
+				id := createUserHelper(t)
+				_, _, err := db.CreateSession(context.Background(), id, "Firefox", "192.168.1.21")
+				return err
+			},
+		},
 	}
-}
 
-func defaultFolder(db *DB) func(t *testing.T) {
 	return func(t *testing.T) {
-		userID, _, err := db.CreateOrGetUser(context.TODO(), "ian@testpotatoes.rs")
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		_, key, err := db.CreateSession(context.Background(), userID, "Firefox", "192.168.1.21")
-		if err != nil {
-			t.Fatalf("could not create session %s", err)
-		}
-
-		fid, err := db.getDefaultFolderID(context.Background(), key)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if fid == "" {
-			t.Fatal("no default folder id")
-		}
-
-		fid2, err := db.getDefaultFolderID(context.Background(), key)
-		if err != nil {
-			t.Fatal(err)
-		}
-
-		if fid2 != fid {
-			t.Fatal("default folder creating many default folders")
-		}
-	}
-}
-
-func addFeed(db *DB) func(t *testing.T) {
-	return func(t *testing.T) {
-		userID, _, err := db.CreateOrGetUser(context.Background(), "fow2qe.awdwad@qdwad.com")
-		if err != nil {
-			t.Fatal("could not create user")
-		}
-
-		_, key, err := db.CreateSession(context.Background(), userID, "Firefox", "192.168.1.21")
-		if err != nil {
-			t.Fatalf("could not create session %s", err)
-		}
-
-		_, err = db.AddFeed(context.Background(), key, "", "testfeed", "testplugin", "https://www.goole.com")
-		if err != nil {
-			t.Fatal(err)
-		}
+		RunCases(t, db, cases)
 	}
 }

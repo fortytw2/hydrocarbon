@@ -19,8 +19,10 @@ import (
 type UserStore interface {
 	CreateOrGetUser(ctx context.Context, email string) (string, bool, error)
 	SetStripeIDs(ctx context.Context, userID, customerID, subscriptionID string) error
+
 	CreateLoginToken(ctx context.Context, userID, userAgent, ip string) (string, error)
 	ActivateLoginToken(ctx context.Context, token string) (string, error)
+
 	CreateSession(ctx context.Context, userID, userAgent, ip string) (string, string, error)
 	ListSessions(ctx context.Context, key string, page int) ([]*Session, error)
 	DeactivateSession(ctx context.Context, key string) error
@@ -38,8 +40,11 @@ type UserAPI struct {
 
 // NewUserAPI sets up a new UserAPI used for user/session management
 func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey string, paymentRequired bool) *UserAPI {
-	c := &client.API{}
-	c.Init(stripeKey, nil)
+	var c *client.API
+	if paymentRequired {
+		c = &client.API{}
+		c.Init(stripeKey, nil)
+	}
 
 	return &UserAPI{
 		s:               s,

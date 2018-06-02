@@ -1,13 +1,13 @@
 language: go
 go:
- - 1.9
+ - "1.10"
 
 sudo: required
 services:
   - docker
 
 env:
-  - TRAVIS_NODE_VERSION="8"
+  - TRAVIS_NODE_VERSION="9"
 
 before_install:
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
@@ -32,4 +32,4 @@ script:
   - prettier --write "ui/**/*.js"
   - test $(git status --porcelain | wc -l) -eq 0 || { git diff; false; }
   - go generate ./...
-  - go test -race -v ./...
+  - go test -race -v -tags integration ./...

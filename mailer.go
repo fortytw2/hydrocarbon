@@ -1,6 +1,9 @@
 package hydrocarbon
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
 // A Mailer sends mail
 type Mailer interface {
@@ -15,6 +18,7 @@ type MockMailer struct {
 
 // Send stores a mail in the local MockMailer
 func (mm *MockMailer) Send(email string, body string) error {
+	mm.Mails = append(mm.Mails, fmt.Sprintf("%s: %s", email, body))
 	return nil
 }
 

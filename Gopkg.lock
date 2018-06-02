@@ -10,8 +10,8 @@
 [[projects]]
   name = "github.com/Puerkitobio/goquery"
   packages = ["."]
-  revision = "09540e565986583836b5fc792fe951ec5fd201dd"
-  version = "v1.3.0"
+  revision = "a86ea073017a6beddef78c8659e7224e8ca634b0"
+  version = "v1.4.0"
 
 [[projects]]
   name = "github.com/andybalholm/cascadia"
@@ -28,7 +28,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/fortytw2/discollect"
-  packages = [".","api"]
+  packages = ["."]
   revision = "b5f264b7b4d4c3c1c606196699079c651cbb7a7d"
 
 [[projects]]
@@ -39,21 +39,24 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/lib/pq"
-  packages = [".","oid"]
-  revision = "88edab0803230a3898347e77b474f8c1820a1f20"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  revision = "dec09d789f3dba190787f8b4454c7d3c936fed9e"
 
 [[projects]]
   branch = "master"
-  name = "github.com/lunny/html2md"
-  packages = ["."]
-  revision = "c8a29f8bf153a444423fd83f1ab373088ba19f47"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid"
+  ]
+  revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
 
 [[projects]]
   branch = "master"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
-  revision = "542fd4642604d0d0c26112396ce5b1a9d01eee0b"
+  revision = "995366fdf961d03629cd17361bddd32745718e2c"
 
 [[projects]]
   name = "github.com/oklog/run"
@@ -69,19 +72,63 @@
 
 [[projects]]
   name = "github.com/stripe/stripe-go"
-  packages = [".","account","balance","bankaccount","bitcoinreceiver","bitcointransaction","card","charge","client","countryspec","coupon","customer","discount","dispute","ephemeralkey","event","exchangerate","fee","feerefund","fileupload","form","invoice","invoiceitem","loginlink","order","orderitem","orderreturn","paymentsource","payout","plan","product","recipient","refund","reversal","sku","source","sub","subitem","token","transfer"]
-  revision = "a1f223a736fa18e73da42be302fe8c65379e1a40"
-  version = "v29.3.1"
+  packages = [
+    ".",
+    "account",
+    "balance",
+    "bankaccount",
+    "bitcoinreceiver",
+    "bitcointransaction",
+    "card",
+    "charge",
+    "client",
+    "countryspec",
+    "coupon",
+    "customer",
+    "discount",
+    "dispute",
+    "ephemeralkey",
+    "event",
+    "exchangerate",
+    "fee",
+    "feerefund",
+    "fileupload",
+    "form",
+    "invoice",
+    "invoiceitem",
+    "loginlink",
+    "order",
+    "orderitem",
+    "orderreturn",
+    "paymentsource",
+    "payout",
+    "plan",
+    "product",
+    "recipient",
+    "refund",
+    "reversal",
+    "sku",
+    "source",
+    "sub",
+    "subitem",
+    "token",
+    "transfer"
+  ]
+  revision = "3545a680e2fce8f80ee1fadfba54c1c1803105ba"
+  version = "v30.8.1"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom"]
-  revision = "ae89d30ce0c63142b652837da33d782e2b0a9b25"
+  packages = [
+    "html",
+    "html/atom"
+  ]
+  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "cb9753ec14eb888c6639db82d0f5ab2cc6571f8debb3796377bf3329edbcd5e8"
+  inputs-digest = "6962d213d709ec39287f078d147781f72153c485ccadc100411e97d248ffcebf"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,15 +1,23 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"flag"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"time"
 
 	"github.com/NYTimes/gziphandler"
+	"github.com/oklog/run"
+
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/pg"
+	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"
+	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
 	"github.com/fortytw2/hydrocarbon/postmark"
 )
 
@@ -66,6 +74,8 @@ func main() {
 		}
 	}
 
+	ks := hydrocarbon.NewKeySigner(signingKey)
+
 	// enable stripe
 	stripePrivKey, paymentEnabled := os.LookupEnv("STRIPE_PRIVATE_TOKEN")
 	if paymentEnabled {
@@ -74,17 +84,53 @@ func main() {
 		log.Println("payment not enabled, set STRIPE_PRIVATE_TOKEN to enable")
 	}
 
-	ks := hydrocarbon.NewKeySigner(signingKey)
-
-	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, ks), domain)
-
-	log.Println("serving private api on port", getPort("MACHINE_PORT", ":6060"))
-	go http.ListenAndServe(getPort("MACHINE_PORT", ":6060"), httpLogger(gziphandler.GzipHandler(hydrocarbon.NewMachineRouter(db))))
-
-	err = http.ListenAndServe(getPort("PORT", ":8080"), httpLogger(gziphandler.GzipHandler(r)))
+	dc, err := discollect.New(
+		// pg.DB is a discollect writer
+		discollect.WithWriter(db),
+		discollect.WithMetastore(db),
+		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	r := hydrocarbon.NewRouter(hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled), hydrocarbon.NewFeedAPI(db, dc, ks), domain)
+
+	h := &http.Server{
+		Addr:    getPort("PORT", ":8080"),
+		Handler: httpLogger(gziphandler.GzipHandler(r)),
+	}
+
+	var g run.Group
+	{
+		g.Add(h.ListenAndServe, func(error) {
+			err := h.Shutdown(context.TODO())
+			if err != nil && err != http.ErrServerClosed {
+				log.Println("cauldron: error shutting down http server", err)
+			}
+		})
+	}
+	{
+		g.Add(func() error {
+			log.Println("launching scraper")
+			return dc.Start(3)
+		}, func(error) {
+			log.Println("shutting down scraper")
+			dc.Shutdown(context.Background())
+		})
+	}
+	{
+		g.Add(func() error {
+			sigCh := make(chan os.Signal, 1)
+
+			signal.Notify(sigCh, os.Interrupt)
+			<-sigCh
+
+			return errors.New("cauldron: os initiated shutdown")
+		}, func(error) {})
+	}
+
+	log.Fatal(g.Run())
 }
 
 func getPort(env string, def string) string {

@@ -3,14 +3,15 @@ package parahumans
 import (
 	"context"
 	"errors"
+	"html"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/Puerkitobio/goquery"
-	dc "github.com/fortytw2/discollect"
+	"github.com/fortytw2/hydrocarbon"
+	dc "github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/httpx"
-	"github.com/lunny/html2md"
 )
 
 // Plugin is a plugin that can scrape parahumans
@@ -22,14 +23,6 @@ var Plugin = &dc.Plugin{
 	Routes: map[string]dc.Handler{
 		`https:\/\/parahumans.wordpress.com\/(\d+)\/(\d+)\/(\d+)\/(.*)`: phPage,
 	},
-}
-
-type phChapter struct {
-	Author    string    `json:"author,omitempty"`
-	PostedAt  time.Time `json:"posted_at,omitempty"`
-	Title     string    `json:"title,omitempty"`
-	Body      string    `json:"body,omitempty"`
-	WordCount int       `json:"word_count,omitempty"`
 }
 
 func phPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResponse {
@@ -71,15 +64,13 @@ func phPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResp
 		return dc.ErrorResponse(err)
 	}
 
-	body = html2md.Convert(strings.TrimSpace(body))
-
 	return dc.Response([]interface{}{
-		&phChapter{
-			Author:    "wildbow",
-			PostedAt:  dateTs,
-			Title:     title,
-			Body:      strings.Replace(strings.TrimSpace(body), `  `, ` `, -1),
-			WordCount: len(strings.Split(body, " ")),
+		&hydrocarbon.Post{
+			Author:      "wildbow",
+			CreatedAt:   dateTs,
+			OriginalURL: t.URL,
+			Title:       title,
+			Body:        html.UnescapeString(strings.Replace(strings.TrimSpace(body), `  `, ` `, -1)),
 		},
 	}, &dc.Task{
 		URL: nextPageURL,
