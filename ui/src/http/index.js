@@ -1,8 +1,8 @@
-export const listFeeds = ({ folderID }) => {
+export const listFeeds = ({ folderID, apiKey }) => {
   return fetch("/v1/feed/list", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
       folder_id: folderID
@@ -21,11 +21,11 @@ export const listFeeds = ({ folderID }) => {
     });
 };
 
-export const createFeed = ({ url, plugin, folderID }) => {
+export const createFeed = ({ url, plugin, folderID, apiKey }) => {
   return fetch("/v1/feed/create", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
       url: url,
@@ -46,11 +46,11 @@ export const createFeed = ({ url, plugin, folderID }) => {
     });
 };
 
-export const listFolders = () => {
+export const listFolders = ({ apiKey }) => {
   return fetch("/v1/folder/list", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     }
   })
     .then(res => {
@@ -66,11 +66,11 @@ export const listFolders = () => {
     });
 };
 
-export const listPlugins = () => {
+export const listPlugins = ({ apiKey }) => {
   return fetch("/v1/plugin/list", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     }
   })
     .then(res => {
@@ -109,11 +109,11 @@ export const createFolder = ({ name, apiKey }) => {
     });
 };
 
-export const listPosts = ({ feedID }) => {
+export const listPosts = ({ feedID, apiKey }) => {
   return fetch("/v1/post/list", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
       feed_id: feedID

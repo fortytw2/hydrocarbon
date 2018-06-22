@@ -4,6 +4,7 @@ import { bind } from "decko";
 
 import Modal from "@/components/modal";
 import CreateFolderForm from "@/components/create_folder_form";
+import CreateFeedForm from "@/components/create_feed_form";
 
 import style from "./style.css";
 import textboxStyle from "@/styles/textbox.css";
@@ -35,6 +36,12 @@ export default class Feed extends Component {
   }
 
   @bind
+  submitFeed({ name, id }) {
+    this.setState({ newFeedModal: false });
+    // TODO: add feed to lcoa list
+  }
+
+  @bind
   openNewFolderModal(e) {
     e.preventDefault();
     this.setState({ newFolderModal: true });
@@ -56,7 +63,11 @@ export default class Feed extends Component {
     return (
       <div class={style.feedContainer}>
         <Modal close={this.closeNewFeedModal} open={newFeedModal}>
-          <h1>New Feed Creation Modal</h1>
+          <CreateFeedForm
+            onSubmit={this.submitFeed}
+            apiKey={apiKey}
+            folderID={this.props.folder}
+          />
         </Modal>
 
         <Modal close={this.closeNewFolderModal} open={newFolderModal}>

@@ -38,6 +38,7 @@ export default class CreateFolderForm extends Component {
       id = resp.id;
     } catch (e) {
       this.setState({ submitting: false, nameVal: "", error: e });
+      return;
     }
 
     this.props.onSubmit({ name: this.state.nameVal, id: id });
@@ -50,7 +51,7 @@ export default class CreateFolderForm extends Component {
     }
 
     if (submitting) {
-      return <h3>Creating...</h3>;
+      return <h3>Processing...</h3>;
     }
 
     return (
