@@ -3,8 +3,11 @@ import { Link } from "preact-router";
 import { bind } from "decko";
 
 import Modal from "@/components/modal";
+import FolderList from "@/components/folder_list";
 import CreateFolderForm from "@/components/create_folder_form";
 import CreateFeedForm from "@/components/create_feed_form";
+
+import { listFolders, listFeeds } from "@/http";
 
 import style from "./style.css";
 import textboxStyle from "@/styles/textbox.css";
@@ -21,6 +24,29 @@ export default class Feed extends Component {
     super(props);
 
     this.setState(initialState);
+  }
+
+  async componentDidMount(props) {
+    try {
+      let folders = await listFolders({ apiKey: this.props.apiKey });
+
+      folders = await Promise.all(
+        folders.map(async f => {
+          const feeds = await listFeeds({
+            apiKey: this.props.apiKey,
+            folderId: f.id
+          });
+          return {
+            ...f,
+            feeds
+          };
+        })
+      );
+
+      this.setState({ folders: folders });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   @bind
@@ -59,14 +85,14 @@ export default class Feed extends Component {
     // TODO: add folder to local list
   }
 
-  render({ apiKey }, { newFeedModal, newFolderModal }) {
+  render({ apiKey, folderId }, { newFeedModal, newFolderModal, folders }) {
     return (
       <div class={style.feedContainer}>
         <Modal close={this.closeNewFeedModal} open={newFeedModal}>
           <CreateFeedForm
             onSubmit={this.submitFeed}
             apiKey={apiKey}
-            folderID={this.props.folder}
+            folderId={folderId}
           />
         </Modal>
 
@@ -83,85 +109,7 @@ export default class Feed extends Component {
               +Folder
             </button>
           </div>
-          <div class={style.searchBox}>
-            <input
-              class={textboxStyle.input}
-              type="text"
-              placeholder="filter"
-            />
-          </div>
-          <ol class={style.folderListInside}>
-            <li class={style.folder}>
-              <Link
-                tabIndex="0"
-                activeClassName={style.activeLink}
-                href="/feed/1"
-              >
-                Folder 1
-              </Link>
-              <ol class={style.folderSubList}>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/1"
-                  >
-                    Feed 1
-                  </Link>
-                </li>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/2"
-                  >
-                    Feed 2
-                  </Link>
-                </li>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/3"
-                  >
-                    Feed 3
-                  </Link>
-                </li>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/4"
-                  >
-                    Feed 4
-                  </Link>
-                </li>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/5"
-                  >
-                    Feed 5
-                  </Link>
-                </li>
-                <li class={style.feed}>
-                  <Link
-                    tabIndex="0"
-                    activeClassName={style.activeLink}
-                    href="/feed/1/6"
-                  >
-                    Feed 6
-                  </Link>
-                </li>
-              </ol>
-            </li>
-            <li class={style.folder}>Folder 2</li>
-            <li class={style.folder}>Folder 3</li>
-            <li class={style.folder}>Folder 4</li>
-            <li class={style.folder}>Folder 5</li>
-            <li class={style.folder}>Folder 6</li>
-          </ol>
+          <FolderList folders={folders} folderId={folderId} />
         </div>
         <div class={style.postList}>
           <ol class={style.postListInside}>

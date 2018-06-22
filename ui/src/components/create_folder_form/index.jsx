@@ -31,7 +31,7 @@ export default class CreateFolderForm extends Component {
 
     let id;
     try {
-      resp = await createFolder({
+      const resp = await createFolder({
         name: this.state.nameVal,
         apiKey: this.props.apiKey
       });

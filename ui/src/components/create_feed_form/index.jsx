@@ -1,12 +1,15 @@
 import { h, Component } from "preact";
 import { bind } from "decko";
-import { createFeed } from "@/http";
+import { createFeed, listPlugins } from "@/http";
 
 import style from "./style.css";
 import inputStyle from "@/styles/textbox.css";
 
 const initialState = {
   url: "",
+  loadingPlugins: true,
+  plugins: [],
+  plugin: "",
   submitting: false,
   error: null
 };
@@ -16,6 +19,22 @@ export default class CreateFeedForm extends Component {
     super(props);
 
     this.setState(initialState);
+  }
+
+  async componentDidMount(props) {
+    try {
+      const plugins = await listPlugins({ apiKey: this.props.apiKey });
+      this.setState({ plugins: plugins, loadingPlugins: false });
+    } catch (e) {
+      this.setState({ error: e, loadingPlugins: false });
+    }
+  }
+
+  @bind
+  reset(e) {
+    e.preventDefault();
+    this.setState(initialState);
+    this.componentDidMount(this.props);
   }
 
   @bind
@@ -36,10 +55,10 @@ export default class CreateFeedForm extends Component {
 
     let id;
     try {
-      resp = await createFeed({
+      const resp = await createFeed({
         url: this.state.url,
         plugin: this.state.plugin,
-        folderID: this.props.folderID,
+        folderId: this.props.folderId,
         apiKey: this.props.apiKey
       });
       id = resp.id;
@@ -56,16 +75,26 @@ export default class CreateFeedForm extends Component {
       name: this.state.url,
       id: id
     });
+
     this.setState(initialState);
   }
 
-  render({}, { submitting, error, url, plugin }) {
+  render({}, { submitting, error, url, plugin, plugins, pluginsLoading }) {
     if (error) {
-      return <h3>{error}</h3>;
+      return (
+        <div>
+          <h3>{error}</h3>
+          <button onClick={this.reset}>Reset</button>
+        </div>
+      );
     }
 
     if (submitting) {
       return <h3>Processing...</h3>;
+    }
+
+    if (pluginsLoading) {
+      return <h3>Loading Plugins...</h3>;
     }
 
     return (
@@ -82,15 +111,15 @@ export default class CreateFeedForm extends Component {
         />
         <label for="feedURL">base URL for the plugin</label>
 
-        <input
+        <select
           id="feedPlugin"
-          class={inputStyle.input}
-          type="text"
-          value={plugin}
           onChange={this.handlePluginInput}
-          placeholder="Plugin"
-        />
-        <label for="feedPlugin">base URL for the plugin</label>
+          value={plugin}
+        >
+          {plugins.map(p => <option value={p}>{p}</option>)}
+        </select>
+
+        <label for="feedPlugin">actual plugin to use</label>
 
         <button>Create Feed</button>
       </form>

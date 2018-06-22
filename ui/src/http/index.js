@@ -1,11 +1,11 @@
-export const listFeeds = ({ folderID, apiKey }) => {
+export const listFeeds = ({ folderId, apiKey }) => {
   return fetch("/v1/feed/list", {
     method: "POST",
     headers: {
       "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
-      folder_id: folderID
+      folder_id: folderId
     })
   })
     .then(res => {
@@ -17,11 +17,11 @@ export const listFeeds = ({ folderID, apiKey }) => {
       if (json.status === "error") {
         throw json.error;
       }
-      return json;
+      return json.data;
     });
 };
 
-export const createFeed = ({ url, plugin, folderID, apiKey }) => {
+export const createFeed = ({ url, plugin, folderId, apiKey }) => {
   return fetch("/v1/feed/create", {
     method: "POST",
     headers: {
@@ -30,7 +30,7 @@ export const createFeed = ({ url, plugin, folderID, apiKey }) => {
     body: JSON.stringify({
       url: url,
       plugin: plugin,
-      folder_id: folderID
+      folder_id: folderId
     })
   })
     .then(res => {
@@ -62,7 +62,7 @@ export const listFolders = ({ apiKey }) => {
       if (json.status === "error") {
         throw json.error;
       }
-      return json;
+      return json.data;
     });
 };
 
@@ -82,7 +82,7 @@ export const listPlugins = ({ apiKey }) => {
       if (json.status === "error") {
         throw json.error;
       }
-      return json;
+      return json.data.plugins;
     });
 };
 

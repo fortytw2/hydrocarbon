@@ -20,16 +20,6 @@
   border-right: 1px solid #d2d8de;
 }
 
-.searchBox {
-  padding: 8px;
-
-  background-color: rgba(230, 230, 230, 1);
-
-  border-bottom: 1px solid #d2d8de;
-  display: flex;
-  justify-content: center;
-}
-
 .editBox {
   padding-top: 16px;
 
@@ -57,31 +47,6 @@
 /* Add a background color on hover */
 .editBox button:hover {
   filter: brightness(80%);
-}
-
-.folderListInside {
-  list-style-type: none;
-  margin: 16px;
-  padding: 0px;
-}
-
-.folder {
-  font-weight: 500;
-  font-size: 16px;
-  margin-bottom: 16px;
-}
-
-.folderSubList {
-  list-style-type: none;
-  margin-bottom: 16px;
-  margin-top: 16px;
-  padding: 0px 0px 0px 16px;
-}
-
-.feed {
-  font-weight: 400;
-  font-size: 14px;
-  margin-bottom: 8px;
 }
 
 .postList {
