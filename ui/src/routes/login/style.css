@@ -15,7 +15,6 @@
 
 .formOffset {
   display: flex;
-  justify-content: space-between;
   flex-direction: column;
   width: 100%;
   margin: 24px;
@@ -26,6 +25,13 @@
   width: 100%;
   flex-direction: column;
   margin: 24px;
+}
+
+.errorText {
+  color: #ff4242;
+  font-size: 14px;
+  display: flex;
+  margin-top: 16px;
 }
 
 .buttonBox {

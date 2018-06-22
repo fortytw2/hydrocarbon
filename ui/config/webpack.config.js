@@ -5,7 +5,6 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CaseSensitivePathsPlugin = require("case-sensitive-paths-webpack-plugin");
 const CleanWebpackPlugin = require("clean-webpack-plugin");
-var Visualizer = require("webpack-visualizer-plugin");
 
 const getClientEnvironment = require("./env");
 const paths = require("./paths");
@@ -39,7 +38,7 @@ const env = getClientEnvironment(publicUrl);
 module.exports = {
   // You may want 'eval' instead if you prefer to see the compiled output in DevTools.
   // See the discussion in https://github.com/facebookincubator/create-react-app/issues/343.
-  devtool: "cheap-module-source-map",
+  devtool: "none",
   // These are the "entry points" to our application.
   // This means they will be the "root" imports that are included in JS bundle.
   // The first two entry points enable "hot" CSS and auto-refreshes for JS.
@@ -208,7 +207,6 @@ module.exports = {
     ]
   },
   plugins: [
-    new Visualizer(),
     new CleanWebpackPlugin(["dist"], {
       root: paths.root
     }),

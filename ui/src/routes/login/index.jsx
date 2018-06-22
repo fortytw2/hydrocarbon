@@ -38,7 +38,8 @@ export default class Login extends Component {
     var re = /\S+@\S+\.\S+/;
     if (!re.test(this.state.email)) {
       this.setState({
-        presubmitError: "invalid email"
+        presubmitError:
+          "invalid email, must match '/S+@S+.S+/' (anything@anything.anything)"
       });
       return;
     }
@@ -66,7 +67,7 @@ export default class Login extends Component {
   @bind
   getPresubmitError() {
     if (this.state.presubmitError) {
-      return <p class={style.labelText}>{this.state.presubmitError}</p>;
+      return <p class={style.errorText}>{this.state.presubmitError}</p>;
     }
 
     return null;

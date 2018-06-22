@@ -1,6 +1,4 @@
 export const listFeeds = ({ folderID }) => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
   return fetch("/v1/feed/list", {
     method: "POST",
     headers: {
@@ -24,8 +22,6 @@ export const listFeeds = ({ folderID }) => {
 };
 
 export const createFeed = ({ url, plugin, folderID }) => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
   return fetch("/v1/feed/create", {
     method: "POST",
     headers: {
@@ -51,8 +47,6 @@ export const createFeed = ({ url, plugin, folderID }) => {
 };
 
 export const listFolders = () => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
   return fetch("/v1/folder/list", {
     method: "POST",
     headers: {
@@ -73,8 +67,6 @@ export const listFolders = () => {
 };
 
 export const listPlugins = () => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
   return fetch("/v1/plugin/list", {
     method: "POST",
     headers: {
@@ -94,13 +86,11 @@ export const listPlugins = () => {
     });
 };
 
-export const createFolder = ({ name }) => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
+export const createFolder = ({ name, apiKey }) => {
   return fetch("/v1/folder/create", {
     method: "POST",
     headers: {
-      "x-hydrocarbon-key": key
+      "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
       name: name
@@ -120,8 +110,6 @@ export const createFolder = ({ name }) => {
 };
 
 export const listPosts = ({ feedID }) => {
-  let key = window.localStorage.getItem("hydrocarbon-key");
-
   return fetch("/v1/post/list", {
     method: "POST",
     headers: {
