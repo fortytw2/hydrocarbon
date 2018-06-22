@@ -126,7 +126,7 @@ func main() {
 			signal.Notify(sigCh, os.Interrupt)
 			<-sigCh
 
-			return errors.New("cauldron: os initiated shutdown")
+			return errors.New("hydrocarbon: os initiated shutdown")
 		}, func(error) {})
 	}
 
