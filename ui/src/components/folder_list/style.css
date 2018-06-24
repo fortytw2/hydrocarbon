@@ -10,11 +10,45 @@
   margin-bottom: 16px;
 }
 
+.folderTitle {
+  display: flex;
+
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.folderTitle a {
+  display: flex;
+}
+
+.folderSubTitle {
+  display: flex;
+  align-items: center;
+}
+
+.folderSubTitle img {
+  margin-right: 16px;
+}
+
 .folderSubList {
+  transition: opacity 0.3s, visibility 0.3s;
   list-style-type: none;
+
   margin-bottom: 16px;
   margin-top: 16px;
   padding: 0px 0px 0px 16px;
+}
+
+.collapsedFolder {
+  visibility: hidden;
+  display: none;
+  opacity: 0;
+}
+
+.icon {
+  cursor: pointer;
+  display: flex;
 }
 
 .feed {

@@ -15,6 +15,7 @@ import textboxStyle from "@/styles/textbox.css";
 
 const initialState = {
   newFeedModal: false,
+  newFeedModalFolderId: null,
   newFolderModal: false,
 
   folders: []
@@ -52,9 +53,9 @@ export default class Feed extends Component {
   }
 
   @bind
-  openNewFeedModal(e) {
+  openNewFeedModal(e, folderId) {
     e.preventDefault();
-    this.setState({ newFeedModal: true });
+    this.setState({ newFeedModal: true, newFeedModalFolderId: folderId });
   }
 
   @bind
@@ -99,7 +100,7 @@ export default class Feed extends Component {
 
   render(
     { apiKey, folderId, feedId, postId },
-    { newFeedModal, newFolderModal, folders }
+    { newFeedModal, newFeedModalFolderId, newFolderModal, folders }
   ) {
     return (
       <div class={style.feedContainer}>
@@ -107,7 +108,7 @@ export default class Feed extends Component {
           <CreateFeedForm
             onSubmit={this.submitFeed}
             apiKey={apiKey}
-            folderId={folderId}
+            folderId={newFeedModalFolderId}
           />
         </Modal>
 
@@ -124,7 +125,12 @@ export default class Feed extends Component {
               +Folder
             </button>
           </div>
-          <FolderList folders={folders} folderId={folderId} feedId={feedId} />
+          <FolderList
+            folders={folders}
+            folderId={folderId}
+            feedId={feedId}
+            openNewFeedModal={this.openNewFeedModal}
+          />
         </div>
 
         <PostList
