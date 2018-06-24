@@ -415,6 +415,11 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 		}
 	}
 
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return feed, nil
 }
 
