@@ -82,9 +82,10 @@ export default class Feed extends Component {
   }
 
   @bind
-  submitFolder({ name, id }) {
-    this.setState({ newFolderModal: false });
-    // TODO: add folder to local list
+  submitFolder({ title, id }) {
+    const folders = [{ id, title, feeds: [] }, ...this.state.folders];
+
+    this.setState({ newFolderModal: false, folders: folders });
   }
 
   render(

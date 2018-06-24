@@ -41,7 +41,7 @@ export default class CreateFolderForm extends Component {
       return;
     }
 
-    this.props.onSubmit({ name: this.state.nameVal, id: id });
+    this.props.onSubmit({ title: this.state.nameVal, id: id });
     this.setState(initialState);
   }
 

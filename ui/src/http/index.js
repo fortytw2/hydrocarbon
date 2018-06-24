@@ -105,7 +105,7 @@ export const createFolder = ({ name, apiKey }) => {
       if (json.status === "error") {
         throw json.error;
       }
-      return json;
+      return json.data;
     });
 };
 

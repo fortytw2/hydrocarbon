@@ -20,6 +20,18 @@ export default class PostList extends Component {
   }
 
   async componentDidMount() {
+    await this.fetchData();
+  }
+
+  async componentDidUpdate(prevProps) {
+    if (this.props.feedId !== prevProps.feedId) {
+      this.setState(initialState);
+      await this.fetchData();
+    }
+  }
+
+  @bind
+  async fetchData(feedId) {
     if (!this.props.feedId) {
       this.setState({ loading: false });
       return;
