@@ -109,21 +109,27 @@ export const createFolder = ({ name, apiKey }) => {
     });
 };
 
-export const listPosts = ({ feedID, apiKey }) => {
+export const listPosts = ({ feedId, apiKey }) => {
   return fetch("/v1/post/list", {
     method: "POST",
     headers: {
       "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
-      feed_id: feedID
+      feed_id: feedId
     })
-  }).then(json => {
-    if (json.status === "error") {
-      throw json.error;
-    }
-    return json;
-  });
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json.data;
+    });
 };
 
 export const createKey = ({ token }) => {
