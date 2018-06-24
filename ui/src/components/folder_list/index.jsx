@@ -18,7 +18,7 @@ export default class FolderList extends Component {
   }
 
   @bind
-  renderFolder(folder) {
+  renderFolder(folder, feedId) {
     return (
       <li class={style.folder}>
         <Link
@@ -29,43 +29,42 @@ export default class FolderList extends Component {
           {folder.title}
         </Link>
         <ol class={style.folderSubList}>
-          {this.renderFeeds(folder.id, folder.feeds)}
+          {this.renderFeeds(folder.id, feedId, folder.feeds)}
         </ol>
       </li>
     );
   }
 
   @bind
-  renderFeeds(folderId, feeds) {
+  renderFeeds(folderId, feedId, feeds) {
     if (feeds === null || feeds.length === 0) {
       return;
     }
-    return feeds.map(f => this.renderFeed(folderId, f));
+    return feeds.map(f => this.renderFeed(folderId, feedId, f));
   }
 
   @bind
-  renderFeed(folderId, feed) {
+  renderFeed(folderId, feedId, feed) {
+    let listClass = style.feed;
+    if (feedId === feed.id) {
+      listClass = [style.feed, style.activeFeed].join(" ");
+    }
+
     return (
-      <li class={style.feed}>
-        <Link
-          tabIndex="0"
-          activeClassName={style.activeLink}
-          href={this.feedLink(folderId, feed.id)}
-        >
-          {feed.title}
-        </Link>
+      <li class={listClass}>
+        <a href={this.feedLink(folderId, feed.id)}>{feed.title}</a>
       </li>
     );
   }
 
-  render({ folderId, folders }, {}) {
+  render({ folderId, folders, feedId }, {}) {
     return (
       <div>
         <div class={style.searchBox}>
           <input class={textboxStyle.input} type="text" placeholder="filter" />
         </div>
         <ol class={style.folderListInside}>
-          {folders.map(f => this.renderFolder(f))}
+          {folders.map(f => this.renderFolder(f, feedId))}
         </ol>
       </div>
     );

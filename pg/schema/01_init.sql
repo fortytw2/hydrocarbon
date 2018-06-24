@@ -104,6 +104,7 @@ CREATE TABLE posts (
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	posted_at TIMESTAMPTZ NOT NULL DEFAULT '01-01-1970 00:00:00'::timestamptz,
 
 	content_hash CITEXT NOT NULL,
 	title TEXT NOT NULL,

@@ -23,8 +23,8 @@
   margin-bottom: 8px;
 }
 
-.activeLink {
-  background-color: red;
+.activeFeed {
+  font-weight: 700;
 }
 
 .searchBox {

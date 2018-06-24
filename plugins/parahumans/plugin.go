@@ -67,7 +67,7 @@ func phPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResp
 	return dc.Response([]interface{}{
 		&hydrocarbon.Post{
 			Author:      "wildbow",
-			CreatedAt:   dateTs,
+			PostedAt:    dateTs,
 			OriginalURL: t.URL,
 			Title:       title,
 			Body:        html.UnescapeString(strings.Replace(strings.TrimSpace(body), `  `, ` `, -1)),

@@ -380,7 +380,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, jsonb_agg(
-		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at)
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at, 'posted_at', po.posted_at)
 	) FILTER (WHERE po.id IS NOT NULL)
 	FROM feeds fe
 	LEFT JOIN posts po ON (fe.id = po.feed_id)
@@ -424,11 +424,11 @@ func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarb
 		var contentHash string
 		err := db.sql.QueryRow(`
 		INSERT INTO posts 
-		(feed_id, content_hash, title, author, body, url)
+		(feed_id, content_hash, title, author, body, url, posted_at)
 		VALUES 
-		($1, $2, $3, $4, $5, $6)
+		($1, $2, $3, $4, $5, $6, $7)
 		ON CONFLICT (content_hash) DO NOTHING
-		RETURNING content_hash;`, feedID, p.ContentHash(), p.Title, p.Author, p.Body, p.OriginalURL).Scan(&contentHash)
+		RETURNING content_hash;`, feedID, p.ContentHash(), p.Title, p.Author, p.Body, p.OriginalURL, p.PostedAt).Scan(&contentHash)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				continue
@@ -450,12 +450,12 @@ func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) erro
 
 	_, err := db.sql.ExecContext(ctx, `
 	INSERT INTO posts 
-	(feed_id, content_hash, title, author, body, url)
+	(feed_id, content_hash, title, author, body, url, posted_at)
 	VALUES 
 	(
-		(SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6
+		(SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6, $7
 	)
-	ON CONFLICT DO NOTHING;`, scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, hcp.Body, hcp.OriginalURL)
+	ON CONFLICT DO NOTHING;`, scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, hcp.Body, hcp.OriginalURL, hcp.PostedAt)
 	return err
 }
 

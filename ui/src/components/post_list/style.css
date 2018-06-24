@@ -1,14 +1,15 @@
 .postView {
   width: 85%;
   height: 100%;
+  max-height: calc(100vh - 56px);
   display: flex;
   flex-direction: row;
 }
 
 .postList {
-  width: 10%;
+  width: 15%;
   min-height: 100%;
-  overflow-y: hidden;
+  overflow-y: scroll;
   display: flex;
   flex-direction: column;
 
@@ -30,6 +31,10 @@
   font-weight: 400;
   font-size: 14px;
   padding: 8px;
+}
+
+.activePost {
+  background-color: rgb(230, 230, 230);
 }
 
 .post:hover {
@@ -62,7 +67,7 @@
 }
 
 .postContent {
-  width: 90%;
+  width: 85%;
   padding: 16px;
   height: calc(100vh - 56px);
   overflow-y: scroll;

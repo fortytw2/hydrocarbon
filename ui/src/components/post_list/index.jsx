@@ -20,6 +20,11 @@ export default class PostList extends Component {
   }
 
   async componentDidMount() {
+    if (!this.props.feedId) {
+      this.setState({ loading: false });
+      return;
+    }
+
     const feed = await listPosts({
       apiKey: this.props.apiKey,
       feedId: this.props.feedId
@@ -29,11 +34,15 @@ export default class PostList extends Component {
 
   @bind
   renderPost(folderId, feedId, postId, post) {
-    const friendlyTime = DateTime.fromISO(post.created_at);
+    const friendlyTime = DateTime.fromISO(post.posted_at);
 
     let postStyle = style.post;
     if (!post.read) {
       postStyle = style.unreadPost;
+    }
+
+    if (post.id === postId) {
+      postStyle = [postStyle, style.activePost].join(" ");
     }
 
     return (
@@ -45,7 +54,7 @@ export default class PostList extends Component {
         <li class={postStyle}>
           <span class={style.postTitle}>{post.title}</span>
           <span class={style.postTime}>
-            {friendlyTime.toFormat("ccc HH:mm")}
+            {friendlyTime.toLocaleString(DateTime.DATETIME_SHORT)}
           </span>
         </li>
       </Link>
@@ -54,9 +63,18 @@ export default class PostList extends Component {
 
   @bind
   getActivePost(postId, posts) {
-    const post = posts.filter(p => p.id === postId)[0];
+    let post;
+    if (!postId) {
+      if (posts.length > 0) {
+        post = posts[0];
+      } else {
+        return <h1> no post selected </h1>;
+      }
+    } else {
+      post = posts.filter(p => p.id === postId)[0];
+    }
 
-    const friendlyTime = DateTime.fromISO(post.created_at);
+    const friendlyTime = DateTime.fromISO(post.posted_at);
     return (
       <div class={style.postInnerContent}>
         <div class={style.postHeader}>
@@ -64,7 +82,7 @@ export default class PostList extends Component {
         </div>
         <div class={style.postSubHeader}>
           <h4>{post.title}</h4>
-          <h4>{friendlyTime.toFormat("ccc MMM YYYY, HH:mm")}</h4>
+          <h4>{friendlyTime.toLocaleString(DateTime.DATETIME_MED)}</h4>
         </div>
         <div
           class={style.postBody}
