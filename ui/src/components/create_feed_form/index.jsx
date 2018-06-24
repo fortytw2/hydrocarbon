@@ -72,8 +72,9 @@ export default class CreateFeedForm extends Component {
     }
 
     this.props.onSubmit({
-      name: this.state.url,
-      id: id
+      title: this.state.url,
+      id: id,
+      folderId: this.props.folderId
     });
 
     this.setState(initialState);

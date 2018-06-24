@@ -64,9 +64,18 @@ export default class Feed extends Component {
   }
 
   @bind
-  submitFeed({ name, id }) {
-    this.setState({ newFeedModal: false });
-    // TODO: add feed to lcoa list
+  submitFeed({ title, id, folderId }) {
+    const lastf = this.state.folders.find(f => f.id === folderId);
+
+    const f = lastf;
+    if (f.feeds === null) {
+      f.feeds = [{ title, id }];
+    } else {
+      f.feeds.push({ title, id });
+    }
+
+    const oldFolders = this.state.folders.filter(f => f.id !== folderId);
+    this.setState({ newFeedModal: false, folders: [...oldFolders, f] });
   }
 
   @bind
