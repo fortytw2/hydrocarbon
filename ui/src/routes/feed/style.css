@@ -34,14 +34,23 @@
 
 .editBox button {
   width: 100%;
-  background-color: #357edd;
+  background-color: #fdfdfd;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
   border: 1px #357edd;
   color: white;
   cursor: pointer;
   padding: 4px;
   text-decoration: none;
   user-select: none;
-  border-radius: 0px;
+  border-radius: 4px;
+}
+
+.editText {
+  color: #212121;
 }
 
 /* Add a background color on hover */
@@ -49,94 +58,8 @@
   filter: brightness(80%);
 }
 
-.postList {
-  width: 15%;
-  min-height: 100%;
-  overflow-y: hidden;
+.icon {
+  cursor: pointer;
   display: flex;
-  flex-direction: column;
-
-  list-style-type: none;
-  padding: 0px;
-
-  border-right: 1px solid #d2d8de;
-}
-
-.postListInside {
-  list-style-type: none;
-  padding: 0px;
-}
-
-.post {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  font-weight: 400;
-  font-size: 14px;
-  padding: 8px;
-}
-
-.post:hover {
-  background-color: rgb(230, 230, 230);
-}
-
-.unreadPost {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  font-weight: 700;
-  font-size: 14px;
-  padding: 8px;
-}
-
-.unreadPost:hover {
-  background-color: rgb(230, 230, 230);
-}
-
-.post span {
-  display: flex;
-}
-
-.postTitle {
-  text-overflow: ellipsis;
-}
-
-.postTime {
-  font-size: 12px;
-}
-
-.postContent {
-  width: 70%;
-  padding: 16px;
-  height: calc(100vh - 56px);
-  overflow-y: scroll;
-  word-wrap: break-word;
-
-  display: flex;
-  flex-direction: column;
-}
-
-.postInnerContent {
-  padding: 8px;
-}
-
-.postHeader {
-  display: flex;
-  justify-content: center;
-  flex-direction: row;
-}
-
-.postSubHeader {
-  display: flex;
-  justify-content: space-between;
-  flex-direction: row;
-}
-
-.postTitleHeader {
-  margin: 0;
-}
-
-.postBody {
-  display: flex;
-  flex-direction: column;
+  margin-right: 16px;
 }

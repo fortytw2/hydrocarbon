@@ -13,6 +13,8 @@ import { listFolders, listFeeds } from "@/http";
 import style from "./style.css";
 import textboxStyle from "@/styles/textbox.css";
 
+import LibraryAddIcon from "@/assets/library_add.svg";
+
 const initialState = {
   newFeedModal: false,
   newFeedModalFolderId: null,
@@ -118,11 +120,9 @@ export default class Feed extends Component {
 
         <div class={style.folderList}>
           <div class={style.editBox}>
-            <button class={style.editButton} onClick={this.openNewFeedModal}>
-              +Feed
-            </button>
             <button class={style.editButton} onClick={this.openNewFolderModal}>
-              +Folder
+              <span class={style.editText}>Add Folder</span>
+              <img class={style.icon} src={LibraryAddIcon} />
             </button>
           </div>
           <FolderList
