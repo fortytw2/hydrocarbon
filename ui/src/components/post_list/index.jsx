@@ -47,6 +47,10 @@ export default class PostList extends Component {
   @bind
   renderPost(folderId, feedId, postId, post) {
     const friendlyTime = DateTime.fromISO(post.posted_at);
+    let displayTime = "";
+    if (friendlyTime.year > 1000) {
+      displayTime = friendlyTime.toLocaleString(DateTime.DATETIME_SHORT);
+    }
 
     let postStyle = style.post;
     if (!post.read) {
@@ -65,9 +69,7 @@ export default class PostList extends Component {
       >
         <li class={postStyle}>
           <span class={style.postTitle}>{post.title}</span>
-          <span class={style.postTime}>
-            {friendlyTime.toLocaleString(DateTime.DATETIME_SHORT)}
-          </span>
+          <span class={style.postTime}>{displayTime}</span>
         </li>
       </Link>
     );

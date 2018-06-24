@@ -6,7 +6,10 @@ import (
 	"fmt"
 	"html"
 	"net/http"
+	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Puerkitobio/goquery"
 	"github.com/fortytw2/hydrocarbon"
@@ -32,6 +35,11 @@ var Plugin = &dc.Plugin{
 }
 
 func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResponse {
+	parsedURL, err := url.Parse(t.URL)
+	if err != nil {
+		return dc.ErrorResponse(err)
+	}
+
 	resp, err := ho.Client.Get(t.URL)
 	if err != nil {
 		return dc.ErrorResponse(err)
@@ -52,9 +60,28 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 		return dc.ErrorResponse(err)
 	}
 
+	title := doc.Find(`#chap_select > option[selected]`).First().Text()
+	fmt.Println(title)
+
+	titleSplit := strings.Split(title, ". ")
+	if len(titleSplit) != 2 {
+		return dc.ErrorResponse(errors.New("could not find title or number"))
+	}
+
+	chapter := titleSplit[0]
+	chapterTitle := titleSplit[1]
+	day, err := strconv.Atoi(chapter)
+	if err != nil {
+		return dc.ErrorResponse(err)
+	}
+
 	c := &hydrocarbon.Post{
-		Author: strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
-		Body:   html.UnescapeString(strings.TrimSpace(body)),
+		// there is no posted at date for either site, so make a fake date using
+		// the year to maintain ordering
+		PostedAt: time.Date(day, 01, 01, 0, 0, 0, 0, time.UTC),
+		Title:    chapterTitle,
+		Author:   strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
+		Body:     html.UnescapeString(strings.TrimSpace(body)),
 	}
 
 	// find all chapters if this is the first one
@@ -68,7 +95,7 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 			}
 
 			tasks = append(tasks, &dc.Task{
-				URL: fmt.Sprintf("https://www.fictionpress.com/s/%s/%s", ho.RouteParams[2], val),
+				URL: fmt.Sprintf("https://%s/s/%s/%s", parsedURL.Host, ho.RouteParams[2], val),
 			})
 		})
 	}
