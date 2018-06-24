@@ -381,7 +381,7 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, jsonb_agg(
 		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at, 'posted_at', po.posted_at)
-	) FILTER (WHERE po.id IS NOT NULL)
+	ORDER BY po.posted_at DESC) FILTER (WHERE po.id IS NOT NULL)
 	FROM feeds fe
 	LEFT JOIN posts po ON (fe.id = po.feed_id)
 	WHERE fe.id = $2
