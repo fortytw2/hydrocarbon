@@ -11,7 +11,8 @@
 }
 
 .folderList {
-  flex-grow: 2;
+  flex-grow: 1;
+  max-width: 300px;
   flex-shrink: 0;
   min-height: 100%;
   overflow-y: scroll;

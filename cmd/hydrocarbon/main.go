@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -30,7 +31,6 @@ func main() {
 
 	flag.Parse()
 
-	log.Println("starting hydrocarbon on port", getPort("PORT", ":8080"))
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
 		log.Fatal("no postgres dsn found")
@@ -52,12 +52,13 @@ func main() {
 	var imageDomain string
 	if os.Getenv("IMAGE_DOMAIN") != "" {
 		// assume port is OK
-		domain = os.Getenv("IMAGE_DOMAIN")
+		imageDomain = os.Getenv("IMAGE_DOMAIN")
 	} else {
-		domain = "http://localhost" + getPort("IMAGE_PORT", ":8082")
+		imageDomain = "http://localhost" + getPort("IMAGE_PORT", ":8082")
 	}
 
-	var cspDomains = domain + " " + imageDomain
+	log.Println("hydrocarbon: launching api server on port", getPort("PORT", ":8080"), "for", domain)
+	log.Println("hydrocarbon: launching image server on port", getPort("IMAGE_PORT", ":8082"), "for", imageDomain)
 
 	var m hydrocarbon.Mailer
 	{
@@ -116,7 +117,7 @@ func main() {
 
 	h := &http.Server{
 		Addr:    getPort("PORT", ":8080"),
-		Handler: httpLogger(cspMiddleware(gziphandler.GzipHandler(r), cspDomains), "hydrocarbon-api"),
+		Handler: httpLogger(cspMiddleware(gziphandler.GzipHandler(r), imageDomain), "hydrocarbon-api"),
 	}
 
 	imageH := &http.Server{
@@ -183,9 +184,9 @@ func httpLogger(router http.Handler, prefix string) http.Handler {
 	})
 }
 
-func cspMiddleware(router http.Handler, hosts string) http.Handler {
+func cspMiddleware(router http.Handler, imageDomain string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'self' data: "+hosts)
+		w.Header().Set("Content-Security-Policy", fmt.Sprintf("default-src 'self' data:; img-src 'self' data: %s", imageDomain))
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		router.ServeHTTP(w, req)
 	})

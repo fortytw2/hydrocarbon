@@ -2,10 +2,9 @@ package discollect
 
 import (
 	"crypto/sha1"
-	"encoding/hex"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
-	"mime"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -66,9 +65,24 @@ func (lf *LocalFS) Put(fileName string, contents []byte) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	hash := hex.EncodeToString(h.Sum(nil))
+	hash := base64.RawURLEncoding.EncodeToString(h.Sum(nil))
 
-	fName := hash + "." + strings.Split(fileName, ".")[len(strings.Split(fileName, "."))-1]
+	contentType := http.DetectContentType(contents)
+
+	// only hash the file for now
+	fName := hash
+	switch contentType {
+	case "image/png":
+		fName += ".png"
+	case "image/jpeg":
+		fName += ".jpeg"
+	case "image/gif":
+		fName += ".gif"
+	case "image/webp":
+		fName += ".webp"
+	default:
+		return "", fmt.Errorf("unsupported image type: %s", contentType)
+	}
 
 	f, err := os.OpenFile(lf.rootPath+"/"+fName, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
@@ -84,21 +98,26 @@ func (lf *LocalFS) Put(fileName string, contents []byte) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("%s?file=%s", lf.staticPath, fName), nil
+	return fmt.Sprintf("%s/%s", lf.staticPath, fName), nil
 }
 
 // ServeHTTP implements hydrocarbon.ErrorHandler
 func (lf *LocalFS) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
-	fName := r.URL.Query().Get("file")
+	splitPath := strings.Split(r.URL.Path, "/")
+	fName := splitPath[len(splitPath)-1]
+	filePath := lf.rootPath + "/" + fName
 
-	ct, _, err := mime.ParseMediaType(fName)
-	if err != nil {
-		return err
+	if etag := r.Header.Get("ETag"); etag != "" {
+		_, err := os.Stat(filePath)
+		if err != nil {
+			w.WriteHeader(http.StatusNotModified)
+			return nil
+		}
 	}
 
-	w.Header().Set("Content-Type", ct)
-
-	f, err := os.Open(lf.rootPath + "/" + fName)
+	suffix := strings.Split(fName, ".")[len(strings.Split(fName, "."))-1]
+	w.Header().Set("Content-Type", "image/"+suffix)
+	f, err := os.Open(filePath)
 	if err != nil {
 		return err
 	}
@@ -107,6 +126,9 @@ func (lf *LocalFS) ServeHTTP(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+
+	w.Header().Set("Cache-Control", "public, immutable, max-age=31536000")
+	w.Header().Set("ETag", fName)
 
 	_, err = w.Write(buf)
 	return err
