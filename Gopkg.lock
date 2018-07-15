@@ -3,78 +3,86 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:216c69fe98431b4b4541de18f647450b33d8800d2ef1f5d35ec8bccbe71e93cb"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
+  pruneopts = ""
   revision = "5032c8878b9dd46cfe8c625c0d9b9f258a560ee8"
 
 [[projects]]
+  digest = "1:90272eae3bf75d2aa681ff3eee6cf4f49e8b06db533dc9c830ef214e5abbaaf2"
   name = "github.com/Puerkitobio/goquery"
   packages = ["."]
-  revision = "a86ea073017a6beddef78c8659e7224e8ca634b0"
-  version = "v1.4.0"
+  pruneopts = ""
+  revision = "dc2ec5c7ca4d9aae063b79b9f581dd3ea6afd2b2"
+  version = "v1.4.1"
 
 [[projects]]
+  digest = "1:4d0cb5aec47a2aec8b8b211540dc59902f8f00d571281356597b41ae349f4885"
   name = "github.com/andybalholm/cascadia"
   packages = ["."]
+  pruneopts = ""
   revision = "901648c87902174f774fac311d7f176f8647bdaa"
   version = "v1.0.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:e2750240971714d4cfda0b593b5f6b5fcb46798e5b6b721b930af4ad22fb9075"
   name = "github.com/elazarl/go-bindata-assetfs"
   packages = ["."]
+  pruneopts = ""
   revision = "38087fe4dafb822e541b3f7955075cc1c30bd294"
 
 [[projects]]
   branch = "master"
-  name = "github.com/fortytw2/discollect"
-  packages = ["."]
-  revision = "b5f264b7b4d4c3c1c606196699079c651cbb7a7d"
-
-[[projects]]
-  branch = "master"
+  digest = "1:00d13bcfc40a41518fdcca61b61e865d36a5cd9437fb81cf435815a31fff0a56"
   name = "github.com/fortytw2/dockertest"
   packages = ["."]
+  pruneopts = ""
   revision = "a73397bdeff4b713648d4b2e7fc655eb9a85fb6b"
 
 [[projects]]
   branch = "master"
+  digest = "1:2f22df23fa4f83691f72e0645ac4fcb4816c5cc33163e868e4af8ef71f16a368"
   name = "github.com/google/uuid"
   packages = ["."]
+  pruneopts = ""
   revision = "dec09d789f3dba190787f8b4454c7d3c936fed9e"
 
 [[projects]]
   branch = "master"
+  digest = "1:6b8e4fbd48235132eb66a4adea7acb0a2bd1271f543d54415d0c3174823efa37"
   name = "github.com/lib/pq"
   packages = [
     ".",
-    "oid"
+    "oid",
   ]
+  pruneopts = ""
   revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
 
 [[projects]]
-  branch = "master"
+  digest = "1:666aa9adea209a9df7267b3a0bfdaa802dcd470d6e1cb8e8b4ca14425b2024eb"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
-  revision = "995366fdf961d03629cd17361bddd32745718e2c"
+  pruneopts = ""
+  revision = "dafebb5b6ff2861a0d69af64991e10866c19be85"
+  version = "v1.0.0"
 
 [[projects]]
+  digest = "1:94e9081cc450d2cdf4e6886fc2c06c07272f86477df2d74ee5931951fa3d2577"
   name = "github.com/oklog/run"
   packages = ["."]
+  pruneopts = ""
   revision = "4dadeb3030eda0273a12382bb2348ffc7c9d1a39"
   version = "v1.0.0"
 
 [[projects]]
-  name = "github.com/oklog/ulid"
-  packages = ["."]
-  revision = "d311cb43c92434ec4072dfbbda3400741d0a6337"
-  version = "v0.3.0"
-
-[[projects]]
+  digest = "1:d23c7855fb5d008dc3db4b7defc0dbdc70868b95cb355527a816e3ad62172e0d"
   name = "github.com/stripe/stripe-go"
   packages = [
     ".",
     "account",
+    "applepaydomain",
     "balance",
     "bankaccount",
     "bitcoinreceiver",
@@ -96,10 +104,11 @@
     "form",
     "invoice",
     "invoiceitem",
+    "issuerfraudrecord",
     "loginlink",
     "order",
-    "orderitem",
     "orderreturn",
+    "paymentintent",
     "paymentsource",
     "payout",
     "plan",
@@ -109,26 +118,46 @@
     "reversal",
     "sku",
     "source",
+    "sourcetransaction",
     "sub",
     "subitem",
     "token",
-    "transfer"
+    "topup",
+    "transfer",
+    "usagerecord",
   ]
-  revision = "3545a680e2fce8f80ee1fadfba54c1c1803105ba"
-  version = "v30.8.1"
+  pruneopts = ""
+  revision = "d77c49777296d00b9d49ecc2744772913d00f699"
+  version = "v36.1.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:50a6b805181a9b3bf2c879fcad6e6ff4cc643fc2287c321c1fbfc751755ea7eb"
   name = "golang.org/x/net"
   packages = [
     "html",
-    "html/atom"
+    "html/atom",
   ]
-  revision = "dfa909b99c79129e1100513e5cd36307665e5723"
+  pruneopts = ""
+  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6962d213d709ec39287f078d147781f72153c485ccadc100411e97d248ffcebf"
+  input-imports = [
+    "github.com/NYTimes/gziphandler",
+    "github.com/Puerkitobio/goquery",
+    "github.com/elazarl/go-bindata-assetfs",
+    "github.com/fortytw2/dockertest",
+    "github.com/google/uuid",
+    "github.com/lib/pq",
+    "github.com/microcosm-cc/bluemonday",
+    "github.com/oklog/run",
+    "github.com/stripe/stripe-go",
+    "github.com/stripe/stripe-go/client",
+    "github.com/stripe/stripe-go/customer",
+    "github.com/stripe/stripe-go/sub",
+    "golang.org/x/net/html",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/fortytw2/discollect"
+	"github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // Router returns an *http.ServeMux set up to expose the functionality of the discollector over HTTP
