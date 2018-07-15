@@ -120,7 +120,7 @@ func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	params := &stripe.CustomerParams{
-		Email: stripeData.Email,
+		Email: &stripeData.Email,
 	}
 	err = params.SetSource(stripeData.Token)
 	if err != nil {
@@ -132,16 +132,13 @@ func (ua *UserAPI) CreatePayment(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	sp := &stripe.SubParams{
-		Customer: customer.ID,
-		Items: []*stripe.SubItemsParams{
-			{
-				Plan: ua.stripePlanID,
-			},
-		},
+	sp := &stripe.SubscriptionParams{
+		Customer: &customer.ID,
+		Plan:     &ua.stripePlanID,
 	}
+
 	if stripeData.Coupon != "" {
-		sp.Coupon = stripeData.Coupon
+		sp.Coupon = &stripeData.Coupon
 	}
 
 	s, err := sub.New(sp)
