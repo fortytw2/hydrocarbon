@@ -10,6 +10,7 @@
   width: 15%;
   min-height: 100%;
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
 
@@ -71,6 +72,7 @@
   padding: 16px;
   height: calc(100vh - 56px);
   overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
   word-wrap: break-word;
 
   display: flex;

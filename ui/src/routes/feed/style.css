@@ -13,7 +13,8 @@
 .folderList {
   width: 15%;
   min-height: 100%;
-  overflow-y: hidden;
+  overflow-y: scroll;
+  -webkit-overflow-scrolling: touch;
   display: flex;
   flex-direction: column;
 

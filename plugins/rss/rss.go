@@ -5,7 +5,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
@@ -77,7 +76,7 @@ func getFeed(ctx context.Context, c *http.Client, url string) (*Feed, error) {
 	}
 
 	var f Feed
-	err = xml.NewDecoder(os.Stdout).Decode(&f)
+	err = xml.NewDecoder(resp.Body).Decode(&f)
 	if err != nil {
 		return nil, err
 	}
