@@ -17,6 +17,7 @@ type Discollector struct {
 	ro Rotator
 	q  Queue
 	ms Metastore
+	fs FileStore
 	er ErrorReporter
 
 	workerMu sync.RWMutex
@@ -32,6 +33,7 @@ var defaultOpts = []OptionFn{
 	WithLimiter(&NilLimiter{}),
 	WithRotator(NewDefaultRotator()),
 	WithQueue(NewMemQueue()),
+	WithFileStore(NewStubFS()),
 	WithMetastore(&MemMetastore{}),
 }
 
@@ -66,7 +68,7 @@ func New(opts ...OptionFn) (*Discollector, error) {
 func (d *Discollector) Start(workers int) error {
 	d.workerMu.Lock()
 	for i := workers; i > 0; i-- {
-		w := NewWorker(d.r, d.ro, d.l, d.q, d.w, d.er)
+		w := NewWorker(d.r, d.ro, d.l, d.q, d.fs, d.w, d.er)
 		d.workers = append(d.workers, w)
 	}
 	d.workerMu.Unlock()
@@ -121,6 +123,14 @@ func WithPlugins(p ...*Plugin) OptionFn {
 func WithWriter(w Writer) OptionFn {
 	return func(d *Discollector) error {
 		d.w = w
+		return nil
+	}
+}
+
+// WithFileStore sets the FileStore for the Discollector
+func WithFileStore(fs FileStore) OptionFn {
+	return func(d *Discollector) error {
+		d.fs = fs
 		return nil
 	}
 }

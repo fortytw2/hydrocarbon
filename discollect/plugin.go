@@ -52,7 +52,10 @@ type HandlerOpts struct {
 	Config *Config
 	// RouteParams are Capture Groups from the Route regexp
 	RouteParams []string
-	Client      *http.Client
+
+	FileStore FileStore
+
+	Client *http.Client
 }
 
 // A HandlerResponse is returned from a Handler

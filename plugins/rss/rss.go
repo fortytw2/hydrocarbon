@@ -48,6 +48,13 @@ func rssFeed(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerRes
 
 	out := make([]interface{}, len(posts))
 	for i, p := range posts {
+		downloaded, err := dc.DownloadImages(p.Body, ho.Client, ho.FileStore)
+		if err != nil {
+			return dc.ErrorResponse(err)
+		}
+
+		p.Body = downloaded
+
 		out[i] = p
 	}
 

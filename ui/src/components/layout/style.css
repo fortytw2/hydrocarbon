@@ -1,5 +1,15 @@
+@font-face {
+  font-family: system;
+  font-style: normal;
+  font-weight: 300;
+  src: local(".SFNSText-Light"), local(".HelveticaNeueDeskInterface-Light"),
+    local(".LucidaGrandeUI"), local("Ubuntu Light"), local("Segoe UI Light"),
+    local("Roboto-Light"), local("DroidSans"), local("Tahoma");
+}
+
 .layout {
-  font-family: "Fira Sans", sans-serif;
+  /* same as medium/wordpress.com */
+  font-family: system;
   margin-top: 56px;
   background: #fdfdfd;
   color: #212121;

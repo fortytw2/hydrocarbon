@@ -49,6 +49,16 @@ func main() {
 		domain = "http://localhost" + getPort("PORT", ":8080")
 	}
 
+	var imageDomain string
+	if os.Getenv("IMAGE_DOMAIN") != "" {
+		// assume port is OK
+		domain = os.Getenv("IMAGE_DOMAIN")
+	} else {
+		domain = "http://localhost" + getPort("IMAGE_PORT", ":8082")
+	}
+
+	var cspDomains = domain + " " + imageDomain
+
 	var m hydrocarbon.Mailer
 	{
 		if os.Getenv("POSTMARK_KEY") != "" {
@@ -86,10 +96,16 @@ func main() {
 		log.Println("payment not enabled, set STRIPE_PRIVATE_TOKEN to enable")
 	}
 
+	localFS, err := discollect.NewLocalFS("./images", imageDomain+"/static/images/")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	dc, err := discollect.New(
 		// pg.DB is a discollect writer
 		discollect.WithWriter(db),
 		discollect.WithMetastore(db),
+		discollect.WithFileStore(localFS),
 		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin, rss.Plugin),
 	)
 	if err != nil {
@@ -100,7 +116,12 @@ func main() {
 
 	h := &http.Server{
 		Addr:    getPort("PORT", ":8080"),
-		Handler: httpLogger(gziphandler.GzipHandler(r)),
+		Handler: httpLogger(cspMiddleware(gziphandler.GzipHandler(r), cspDomains), "hydrocarbon-api"),
+	}
+
+	imageH := &http.Server{
+		Addr:    getPort("IMAGE_PORT", ":8082"),
+		Handler: httpLogger(hydrocarbon.ErrorHandler(localFS.ServeHTTP), "hydrocarbon-images"),
 	}
 
 	var g run.Group
@@ -108,7 +129,15 @@ func main() {
 		g.Add(h.ListenAndServe, func(error) {
 			err := h.Shutdown(context.TODO())
 			if err != nil && err != http.ErrServerClosed {
-				log.Println("cauldron: error shutting down http server", err)
+				log.Println("hydrocarbon: error shutting down http server", err)
+			}
+		})
+	}
+	{
+		g.Add(imageH.ListenAndServe, func(error) {
+			err := imageH.Shutdown(context.TODO())
+			if err != nil && err != http.ErrServerClosed {
+				log.Println("hydrocarbon: error shutting down http server", err)
 			}
 		})
 	}
@@ -144,12 +173,20 @@ func getPort(env string, def string) string {
 	return def
 }
 
-func httpLogger(router http.Handler) http.Handler {
+func httpLogger(router http.Handler, prefix string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		startTime := time.Now()
 		router.ServeHTTP(w, req)
 		finishTime := time.Now()
 		elapsedTime := finishTime.Sub(startTime)
-		log.Println("hydrocarbon:", req.Method, req.URL, elapsedTime)
+		log.Println(prefix+":", req.RemoteAddr, req.Method, req.URL, elapsedTime)
+	})
+}
+
+func cspMiddleware(router http.Handler, hosts string) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Security-Policy", "default-src 'self' data: "+hosts)
+		w.Header().Set("X-XSS-Protection", "1; mode=block")
+		router.ServeHTTP(w, req)
 	})
 }

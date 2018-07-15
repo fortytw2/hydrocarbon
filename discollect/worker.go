@@ -15,18 +15,20 @@ type Worker struct {
 	l  Limiter
 	q  Queue
 	w  Writer
+	fs FileStore
 	er ErrorReporter
 
 	shutdown chan chan struct{}
 }
 
 // NewWorker provisions a new worker
-func NewWorker(r *Registry, ro Rotator, l Limiter, q Queue, w Writer, er ErrorReporter) *Worker {
+func NewWorker(r *Registry, ro Rotator, l Limiter, q Queue, fs FileStore, w Writer, er ErrorReporter) *Worker {
 	return &Worker{
 		r:        r,
 		ro:       ro,
 		l:        l,
 		q:        q,
+		fs:       fs,
 		w:        w,
 		er:       er,
 		shutdown: make(chan chan struct{}),
@@ -124,6 +126,7 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 
 	resp := handler(ctx, &HandlerOpts{
 		Config:      q.Config,
+		FileStore:   w.fs,
 		RouteParams: params,
 		Client:      client,
 	}, q.Task)

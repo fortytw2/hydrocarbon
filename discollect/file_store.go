@@ -18,6 +18,21 @@ type FileStore interface {
 	Put(fileName string, contents []byte) (string, error)
 }
 
+// NewStubFS is used only for testing and doesn't actually do anything
+func NewStubFS() *StubFS {
+	return &StubFS{
+		URL: "https://stubfotos.com/",
+	}
+}
+
+type StubFS struct {
+	URL string
+}
+
+func (sf *StubFS) Put(fileName string, contents []byte) (string, error) {
+	return sf.URL + fileName, nil
+}
+
 // NewLocalFS creates a LocalFS set up to save files to path and serve from
 // staticPath
 func NewLocalFS(path, staticPath string) (*LocalFS, error) {
@@ -53,7 +68,7 @@ func (lf *LocalFS) Put(fileName string, contents []byte) (string, error) {
 	}
 	hash := hex.EncodeToString(h.Sum(nil))
 
-	fName := hash + "." + strings.Split(fileName, ".")[1]
+	fName := hash + "." + strings.Split(fileName, ".")[len(strings.Split(fileName, "."))-1]
 
 	f, err := os.OpenFile(lf.rootPath+"/"+fName, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
