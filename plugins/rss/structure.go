@@ -11,7 +11,7 @@ type Feed struct {
 	Description   string  `xml:"channel>description"`
 	PubDate       string  `xml:"channel>pubDate,omitempty"`
 	LastBuildDate string  `xml:"channel>lastBuildDate,omitempty"`
-	Items         []*Item `xml:"channel>item"`
+	Items         []*item `xml:"channel>item"`
 }
 
 func (f *Feed) BaseLink() string {
@@ -30,28 +30,28 @@ type Link struct {
 	Chardata string `xml:",chardata"`
 }
 
-type Item struct {
+type item struct {
 	Title       string        `xml:"title,omitempty"`
 	Link        string        `xml:"link,omitempty"`
 	Description string        `xml:"description,omitempty"`
 	Author      string        `xml:"author,omitempty"`
-	Enclosure   *Enclosure    `xml:"enclosure"`
+	Enclosure   *enclosure    `xml:"enclosure"`
 	GUID        *GUID         `xml:"guid"`
 	PubDate     string        `xml:"pubDate,omitempty"`
-	Source      *Source       `xml:"source"`
+	Source      *source       `xml:"source"`
 	Content     string        `xml:"encoded,omitempty"`
 	Date        string        `xml:"date,omitempty"`
 	Published   string        `xml:"published,omitempty"`
-	Media       *MediaContent `xml:"content"`
+	Media       *mediaContent `xml:"content"`
 }
 
-type MediaContent struct {
+type mediaContent struct {
 	XMLBase string `xml:"http://search.yahoo.com/mrss/ content"`
 	URL     string `xml:"url,attr"`
 	Type    string `xml:"type,attr"`
 }
 
-type Source struct {
+type source struct {
 	Source string `xml:",chardata"`
 	URL    string `xml:"url,attr"`
 }
@@ -60,7 +60,7 @@ type GUID struct {
 	IsPermaLink bool   `xml:"isPermaLink,attr,omitempty"`
 }
 
-type Enclosure struct {
+type enclosure struct {
 	URL    string `xml:"url,attr"`
 	Length string `xml:"length,attr,omitempty"`
 	Type   string `xml:"type,attr"`

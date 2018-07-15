@@ -81,23 +81,21 @@
   padding: 8px;
 }
 
-.postHeader {
-  display: flex;
-  justify-content: center;
-  flex-direction: row;
-}
-
 .postSubHeader {
   display: flex;
   justify-content: space-between;
   flex-direction: row;
 }
 
-.postTitleHeader {
-  margin: 0;
-}
-
 .postBody {
   display: flex;
   flex-direction: column;
+}
+
+.postBody img {
+  object-fit: cover;
+  height: 300px;
+  max-width: 80%;
+  display: flex;
+  box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, 0.3);
 }

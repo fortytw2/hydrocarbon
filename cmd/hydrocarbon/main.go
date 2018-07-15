@@ -16,9 +16,11 @@ import (
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/pg"
+	"github.com/fortytw2/hydrocarbon/postmark"
+
 	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"
 	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
-	"github.com/fortytw2/hydrocarbon/postmark"
+	"github.com/fortytw2/hydrocarbon/plugins/rss"
 )
 
 func main() {
@@ -88,7 +90,7 @@ func main() {
 		// pg.DB is a discollect writer
 		discollect.WithWriter(db),
 		discollect.WithMetastore(db),
-		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin),
+		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin, rss.Plugin),
 	)
 	if err != nil {
 		log.Fatal(err)

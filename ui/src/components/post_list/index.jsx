@@ -91,9 +91,6 @@ export default class PostList extends Component {
     const friendlyTime = DateTime.fromISO(post.posted_at);
     return (
       <div class={style.postInnerContent}>
-        <div class={style.postHeader}>
-          <h2 class={style.postTitleHeader}>{post.title}</h2>
-        </div>
         <div class={style.postSubHeader}>
           <h4>{post.title}</h4>
           <h4>{friendlyTime.toLocaleString(DateTime.DATETIME_MED)}</h4>

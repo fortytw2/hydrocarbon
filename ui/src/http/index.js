@@ -42,7 +42,7 @@ export const createFeed = ({ url, plugin, folderId, apiKey }) => {
       if (json.status === "error") {
         throw json.error;
       }
-      return json;
+      return json.data;
     });
 };
 
