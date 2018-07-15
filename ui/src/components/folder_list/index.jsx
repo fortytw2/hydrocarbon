@@ -59,6 +59,13 @@ export default class FolderList extends Component {
     };
   }
 
+  truncateFolderTitle(title) {
+    if (title.length > 27) {
+      return title.substring(0, 27) + "...";
+    }
+    return title;
+  }
+
   @bind
   renderFolder(folderId, folder, feedId) {
     let collapseIcon = RemoveCircleIcon;
@@ -75,7 +82,7 @@ export default class FolderList extends Component {
             <a onClick={this.toggleFolderCollapse(folder.id)}>
               <img class={style.icon} src={collapseIcon} />
             </a>
-            {folder.title}
+            {this.truncateFolderTitle(folder.title)}
           </span>
           <a onClick={this.addFeed(folder.id)}>
             <img class={style.icon} src={LibraryAddIcon} />

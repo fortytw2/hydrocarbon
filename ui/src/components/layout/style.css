@@ -37,3 +37,13 @@ button:active,
 button:focus {
   outline: none;
 }
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 16px;
+  background-color: #d2d8de; /* or add it to the track */
+}
+/* Add a thumb */
+::-webkit-scrollbar-thumb {
+  background: #a8acb1;
+}

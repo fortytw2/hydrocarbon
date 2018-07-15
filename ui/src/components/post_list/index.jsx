@@ -68,11 +68,20 @@ export default class PostList extends Component {
         href={`/feed/${folderId}/${feedId}/${post.id}`}
       >
         <li class={postStyle}>
-          <span class={style.postTitle}>{post.title}</span>
+          <span class={style.postTitle}>
+            {this.truncatePostTitle(post.title)}
+          </span>
           <span class={style.postTime}>{displayTime}</span>
         </li>
       </Link>
     );
+  }
+
+  truncatePostTitle(title) {
+    if (title.length > 37) {
+      return title.substring(0, 37) + "...";
+    }
+    return title;
   }
 
   @bind
