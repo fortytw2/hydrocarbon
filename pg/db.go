@@ -8,8 +8,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/discollect"
+
+	"github.com/lib/pq"
+
+	"github.com/fortytw2/hydrocarbon"
 	"github.com/google/uuid"
 	// postgres driver
 	_ "github.com/lib/pq"
@@ -469,23 +472,99 @@ func (db *DB) Close() error {
 	return nil
 }
 
-func (db *DB) StartScrape(ctx context.Context, pluginName string, cfg *discollect.Config) (uuid.UUID, error) {
-	row := db.sql.QueryRowContext(ctx, `
-	INSERT INTO scrapes 
-	(feed_id)
-	VALUES 
-	($1)
-	RETURNING id`, cfg.ExternalID)
-
-	var id uuid.UUID
-	err := row.Scan(&id)
+// StartScrapes selects a subset of scrapes that should currently be running, but
+// are not yet.
+func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*StartedScrape, err error) {
+	tx, err := db.sql.BeginTx(ctx, nil)
 	if err != nil {
-		return uuid.Nil, err
+		return nil, err
+	}
+	rollback := true
+	// defer rollback if we throw an error
+	defer func() {
+		if rollback {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				err = fmt.Errorf("err: %s, rollbackErr: %s", err, rollbackErr)
+			}
+		}
+	}()
+
+	// FOR UPDATE SKIP LOCKED allows us to reduce contention against
+	// any other instance running this same query at the same time.
+	rows, err := tx.QueryContext(ctx, `
+	SELECT id 
+	FROM scrapes
+	WHERE scheduled_start_at >= now()
+	AND state = 'STOPPED'
+	AND array_length(errors, 1) < 3
+	LIMIT $1
+	FOR UPDATE SKIP LOCKED;`, limit)
+	if err != nil {
+		return nil, err
 	}
 
-	return id, nil
+	var ids []uuid.UUID
+	for rows.Next() {
+		var id uuid.UUID
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err = tx.QueryContext(ctx, `
+	UPDATE scrapes 
+	SET state = 'RUNNING', started_at = now() 
+	WHERE id = ANY($1)
+	RETURNING id, feed_id, plugin, config;`, pq.Array(ids))
+	if err != nil {
+		return nil, err
+	}
+
+	var ss []discollect.StartedScrape
+	for rows.Next() {
+		var s discollect.StartedScrape
+		err = rows.Scan(&s.ID, &s.FeedID, &s.Plugin, &s.Config)
+		if err != nil {
+			return nil, err
+		}
+		ss = append(ss, s)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	rollback = false
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return ss, nil
 }
 
-func (db *DB) EndScrape(ctx context.Context, id string, datums, tasks int) error {
+// ListScrapes is used to list and filter scrapes, for both session resumption
+// and UI purposes
+func (db *DB) ListScrapes(ctx context.Context, statusFilter string) ([]*RunningScrape, error) {
+	return nil, nil
+}
+
+// EndScrape marks a scrape as SUCCESS and records the number of datums and
+// tasks returned
+func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, tasks int) error {
+	return nil
+}
+
+// ErrorScrape marks a scrape as ERRORED and adds the error to its list
+func (db *DB) ErrorScrape(ctx context.Context, id uuid.UUID, err error) error {
 	return nil
 }

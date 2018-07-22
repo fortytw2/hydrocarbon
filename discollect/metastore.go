@@ -6,12 +6,38 @@ import (
 	"github.com/google/uuid"
 )
 
-// A Metastore is used to store the history of all scrape runs
+type StartedScrape struct {
+	ID     uuid.UUID
+	FeedID uuid.UUID
+
+	Plugin string
+	Config *Config
+}
+
+type RunningScrape struct {
+	ID     uuid.UUID
+	FeedID uuid.UUID
+
+	Plugin string
+	Config *Config
+}
+
+// A Metastore is used to store the history of all scrape runs and enough meta
+// information to allow session resumption on restart of hydrocarbon
 type Metastore interface {
-	// StartScrape attempts to start the scrape, returning `true, nil` if the scrape is
-	// able to be started
-	StartScrape(ctx context.Context, pluginName string, cfg *Config) (id uuid.UUID, err error)
-	EndScrape(ctx context.Context, id string, datums, tasks int) error
+	// StartScrapes selects a number of currently STOPPED scrapes, moves them to
+	// RUNNING and returns their details
+	StartScrapes(ctx context.Context, limit int) ([]*StartedScrape, error)
+
+	// ListScrapes is used to list and filter scrapes, for both session resumption
+	// and UI purposes
+	ListScrapes(ctx context.Context, statusFilter string) ([]*RunningScrape, error)
+
+	// EndScrape marks a scrape as SUCCESS and records the number of datums and
+	// tasks returned
+	EndScrape(ctx context.Context, id uuid.UUID, datums, tasks int) error
+	// ErrorScrape marks a scrape as ERRORED and adds the error to its list
+	ErrorScrape(ctx context.Context, id uuid.UUID, err error) error
 }
 
 // MemMetastore is a metastore that only stores information in memory

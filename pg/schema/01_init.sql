@@ -129,17 +129,29 @@ CREATE TABLE read_statuses (
 	PRIMARY KEY (post_id, user_id)
 );
 
+CREATE TYPE scrape_state AS ENUM (
+	'STOPPED',
+	'RUNNING',
+	'ERRORED',
+	'SUCCESS'
+);
+
 CREATE TABLE scrapes (
 	id UUID PRIMARY KEY DEFAULT uuid_generate_v1mc(),
-	feed_id UUID REFERENCES feeds (id),
+	feed_id UUID NOT NULL REFERENCES feeds (id),
 
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+	scheduled_start_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+	started_at TIMESTAMPTZ,
 	ended_at TIMESTAMPTZ,
+
+	state scrape_state NOT NULL DEFAULT 'STOPPED',
+	errors TEXT[] NOT NULL DEFAULT '{}',
 
 	config JSONB DEFAULT '{}',
 
-	datums INT DEFAULT 0,
-	tasks INT DEFAULT 0,
-
-	errors TEXT[] NOT NULL DEFAULT '{}'
+	total_datums INT DEFAULT 0,
+	total_retries INT DEFAULT 0,
+	total_tasks INT DEFAULT 0
 );

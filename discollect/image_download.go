@@ -10,6 +10,9 @@ import (
 	"golang.org/x/net/html"
 )
 
+// DownloadImages takes in an HTML string, shreds all the image tags to
+// newly downloaded URLs.
+// TODO(fortytw2): resize to a few standard widths, error handling...
 func DownloadImages(textIn string, c *http.Client, fs FileStore) (string, error) {
 	doc, err := html.Parse(strings.NewReader(textIn))
 	if err != nil {

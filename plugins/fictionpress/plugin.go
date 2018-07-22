@@ -13,9 +13,9 @@ import (
 
 	"github.com/Puerkitobio/goquery"
 	"github.com/fortytw2/hydrocarbon"
-	"github.com/fortytw2/hydrocarbon/httpx"
-
 	dc "github.com/fortytw2/hydrocarbon/discollect"
+
+	"github.com/fortytw2/hydrocarbon/httpx"
 )
 
 // Plugin is a plugin that can scrape fictionpress

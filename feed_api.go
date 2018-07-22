@@ -75,7 +75,6 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 		err = fa.dc.LaunchScrape(feed.Plugin, &discollect.Config{
 			DynamicEntry: true,
 			Entrypoints:  []string{feed.URL},
-			Type:         "full",
 			ExternalID:   id,
 			Name:         feed.URL,
 		})
