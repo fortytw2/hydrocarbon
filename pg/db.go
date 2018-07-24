@@ -474,7 +474,7 @@ func (db *DB) Close() error {
 
 // StartScrapes selects a subset of scrapes that should currently be running, but
 // are not yet.
-func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*StartedScrape, err error) {
+func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*discollect.Scrape, err error) {
 	tx, err := db.sql.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -495,9 +495,9 @@ func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*StartedScrape,
 	rows, err := tx.QueryContext(ctx, `
 	SELECT id 
 	FROM scrapes
-	WHERE scheduled_start_at >= now()
-	AND state = 'STOPPED'
-	AND array_length(errors, 1) < 3
+	WHERE scheduled_start_at <= now()
+	AND state = 'WAITING'
+	AND cardinality(errors) < 3
 	LIMIT $1
 	FOR UPDATE SKIP LOCKED;`, limit)
 	if err != nil {
@@ -528,14 +528,13 @@ func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*StartedScrape,
 		return nil, err
 	}
 
-	var ss []discollect.StartedScrape
 	for rows.Next() {
-		var s discollect.StartedScrape
+		var s discollect.Scrape
 		err = rows.Scan(&s.ID, &s.FeedID, &s.Plugin, &s.Config)
 		if err != nil {
 			return nil, err
 		}
-		ss = append(ss, s)
+		ss = append(ss, &s)
 	}
 
 	err = rows.Err()
@@ -554,13 +553,42 @@ func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*StartedScrape,
 
 // ListScrapes is used to list and filter scrapes, for both session resumption
 // and UI purposes
-func (db *DB) ListScrapes(ctx context.Context, statusFilter string) ([]*RunningScrape, error) {
-	return nil, nil
+func (db *DB) ListScrapes(ctx context.Context, statusFilter string, limit, offset int) ([]*discollect.Scrape, error) {
+	rows, err := db.sql.QueryContext(ctx, `
+	SELECT id, feed_id, plugin, config, created_at, scheduled_start_at, 
+		started_at, ended_at, state, errors, config, 
+		total_datums, total_retries, total_tasks
+	FROM scrapes
+	WHERE status = $1::scrape_state LIMIT $2 OFFSET $3`, statusFilter, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	var rsArr []*discollect.Scrape
+	for rows.Next() {
+		var rs discollect.Scrape
+		err := rows.Scan(&rs.ID, &rs.FeedID, &rs.Plugin, &rs.Config, &rs.CreatedAt,
+			&rs.ScheduledStartAt, &rs.StartedAt, &rs.EndedAt,
+			&rs.State, pq.Array(&rs.Errors),
+			&rs.TotalDatums, &rs.TotalRetries, &rs.TotalTasks)
+		if err != nil {
+			return nil, err
+		}
+		rsArr = append(rsArr, &rs)
+
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return rsArr, nil
 }
 
 // EndScrape marks a scrape as SUCCESS and records the number of datums and
 // tasks returned
-func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, tasks int) error {
+func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, retries, tasks int) error {
 	return nil
 }
 

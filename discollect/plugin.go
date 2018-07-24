@@ -2,6 +2,8 @@ package discollect
 
 import (
 	"context"
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"net/http"
 	"time"
@@ -11,9 +13,8 @@ import (
 
 // A Plugin is capable of running scrapes, ideally of a common type or against a single site
 type Plugin struct {
-	Name     string
-	Schedule *Schedule
-	Configs  []*Config
+	Name    string
+	Configs []*Config
 
 	// RateLimit is set per-plugin
 	RateLimit *RateLimit
@@ -40,6 +41,22 @@ type Config struct {
 	// in two code, ISO-3166-2 form
 	// nil if unused
 	Countries []string
+}
+
+// Value implements sql.Valuer for config
+func (c Config) Value() (driver.Value, error) {
+	j, err := json.Marshal(c)
+	return j, err
+}
+
+// Scan implements sql.Scanner for config
+func (c *Config) Scan(src interface{}) error {
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("did not get a []byte from sql driver for *Config")
+	}
+
+	return json.Unmarshal(source, c)
 }
 
 // HandlerOpts are passed to a Handler
@@ -83,17 +100,12 @@ type Handler func(ctx context.Context, ho *HandlerOpts, t *Task) *HandlerRespons
 const defaultTimeout = 10 * time.Second
 
 // launchScrape launches a new scrape and enqueues the initial tasks
-func launchScrape(ctx context.Context, p *Plugin, cfg *Config, q Queue, ms Metastore) error {
-	id, err := ms.StartScrape(ctx, p.Name, cfg)
-	if err != nil {
-		return err
-	}
-
+func launchScrape(ctx context.Context, id uuid.UUID, p *Plugin, cfg *Config, q Queue, ms Metastore) error {
 	if cfg.DynamicEntry {
 		if p.ConfigValidator == nil {
 			return errors.New("cannot launch DynamicEntry config for plugin without ConfigValidator")
 		}
-		err = p.ConfigValidator(cfg)
+		err := p.ConfigValidator(cfg)
 		if err != nil {
 			return err
 		}

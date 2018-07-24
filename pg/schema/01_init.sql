@@ -130,7 +130,7 @@ CREATE TABLE read_statuses (
 );
 
 CREATE TYPE scrape_state AS ENUM (
-	'STOPPED',
+	'WAITING',
 	'RUNNING',
 	'ERRORED',
 	'SUCCESS'
@@ -143,12 +143,13 @@ CREATE TABLE scrapes (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
 
 	scheduled_start_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-	started_at TIMESTAMPTZ,
-	ended_at TIMESTAMPTZ,
+	started_at TIMESTAMPTZ DEFAULT '1970-01-01 00:00:00+00'::timestamp::timestamptz,
+	ended_at TIMESTAMPTZ NOT NULL DEFAULT '1970-01-01 00:00:00+00'::timestamp::timestamptz,
 
-	state scrape_state NOT NULL DEFAULT 'STOPPED',
+	state scrape_state NOT NULL DEFAULT 'WAITING',
 	errors TEXT[] NOT NULL DEFAULT '{}',
 
+	plugin TEXT NOT NULL,
 	config JSONB DEFAULT '{}',
 
 	total_datums INT DEFAULT 0,

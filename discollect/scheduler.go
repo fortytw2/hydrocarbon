@@ -5,62 +5,52 @@ import (
 	"time"
 )
 
-// A ScheduleStore is used to store and manage schedules of configs that need to be run
-// periodically
-type ScheduleStore interface {
-	// ConfigToStart returns a *Config of a scrape that needs to be started
-	// and the plugin to start it on
-	ConfigToStart(context.Context) (string, *Config, error)
-
-	// UpsertSchedule creates a schedule out of the given config and cron syntax
-	// if it doesn't already exist
-	UpsertSchedule(context.Context, *Schedule) error
-}
-
-// A Schedule is part of every plugin and defines when it needs to be run
-type Schedule struct {
-	Config string
-	Cron   string
-}
-
-const pollInterval = 100 * time.Millisecond
+const pollInterval = 10 * time.Second
+const scrapeLimit = 5
 
 // A Scheduler initiates new scrapes according to plugin-level schedules
 type Scheduler struct {
 	r  *Registry
-	ss ScheduleStore
 	ms Metastore
 	q  Queue
 	er ErrorReporter
 
-	active chan chan struct{}
+	ticker   *time.Ticker
+	shutdown chan chan struct{}
 }
 
 // Start launches the scheduler
 func (s *Scheduler) Start() {
+	s.shutdown = make(chan chan struct{})
+
+	s.ticker = time.NewTicker(pollInterval)
+
 	for {
 		select {
-		case a := <-s.active:
+		case a := <-s.shutdown:
+			s.ticker.Stop()
 			a <- struct{}{}
-		default:
-			time.Sleep(pollInterval)
-
-			plug, conf, err := s.ss.ConfigToStart(context.TODO())
+			return
+		case <-s.ticker.C:
+			scrapes, err := s.ms.StartScrapes(context.TODO(), scrapeLimit)
 			if err != nil {
 				s.er.Report(context.TODO(), nil, err)
 				continue
 			}
 
-			p, err := s.r.Get(plug)
-			if err != nil {
-				s.er.Report(context.TODO(), nil, err)
-				continue
+			for _, sc := range scrapes {
+				p, err := s.r.Get(sc.Plugin)
+				if err != nil {
+					s.er.Report(context.TODO(), nil, err)
+					continue
+				}
+
+				err = launchScrape(context.TODO(), sc.ID, p, sc.Config, s.q, s.ms)
+				if err != nil {
+					s.er.Report(context.TODO(), nil, err)
+				}
 			}
 
-			err = launchScrape(context.TODO(), p, conf, s.q, s.ms)
-			if err != nil {
-				s.er.Report(context.TODO(), nil, err)
-			}
 		}
 	}
 }
@@ -68,6 +58,6 @@ func (s *Scheduler) Start() {
 // Stop gracefully stops the scheduler and blocks until its shutdown
 func (s *Scheduler) Stop() {
 	c := make(chan struct{})
-	s.active <- c
+	s.shutdown <- c
 	<-c
 }

@@ -5,8 +5,6 @@ import (
 	"errors"
 	"log"
 	"sync"
-
-	"github.com/google/uuid"
 )
 
 // A Discollector ties every element of Discollect together
@@ -19,6 +17,8 @@ type Discollector struct {
 	ms Metastore
 	fs FileStore
 	er ErrorReporter
+
+	s *Scheduler
 
 	workerMu sync.RWMutex
 	workers  []*Worker
@@ -34,7 +34,6 @@ var defaultOpts = []OptionFn{
 	WithRotator(NewDefaultRotator()),
 	WithQueue(NewMemQueue()),
 	WithFileStore(NewStubFS()),
-	WithMetastore(&MemMetastore{}),
 }
 
 // New returns a new Discollector
@@ -61,11 +60,20 @@ func New(opts ...OptionFn) (*Discollector, error) {
 
 	d.workers = make([]*Worker, 0)
 
+	d.s = &Scheduler{
+		r:  d.r,
+		ms: d.ms,
+		q:  d.q,
+		er: d.er,
+	}
+
 	return d, nil
 }
 
 // Start starts the scraping loops
 func (d *Discollector) Start(workers int) error {
+	go d.s.Start()
+
 	d.workerMu.Lock()
 	for i := workers; i > 0; i-- {
 		w := NewWorker(d.r, d.ro, d.l, d.q, d.fs, d.w, d.er)
@@ -86,6 +94,9 @@ func (d *Discollector) Start(workers int) error {
 // Shutdown spins down all the workers after allowing them to finish
 // their current tasks
 func (d *Discollector) Shutdown(ctx context.Context) {
+	log.Println("stopping scheduler")
+	d.s.Stop()
+
 	d.workerMu.Lock()
 	defer d.workerMu.Unlock()
 
@@ -93,16 +104,6 @@ func (d *Discollector) Shutdown(ctx context.Context) {
 	for _, w := range d.workers {
 		w.Stop()
 	}
-}
-
-// LaunchScrape starts a scrape run
-func (d *Discollector) LaunchScrape(pluginName string, cfg *Config) error {
-	p, err := d.r.Get(pluginName)
-	if err != nil {
-		return err
-	}
-
-	return launchScrape(context.TODO(), p, cfg, d.q, d.ms)
 }
 
 // WithPlugins registers a list of plugins
@@ -175,30 +176,13 @@ func WithMetastore(ms Metastore) OptionFn {
 	}
 }
 
-// A Scrape is a human readable representation of a scrape
-type Scrape struct {
-	ID             uuid.UUID `json:"id"`
-	PluginName     string    `json:"plugin"`
-	EnqueuedTasks  int       `json:"enqueued_tasks"`
-	CompletedTasks int       `json:"completed_tasks"`
-}
-
-// GetScrape returns a currently running scrape by ID
-func (d *Discollector) GetScrape(ctx context.Context, id uuid.UUID) (*Scrape, error) {
-	return nil, nil
-}
-
-// ListScrapes lists all currently running scrapes
-func (d *Discollector) ListScrapes(ctx context.Context) ([]*Scrape, error) {
-	return nil, nil
-}
-
 // ListPlugins lists all registered plugins
 func (d *Discollector) ListPlugins() []string {
 	var out []string
 	for _, p := range d.r.plugins {
 		out = append(out, p.Name)
 	}
+
 	return out
 }
 

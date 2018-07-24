@@ -69,20 +69,6 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	// TODO(fortytw2): immediately launching a scrape is only a good idea
-	// if the feed is actually new
-	if fa.dc != nil {
-		err = fa.dc.LaunchScrape(feed.Plugin, &discollect.Config{
-			DynamicEntry: true,
-			Entrypoints:  []string{feed.URL},
-			ExternalID:   id,
-			Name:         feed.URL,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
 	return writeSuccess(w, map[string]string{
 		"id": id,
 	})
