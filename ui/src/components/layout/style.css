@@ -55,5 +55,6 @@ button:focus {
 }
 /* Add a thumb */
 ::-webkit-scrollbar-thumb {
+  width: 4px;
   background: #a8acb1;
 }

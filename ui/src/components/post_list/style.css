@@ -98,8 +98,7 @@
 
 .postBody img {
   object-fit: contain;
-  height: 300px;
-  max-width: 80%;
+  max-height: 450px;
   display: flex;
   box-shadow: 0px 0px 6px 0px rgba(0, 0, 0, 0.3);
 }
