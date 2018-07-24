@@ -519,6 +519,11 @@ func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*discollect.Scr
 		return nil, err
 	}
 
+	// return an empty array
+	if len(ids) == 0 {
+		return ss, nil
+	}
+
 	rows, err = tx.QueryContext(ctx, `
 	UPDATE scrapes 
 	SET state = 'RUNNING', started_at = now() 
@@ -553,13 +558,13 @@ func (db *DB) StartScrapes(ctx context.Context, limit int) (ss []*discollect.Scr
 
 // ListScrapes is used to list and filter scrapes, for both session resumption
 // and UI purposes
-func (db *DB) ListScrapes(ctx context.Context, statusFilter string, limit, offset int) ([]*discollect.Scrape, error) {
+func (db *DB) ListScrapes(ctx context.Context, stateFilter string, limit, offset int) ([]*discollect.Scrape, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT id, feed_id, plugin, config, created_at, scheduled_start_at, 
-		started_at, ended_at, state, errors, config, 
+		started_at, ended_at, state, errors, 
 		total_datums, total_retries, total_tasks
 	FROM scrapes
-	WHERE status = $1::scrape_state LIMIT $2 OFFSET $3`, statusFilter, limit, offset)
+	WHERE state = $1::scrape_state LIMIT $2 OFFSET $3`, stateFilter, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -589,6 +594,22 @@ func (db *DB) ListScrapes(ctx context.Context, statusFilter string, limit, offse
 // EndScrape marks a scrape as SUCCESS and records the number of datums and
 // tasks returned
 func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, retries, tasks int) error {
+	row := db.sql.QueryRowContext(ctx, `
+	UPDATE scrapes
+	SET state = 'SUCCESS'::scrape_state, total_datums = $1, total_retries = $2, total_tasks = $3
+	WHERE id = $4
+	RETURNING state`, datums, retries, tasks, id)
+
+	var state string
+	err := row.Scan(&state)
+	if err != nil {
+		return err
+	}
+
+	if state != "SUCCESS" {
+		return errors.New("could not end scrape")
+	}
+
 	return nil
 }
 

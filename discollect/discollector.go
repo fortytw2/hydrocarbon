@@ -18,7 +18,8 @@ type Discollector struct {
 	fs FileStore
 	er ErrorReporter
 
-	s *Scheduler
+	resolver *Resolver
+	s        *Scheduler
 
 	workerMu sync.RWMutex
 	workers  []*Worker
@@ -67,12 +68,19 @@ func New(opts ...OptionFn) (*Discollector, error) {
 		er: d.er,
 	}
 
+	d.resolver = &Resolver{
+		ms: d.ms,
+		q:  d.q,
+		er: d.er,
+	}
+
 	return d, nil
 }
 
 // Start starts the scraping loops
 func (d *Discollector) Start(workers int) error {
 	go d.s.Start()
+	go d.resolver.Start()
 
 	d.workerMu.Lock()
 	for i := workers; i > 0; i-- {
@@ -96,6 +104,9 @@ func (d *Discollector) Start(workers int) error {
 func (d *Discollector) Shutdown(ctx context.Context) {
 	log.Println("stopping scheduler")
 	d.s.Stop()
+
+	log.Println("stopping scrape resolver")
+	d.resolver.Stop()
 
 	d.workerMu.Lock()
 	defer d.workerMu.Unlock()

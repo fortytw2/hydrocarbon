@@ -8,23 +8,23 @@ import (
 )
 
 type Scrape struct {
-	ID     uuid.UUID
-	FeedID uuid.UUID
+	ID     uuid.UUID `json:"id"`
+	FeedID uuid.UUID `json:"feed_id"`
 
-	CreatedAt        time.Time
-	ScheduledStartAt time.Time
-	StartedAt        time.Time
-	EndedAt          time.Time
+	CreatedAt        time.Time `json:"created_at"`
+	ScheduledStartAt time.Time `json:"scheduled_start_at"`
+	StartedAt        time.Time `json:"started_at"`
+	EndedAt          time.Time `json:"ended_at"`
 
-	State  string
-	Errors []string
+	State  string   `json:"state"`
+	Errors []string `json:"errors"`
 
-	TotalDatums  int
-	TotalRetries int
-	TotalTasks   int
+	TotalDatums  int `json:"total_datums"`
+	TotalRetries int `json:"total_retries"`
+	TotalTasks   int `json:"total_tasks"`
 
-	Plugin string
-	Config *Config
+	Plugin string  `json:"plugin"`
+	Config *Config `json:"config"`
 }
 
 // A Metastore is used to store the history of all scrape runs and enough meta
