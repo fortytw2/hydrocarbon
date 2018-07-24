@@ -1,8 +1,5 @@
 package rss
 
-import (
-)
-
 // func TestRSS(t *testing.T) {
 // 	var cases = []struct {
 // 		URL   string
@@ -37,4 +34,4 @@ import (
 // 			}
 // 		})
 // 	}
-}
+// }
