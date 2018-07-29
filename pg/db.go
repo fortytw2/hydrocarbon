@@ -249,6 +249,8 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	return feedID.String(), tx.Commit()
 }
 
+// CheckIfFeedExists checks if a given feed exists in the DB already, and if it
+// does, adds it to the folder specified
 func (db *DB) CheckIfFeedExists(ctx context.Context, sessionKey, folderID, plugin, url string) (*hydrocarbon.Feed, bool, error) {
 	row := db.sql.QueryRowContext(ctx, `
 	SELECT id, title FROM feeds WHERE url = $1 and plugin = $2`, url, plugin)
@@ -424,7 +426,7 @@ func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string
 func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
 	SELECT fe.id, fe.title, jsonb_agg(
-		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at, 'posted_at', po.posted_at)
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at, 'posted_at', po.posted_at, 'read', (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1))))
 	ORDER BY po.posted_at DESC) FILTER (WHERE po.id IS NOT NULL)
 	FROM feeds fe
 	LEFT JOIN posts po ON (fe.id = po.feed_id)
