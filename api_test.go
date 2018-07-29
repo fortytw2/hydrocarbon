@@ -8,6 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/fortytw2/hydrocarbon/discollect"
+
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/pg"
 )
@@ -32,11 +34,18 @@ func runCases(t *testing.T, db *pg.DB, cases []apiCase) {
 	for _, tt := range cases {
 		db.TruncateTables(t)
 
+		dc, _ := discollect.New(discollect.WithPlugins(&discollect.Plugin{
+			Name: "ycombinators",
+			ConfigValidator: func(ho *discollect.HandlerOpts) (string, error) {
+				return "a ok", nil
+			},
+		}))
+
 		mm := &hydrocarbon.MockMailer{}
 		ks := hydrocarbon.NewKeySigner("test")
 		h := hydrocarbon.NewRouter(
 			hydrocarbon.NewUserAPI(db, ks, mm, "", "", false),
-			hydrocarbon.NewFeedAPI(db, nil, ks),
+			hydrocarbon.NewFeedAPI(db, dc, ks),
 			"http://localhost:3000",
 		)
 
