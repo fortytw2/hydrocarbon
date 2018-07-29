@@ -70,7 +70,7 @@ func writeErr(w http.ResponseWriter, uErr error) {
 }
 
 // NewRouter configures a new http.Handler that serves hydrocarbon
-func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
+func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.Handler {
 	fpr := &fixedPathRouter{
 		paths: make(map[string]http.Handler),
 	}
@@ -132,6 +132,8 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, domain string) http.Handler {
 
 		// list all posts in a feed
 		"/v1/post/list": fa.GetFeed,
+
+		"/v1/post/read": rs.MarkRead,
 
 		// list all plugins in hc
 		"/v1/plugin/list": fa.ListPlugins,

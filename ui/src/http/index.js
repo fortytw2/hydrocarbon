@@ -86,6 +86,29 @@ export const listPlugins = ({ apiKey }) => {
     });
 };
 
+export const markRead = ({ apiKey, postId }) => {
+  return fetch("/v1/post/read", {
+    body: JSON.stringify({
+      post_id: postId
+    }),
+    method: "POST",
+    headers: {
+      "x-hydrocarbon-key": apiKey
+    }
+  })
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return true;
+    });
+};
+
 export const createFolder = ({ name, apiKey }) => {
   return fetch("/v1/folder/create", {
     method: "POST",

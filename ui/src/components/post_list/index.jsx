@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import { bind } from "decko";
-import { listPosts } from "@/http";
+import { markRead, listPosts } from "@/http";
 import { Link } from "preact-router";
 import { DateTime } from "luxon";
 
@@ -27,6 +27,30 @@ export default class PostList extends Component {
     if (this.props.feedId !== prevProps.feedId) {
       this.setState(initialState);
       await this.fetchData();
+    } else if (this.props.postId && this.props.postId !== prevProps.postId) {
+      const currentPost = this.state.posts.filter(
+        p => p.id === this.props.postId
+      )[0];
+      if (currentPost.read) {
+        return;
+      }
+
+      try {
+        markRead({ apiKey: this.props.apiKey, postId: this.props.postId }).then(
+          () => {
+            const newPosts = this.state.posts.map(p => {
+              if (p.id === this.props.postId) {
+                p.read = true;
+              }
+              return p;
+            });
+            this.setState({ posts: newPosts });
+          }
+        );
+      } catch (e) {
+        console.warn("could not mark as read", e);
+        return;
+      }
     }
   }
 

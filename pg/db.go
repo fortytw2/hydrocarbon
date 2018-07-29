@@ -263,6 +263,9 @@ func (db *DB) CheckIfFeedExists(ctx context.Context, sessionKey, folderID, plugi
 		if err != sql.ErrNoRows {
 			return nil, false, err
 		}
+		if err == sql.ErrNoRows {
+			return nil, false, nil
+		}
 	}
 
 	_, err = db.sql.ExecContext(ctx, `
@@ -376,6 +379,16 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon
 	}
 
 	return folders, nil
+}
+
+func (db *DB) MarkRead(ctx context.Context, sessionKey, postID string) error {
+	_, err := db.sql.ExecContext(ctx, `
+	INSERT INTO read_statuses
+	(user_id, post_id)
+	VALUES 
+	((SELECT user_id FROM sessions WHERE key = $1), $2)
+	ON CONFLICT DO NOTHING`, sessionKey, postID)
+	return err
 }
 
 // GetFeedsForFolder returns a single feed
