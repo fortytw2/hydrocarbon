@@ -57,8 +57,16 @@
   margin-bottom: 8px;
 }
 
+.feed a {
+  color: #212121;
+}
+
+.feed a:visited {
+  color: #212121;
+}
+
 .activeFeed {
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .searchBox {
