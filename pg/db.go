@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/fortytw2/hydrocarbon/discollect"
 
@@ -190,7 +189,7 @@ func (db *DB) DeactivateSession(ctx context.Context, key string) error {
 
 // AddFeed adds the given URL to the users default folder
 // and links it across feed_folder
-func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (string, error) {
+func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string, initialConfig *discollect.Config) (string, error) {
 	if folderID == "" {
 		// ensure we don't shadow folderID
 		var err error
@@ -226,6 +225,19 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	(user_id, folder_id, feed_id)
 	VALUES
 	((SELECT user_id FROM sessions WHERE key = $1), $2, $3);`, sessionKey, folderID, feedID)
+	if err != nil {
+		txErr := tx.Rollback()
+		if txErr != nil {
+			return "", fmt.Errorf("%s - %s", err, txErr)
+		}
+		return "", err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	INSERT INTO scrapes
+	(feed_id, plugin, config)
+	VALUES 
+	($1, $2, $3)`, feedID, plugin, initialConfig)
 	if err != nil {
 		txErr := tx.Rollback()
 		if txErr != nil {
@@ -452,8 +464,7 @@ func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarb
 func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) error {
 	hcp, ok := f.(*hydrocarbon.Post)
 	if !ok {
-		log.Println("did not get a post back from the scraper, skipping")
-		return nil
+		return errors.New("unable to write non *hydrocarbon.Post struct")
 	}
 
 	_, err := db.sql.ExecContext(ctx, `

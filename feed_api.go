@@ -12,7 +12,7 @@ import (
 // A FeedStore is an interface used to seperate the FeedAPI from knowledge of the
 // actual underlying database
 type FeedStore interface {
-	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string) (string, error)
+	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string, initConf *discollect.Config) (string, error)
 	RemoveFeed(ctx context.Context, sessionKey, folderID, feedID string) error
 
 	AddFolder(ctx context.Context, sessionKey, name string) (string, error)
@@ -64,7 +64,11 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 
 	// TODO(fortytw2): implement plugin validation against the hydrocollect list
 	// TODO(fortytw2): set title appropriately
-	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL)
+	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL, &discollect.Config{
+		Name:         "full",
+		Entrypoints:  []string{feed.URL},
+		DynamicEntry: true,
+	})
 	if err != nil {
 		return err
 	}

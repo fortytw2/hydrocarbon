@@ -33,8 +33,6 @@ type Config struct {
 	// DynamicEntry specifies whether this config was created dynamically
 	// or is a preset
 	DynamicEntry bool
-	// if Entrypoints is null, we can compute the entrypoint (i.e. in a time based Delta)
-	ComputedEntry func(ctx context.Context, cfg *Config) error
 	// Since is used to convey delta information
 	Since time.Time
 	// Countries is a list of countries this scrape can be executed from
@@ -44,7 +42,7 @@ type Config struct {
 }
 
 // Value implements sql.Valuer for config
-func (c Config) Value() (driver.Value, error) {
+func (c *Config) Value() (driver.Value, error) {
 	j, err := json.Marshal(c)
 	return j, err
 }
