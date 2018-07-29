@@ -249,6 +249,35 @@ func (db *DB) AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, 
 	return feedID.String(), tx.Commit()
 }
 
+func (db *DB) CheckIfFeedExists(ctx context.Context, sessionKey, folderID, plugin, url string) (*hydrocarbon.Feed, bool, error) {
+	row := db.sql.QueryRowContext(ctx, `
+	SELECT id, title FROM feeds WHERE url = $1 and plugin = $2`, url, plugin)
+
+	var id uuid.UUID
+	var title string
+	err := row.Scan(&id, &title)
+	// if the row does not exist move on
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, false, err
+		}
+	}
+
+	_, err = db.sql.ExecContext(ctx, `
+	INSERT INTO feed_folders
+	(user_id, folder_id, feed_id)
+	VALUES
+	((SELECT user_id FROM sessions WHERE key = $1), $2, $3);`, sessionKey, folderID, id)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return &hydrocarbon.Feed{
+		ID:    id.String(),
+		Title: title,
+	}, true, nil
+}
+
 // getDefaultFolderID returns a users default folder ID
 func (db *DB) getDefaultFolderID(ctx context.Context, sessionKey string) (string, error) {
 	row := db.sql.QueryRowContext(ctx, `

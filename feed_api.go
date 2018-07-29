@@ -13,6 +13,7 @@ import (
 // actual underlying database
 type FeedStore interface {
 	AddFeed(ctx context.Context, sessionKey, folderID, title, plugin, feedURL string, initConf *discollect.Config) (string, error)
+	CheckIfFeedExists(ctx context.Context, sessionKey, folderID, plugin, url string) (*Feed, bool, error)
 	RemoveFeed(ctx context.Context, sessionKey, folderID, feedID string) error
 
 	AddFolder(ctx context.Context, sessionKey, name string) (string, error)
@@ -60,6 +61,19 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 
 	if feed.URL == "" || feed.Plugin == "" {
 		return errors.New("one of url or plugin is empty")
+	}
+
+	// check if the plugin exists
+	dbFeed, ok, err := fa.s.CheckIfFeedExists(r.Context(), key, feed.FolderID, feed.Plugin, feed.URL)
+	if err != nil {
+		return err
+	}
+
+	if ok {
+		return writeSuccess(w, map[string]string{
+			"id":    dbFeed.ID,
+			"title": dbFeed.Title,
+		})
 	}
 
 	plugin, err := fa.dc.GetPlugin(feed.Plugin)
