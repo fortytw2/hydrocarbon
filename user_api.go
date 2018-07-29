@@ -80,7 +80,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("payment is required")
 	}
 
-	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
+	lt, err := ua.s.CreateLoginToken(r.Context(), userID, r.UserAgent(), GetRemoteIP(r))
 	if err != nil {
 		return err
 	}
@@ -186,7 +186,7 @@ func (ua *UserAPI) Activate(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	email, key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), getRemoteIP(r))
+	email, key, err := ua.s.CreateSession(r.Context(), userID, r.UserAgent(), GetRemoteIP(r))
 	if err != nil {
 		return err
 	}
@@ -222,7 +222,7 @@ func (ua *UserAPI) Deactivate(w http.ResponseWriter, r *http.Request) error {
 	return writeSuccess(w, nil)
 }
 
-func getRemoteIP(r *http.Request) string {
+func GetRemoteIP(r *http.Request) string {
 	fwdIP := r.Header.Get("X-Forwarded-For")
 	fwdSplit := strings.Split(fwdIP, ",")
 	if fwdIP != "" {

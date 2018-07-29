@@ -180,7 +180,7 @@ func httpLogger(router http.Handler, prefix string) http.Handler {
 		router.ServeHTTP(w, req)
 		finishTime := time.Now()
 		elapsedTime := finishTime.Sub(startTime)
-		log.Println(prefix+":", req.RemoteAddr, req.Method, req.URL, elapsedTime)
+		log.Println(prefix+":", hydrocarbon.GetRemoteIP(req), req.Method, req.URL, elapsedTime)
 	})
 }
 
