@@ -62,19 +62,35 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 		return errors.New("one of url or plugin is empty")
 	}
 
-	// TODO(fortytw2): implement plugin validation against the hydrocollect list
-	// TODO(fortytw2): set title appropriately
-	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feed.URL, feed.Plugin, feed.URL, &discollect.Config{
+	plugin, err := fa.dc.GetPlugin(feed.Plugin)
+	if err != nil {
+		return err
+	}
+
+	exConfig := &discollect.Config{
 		Name:         "full",
 		Entrypoints:  []string{feed.URL},
 		DynamicEntry: true,
+	}
+
+	feedTitle, err := plugin.ConfigValidator(&discollect.HandlerOpts{
+		Client: http.DefaultClient,
+		Config: exConfig,
 	})
 	if err != nil {
 		return err
 	}
 
+	// TODO(fortytw2): implement plugin validation against the hydrocollect list
+	// TODO(fortytw2): set title appropriately
+	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feedTitle, feed.Plugin, feed.URL, exConfig)
+	if err != nil {
+		return err
+	}
+
 	return writeSuccess(w, map[string]string{
-		"id": id,
+		"id":    id,
+		"title": feedTitle,
 	})
 }
 

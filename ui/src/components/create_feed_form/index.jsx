@@ -54,6 +54,7 @@ export default class CreateFeedForm extends Component {
     this.setState({ submitting: true });
 
     let id;
+    let title;
     try {
       const resp = await createFeed({
         url: this.state.url,
@@ -62,6 +63,7 @@ export default class CreateFeedForm extends Component {
         apiKey: this.props.apiKey
       });
       id = resp.id;
+      title = resp.title;
     } catch (e) {
       this.setState({
         submitting: false,
@@ -72,7 +74,7 @@ export default class CreateFeedForm extends Component {
     }
 
     this.props.onSubmit({
-      title: this.state.url,
+      title: title,
       id: id,
       folderId: this.props.folderId
     });

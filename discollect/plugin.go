@@ -19,8 +19,9 @@ type Plugin struct {
 	// RateLimit is set per-plugin
 	RateLimit *RateLimit
 
-	// A ConfigValidator is used to validate dynamically loaded configs
-	ConfigValidator func(*Config) error
+	// A ConfigValidator is used to validate dynamically loaded configs and
+	// return the title of the config
+	ConfigValidator func(*HandlerOpts) (string, error)
 	Routes          map[string]Handler
 }
 
@@ -99,16 +100,6 @@ const defaultTimeout = 10 * time.Second
 
 // launchScrape launches a new scrape and enqueues the initial tasks
 func launchScrape(ctx context.Context, id uuid.UUID, p *Plugin, cfg *Config, q Queue, ms Metastore) error {
-	if cfg.DynamicEntry {
-		if p.ConfigValidator == nil {
-			return errors.New("cannot launch DynamicEntry config for plugin without ConfigValidator")
-		}
-		err := p.ConfigValidator(cfg)
-		if err != nil {
-			return err
-		}
-	}
-
 	qts := make([]*QueuedTask, len(cfg.Entrypoints))
 	for _, e := range cfg.Entrypoints {
 		u, err := uuid.NewRandom()

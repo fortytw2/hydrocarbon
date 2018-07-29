@@ -99,6 +99,11 @@ func (d *Discollector) Start(workers int) error {
 	return nil
 }
 
+// GetPlugin returns the plugin with the given name
+func (d *Discollector) GetPlugin(name string) (*Plugin, error) {
+	return d.r.Get(name)
+}
+
 // Shutdown spins down all the workers after allowing them to finish
 // their current tasks
 func (d *Discollector) Shutdown(ctx context.Context) {

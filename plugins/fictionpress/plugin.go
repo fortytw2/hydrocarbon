@@ -21,17 +21,37 @@ import (
 // Plugin is a plugin that can scrape fictionpress
 var Plugin = &dc.Plugin{
 	Name: "fictionpress",
-	ConfigValidator: func(c *dc.Config) error {
-		for _, e := range c.Entrypoints {
+	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
+		for _, e := range ho.Config.Entrypoints {
 			if !strings.Contains(e, "fictionpress.com") && !strings.Contains(e, "fanfiction.net") {
-				return errors.New("fictionpress plugin only works for fictionpress and fanfiction.net")
+				return "", errors.New("fictionpress plugin only works for fictionpress and fanfiction.net")
 			}
 		}
-		return nil
+
+		return getTitle(ho)
 	},
 	Routes: map[string]dc.Handler{
 		`https:\/\/www.(fictionpress.com|fanfiction.net)\/s\/(.*)\/(\d+)(.*)`: storyPage,
 	},
+}
+
+func getTitle(ho *dc.HandlerOpts) (string, error) {
+	resp, err := ho.Client.Get(ho.Config.Entrypoints[0])
+	if err != nil {
+		return "", err
+	}
+	defer httpx.DrainAndClose(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.New("non-200 response")
+	}
+
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(doc.Find("#profile_top > b").First().Text()), nil
 }
 
 func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResponse {
@@ -61,8 +81,6 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 	}
 
 	title := doc.Find(`#chap_select > option[selected]`).First().Text()
-	fmt.Println(title)
-
 	titleSplit := strings.Split(title, ". ")
 	if len(titleSplit) != 2 {
 		return dc.ErrorResponse(errors.New("could not find title or number"))

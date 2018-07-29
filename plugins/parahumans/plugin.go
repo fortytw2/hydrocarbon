@@ -17,8 +17,8 @@ import (
 // Plugin is a plugin that can scrape parahumans
 var Plugin = &dc.Plugin{
 	Name: "parahumans",
-	ConfigValidator: func(c *dc.Config) error {
-		return nil
+	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
+		return "Worm", nil
 	},
 	Routes: map[string]dc.Handler{
 		`https:\/\/parahumans.wordpress.com\/(\d+)\/(\d+)\/(\d+)\/(.*)`: phPage,

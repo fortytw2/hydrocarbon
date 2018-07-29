@@ -27,8 +27,13 @@ var rssPolicy = bluemonday.UGCPolicy().AddTargetBlankToFullyQualifiedLinks(true)
 // - [ ] download images
 var Plugin = &dc.Plugin{
 	Name: "rss",
-	ConfigValidator: func(c *dc.Config) error {
-		return nil
+	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
+		f, err := getFeed(context.TODO(), ho.Client, ho.Config.Entrypoints[0])
+		if err != nil {
+			return "", err
+		}
+
+		return f.Title, nil
 	},
 	Routes: map[string]dc.Handler{
 		`(.*)`: rssFeed,
