@@ -8,10 +8,6 @@ RUN go get -u github.com/golang/dep/...
 # Add our code
 ADD ./ /go/src/github.com/fortytw2/hydrocarbon
 
-# wipe git garbage if building locally
-WORKDIR /go/src/github.com/fortytw2/hydrocarbon
-RUN git clean -f -X
-
 # install node deps
 WORKDIR /go/src/github.com/fortytw2/hydrocarbon/ui
 RUN yarn install
