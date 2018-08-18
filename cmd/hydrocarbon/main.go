@@ -23,8 +23,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
 	"github.com/fortytw2/hydrocarbon/plugins/rss"
 
-	// heroku metrics
-	_ "github.com/heroku/x/hmetrics/onload"
+	"github.com/heroku/x/hmetrics"
 )
 
 func main() {
@@ -142,6 +141,9 @@ func main() {
 		Handler: httpLogger(hydrocarbon.ErrorHandler(localFS.ServeHTTP), "hydrocarbon-images"),
 	}
 
+	// if running on heroku, start reporting enhanced language metrics
+	herokuMetrics()
+
 	var g run.Group
 	{
 		g.Add(h.ListenAndServe, func(error) {
@@ -207,4 +209,23 @@ func cspMiddleware(router http.Handler, imageDomain string) http.Handler {
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		router.ServeHTTP(w, req)
 	})
+}
+
+func herokuMetrics() {
+	if os.Getenv("HEROKU_METRICS_URL") != "" {
+		var logger hmetrics.ErrHandler = func(_ error) error { return nil }
+		go func() {
+			var backoff int64
+			for backoff = 1; ; backoff++ {
+				start := time.Now()
+
+				hmetrics.Report(context.Background(), hmetrics.DefaultEndpoint, logger)
+				if time.Since(start) > 5*time.Minute {
+					backoff = 1
+				}
+
+				time.Sleep(time.Duration(backoff*10) * time.Second)
+			}
+		}()
+	}
 }

@@ -53,10 +53,7 @@
   branch = "master"
   digest = "1:93aa9a867e2ece59b5c0488e4eb9b3fc440e76c4b00aa22887e2691c9d56007d"
   name = "github.com/heroku/x"
-  packages = [
-    "hmetrics",
-    "hmetrics/onload",
-  ]
+  packages = ["hmetrics"]
   pruneopts = ""
   revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
 
@@ -168,7 +165,7 @@
     "github.com/elazarl/go-bindata-assetfs",
     "github.com/fortytw2/dockertest",
     "github.com/google/uuid",
-    "github.com/heroku/x/hmetrics/onload",
+    "github.com/heroku/x/hmetrics",
     "github.com/lib/pq",
     "github.com/microcosm-cc/bluemonday",
     "github.com/oklog/run",
