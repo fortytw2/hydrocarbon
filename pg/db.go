@@ -98,6 +98,25 @@ func (db *DB) CreateLoginToken(ctx context.Context, userID, userAgent, ip string
 	return token, nil
 }
 
+// VerifyKey checks that the session exists in the database
+func (db *DB) VerifyKey(ctx context.Context, key string) error {
+	row := db.sql.QueryRowContext(ctx, `
+	SELECT id 
+	FROM sessions 
+	WHERE key = $1 AND active = TRUE`, key)
+
+	var id string
+	err := row.Scan(&id)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("invalid or inactive token")
+		}
+		return err
+	}
+
+	return nil
+}
+
 // ActivateLoginToken activates the given LoginToken and returns the user
 // the token was for
 func (db *DB) ActivateLoginToken(ctx context.Context, token string) (string, error) {

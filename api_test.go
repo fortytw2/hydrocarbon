@@ -46,6 +46,7 @@ func runCases(t *testing.T, db *pg.DB, cases []apiCase) {
 		h := hydrocarbon.NewRouter(
 			hydrocarbon.NewUserAPI(db, ks, mm, "", "", false),
 			hydrocarbon.NewFeedAPI(db, dc, ks),
+			hydrocarbon.NewReadStatusAPI(db, ks),
 			"http://localhost:3000",
 		)
 

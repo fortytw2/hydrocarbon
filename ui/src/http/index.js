@@ -175,6 +175,26 @@ export const createKey = ({ token }) => {
     });
 };
 
+export const verifyKey = apiKey => {
+  return fetch("/v1/key/verify", {
+    method: "POST",
+    headers: {
+      "x-hydrocarbon-key": apiKey
+    }
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json;
+    });
+};
+
 export const requestToken = ({ email }) => {
   return fetch("/v1/token/create", {
     method: "POST",

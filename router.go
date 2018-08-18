@@ -115,6 +115,7 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.
 
 		// api keys
 		"/v1/key/create": ua.Activate,
+		"/v1/key/verify": ua.VerifyKey,
 		"/v1/key/delete": ua.Deactivate,
 		"/v1/key/list":   ua.ListSessions,
 

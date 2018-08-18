@@ -17,6 +17,9 @@ import (
 // A UserStore is an interface used to seperate the UserAPI from knowledge of the
 // actual underlying database
 type UserStore interface {
+	// ensure the given session key exists
+	VerifyKey(ctx context.Context, key string) error
+
 	CreateOrGetUser(ctx context.Context, email string) (string, bool, error)
 	SetStripeIDs(ctx context.Context, userID, customerID, subscriptionID string) error
 
@@ -30,6 +33,7 @@ type UserStore interface {
 
 // UserAPI encapsulates everything related to user management
 type UserAPI struct {
+	emailVerify     bool
 	paymentRequired bool
 	stripePlanID    string
 	sc              *client.API
@@ -47,6 +51,7 @@ func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey st
 	}
 
 	return &UserAPI{
+		emailVerify:     true,
 		s:               s,
 		ks:              ks,
 		m:               m,
@@ -54,6 +59,10 @@ func NewUserAPI(s UserStore, ks *KeySigner, m Mailer, stripePlanID, stripeKey st
 		stripePlanID:    stripePlanID,
 		paymentRequired: paymentRequired,
 	}
+}
+
+func (ua *UserAPI) DisableEmailVerification() {
+	ua.emailVerify = false
 }
 
 // RequestToken emails a token that can be exchanged for a session
@@ -85,12 +94,33 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
+	if ua.emailVerify {
+		err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
+		if err != nil {
+			return err
+		}
+
+		return writeSuccess(w, "check your email for a login token, token expires in 24 hours")
+
+	} else {
+		return writeSuccess(w, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
+
+	}
+}
+
+// VerifyKey validates that the session currently exists in the database
+func (ua *UserAPI) VerifyKey(w http.ResponseWriter, r *http.Request) error {
+	key, err := ua.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
 	if err != nil {
 		return err
 	}
 
-	return writeSuccess(w, "check your email for a login token, token expires in 24 hours")
+	err = ua.s.VerifyKey(r.Context(), key)
+	if err != nil {
+		return err
+	}
+
+	return writeSuccess(w, "token currently valid")
 }
 
 // CreatePayment sets up the initial stripe stuff for a user

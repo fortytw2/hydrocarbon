@@ -11,12 +11,11 @@ export default class Callback extends Component {
         const { data } = await createKey({ token: this.props.token });
         const { key, email } = data;
 
-        console.log(key);
         this.props.loginCallback(email, key);
 
         route("/");
       } catch (e) {
-        console.log(e);
+        console.warn(e);
         route("/login");
       }
     }

@@ -1,5 +1,7 @@
 import { h, Component } from "preact";
 import { route, Router } from "preact-router";
+import { verifyKey } from "@/http";
+
 import { bind } from "decko";
 
 import Header from "@/components/navbar";
@@ -29,6 +31,19 @@ export default class Layout extends Component {
       email,
       apiKey
     });
+
+    this.verifyKey(apiKey);
+  }
+
+  @bind
+  async verifyKey(key) {
+    if (key) {
+      try {
+        await verifyKey(key);
+      } catch (e) {
+        this.logout();
+      }
+    }
   }
 
   @bind

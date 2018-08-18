@@ -26,7 +26,8 @@ import (
 
 func main() {
 	var (
-		autoExplain = flag.Bool("autoexplain", false, "run EXPLAIN on every database query")
+		autoExplain   = flag.Bool("autoexplain", false, "run EXPLAIN on every database query")
+		noEmailVerify = flag.Bool("no-email-verify", false, "send login links in response to token request")
 	)
 
 	flag.Parse()
@@ -113,8 +114,13 @@ func main() {
 		log.Fatal(err)
 	}
 
+	ua := hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled)
+	if noEmailVerify != nil && *noEmailVerify {
+		ua.DisableEmailVerification()
+	}
+
 	r := hydrocarbon.NewRouter(
-		hydrocarbon.NewUserAPI(db, ks, m, "hydrocarbon", stripePrivKey, paymentEnabled),
+		ua,
 		hydrocarbon.NewFeedAPI(db, dc, ks),
 		hydrocarbon.NewReadStatusAPI(db, ks),
 		domain)
