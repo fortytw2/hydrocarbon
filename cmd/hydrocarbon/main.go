@@ -34,6 +34,10 @@ func main() {
 
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
+		dsn = os.Getenv("DATABASE_URL")
+	}
+
+	if dsn == "" {
 		log.Fatal("no postgres dsn found")
 	}
 

@@ -15,7 +15,7 @@ type Resolver struct {
 	ticker   *time.Ticker
 }
 
-// Start launches the scheduler
+// Start launches the resolver, which marks scrapes as complete
 func (r *Resolver) Start() {
 	r.shutdown = make(chan chan struct{})
 

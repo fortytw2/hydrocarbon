@@ -40,3 +40,9 @@
 [[constraint]]
   branch = "master"
   name = "github.com/google/uuid"
+
+[metadata.heroku]
+  root-package = "github.com/fortytw2/hydrocarbon/cmd/hydrocarbon"
+  go-version = "go1.10"
+  install = [ "./cmd/..." ]
+  ensure = "true"

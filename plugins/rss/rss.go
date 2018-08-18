@@ -24,7 +24,6 @@ var rssPolicy = bluemonday.UGCPolicy().AddTargetBlankToFullyQualifiedLinks(true)
 // Plugin is a plugin that can scrape rss feeds
 // TODO:
 // - [ ] strip images that don't matter
-// - [ ] download images
 var Plugin = &dc.Plugin{
 	Name: "rss",
 	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
