@@ -98,7 +98,7 @@ func (lf *LocalFS) Put(fileName string, contents []byte) (string, error) {
 		return "", err
 	}
 
-	return fmt.Sprintf("%s/%s", lf.staticPath, fName), nil
+	return fmt.Sprintf("%s%s", lf.staticPath, fName), nil
 }
 
 // ServeHTTP implements hydrocarbon.ErrorHandler
