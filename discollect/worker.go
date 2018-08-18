@@ -51,6 +51,7 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 			}
 
 			if qt == nil {
+				time.Sleep(time.Second * 1)
 				continue
 			}
 
