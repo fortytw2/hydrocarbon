@@ -22,6 +22,9 @@ import (
 	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"
 	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
 	"github.com/fortytw2/hydrocarbon/plugins/rss"
+
+	// heroku metrics
+	_ "github.com/heroku/x/hmetrics/onload"
 )
 
 func main() {

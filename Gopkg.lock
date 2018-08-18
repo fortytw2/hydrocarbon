@@ -3,11 +3,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:216c69fe98431b4b4541de18f647450b33d8800d2ef1f5d35ec8bccbe71e93cb"
+  digest = "1:4c49e96ee46e641a63c13bc63c4462c1930a059d4c4529c684c95a27597f40ea"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
   pruneopts = ""
-  revision = "5032c8878b9dd46cfe8c625c0d9b9f258a560ee8"
+  revision = "edf8477e0cb3b93a0a1e0550cb0869e1f64f6398"
 
 [[projects]]
   digest = "1:90272eae3bf75d2aa681ff3eee6cf4f49e8b06db533dc9c830ef214e5abbaaf2"
@@ -51,6 +51,17 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:93aa9a867e2ece59b5c0488e4eb9b3fc440e76c4b00aa22887e2691c9d56007d"
+  name = "github.com/heroku/x"
+  packages = [
+    "hmetrics",
+    "hmetrics/onload",
+  ]
+  pruneopts = ""
+  revision = "1de401e1ba0e5db3e5c15d2faeee777e0b685700"
+
+[[projects]]
+  branch = "master"
   digest = "1:6b8e4fbd48235132eb66a4adea7acb0a2bd1271f543d54415d0c3174823efa37"
   name = "github.com/lib/pq"
   packages = [
@@ -77,7 +88,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:d23c7855fb5d008dc3db4b7defc0dbdc70868b95cb355527a816e3ad62172e0d"
+  digest = "1:47de06cb54e1564ec0a018fda46111615fe60d8b9e7c6e534135a0965b6ab629"
   name = "github.com/stripe/stripe-go"
   packages = [
     ".",
@@ -100,11 +111,17 @@
     "exchangerate",
     "fee",
     "feerefund",
+    "filelink",
     "fileupload",
     "form",
     "invoice",
     "invoiceitem",
     "issuerfraudrecord",
+    "issuing/authorization",
+    "issuing/card",
+    "issuing/cardholder",
+    "issuing/dispute",
+    "issuing/transaction",
     "loginlink",
     "order",
     "orderreturn",
@@ -116,6 +133,7 @@
     "recipient",
     "refund",
     "reversal",
+    "sigma/scheduledqueryrun",
     "sku",
     "source",
     "sourcetransaction",
@@ -127,19 +145,19 @@
     "usagerecord",
   ]
   pruneopts = ""
-  revision = "d77c49777296d00b9d49ecc2744772913d00f699"
-  version = "v36.1.0"
+  revision = "f39e8e589d583b215516f338374e1a85394fa665"
+  version = "v41.0.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:50a6b805181a9b3bf2c879fcad6e6ff4cc643fc2287c321c1fbfc751755ea7eb"
+  digest = "1:2eac3eb8dcaa260aa6a0267d4541313760a4b526b591aa5311670daef78a974f"
   name = "golang.org/x/net"
   packages = [
     "html",
     "html/atom",
   ]
   pruneopts = ""
-  revision = "d0887baf81f4598189d4e12a37c6da86f0bba4d0"
+  revision = "aaf60122140d3fcf75376d319f0554393160eb50"
 
 [solve-meta]
   analyzer-name = "dep"
@@ -150,6 +168,7 @@
     "github.com/elazarl/go-bindata-assetfs",
     "github.com/fortytw2/dockertest",
     "github.com/google/uuid",
+    "github.com/heroku/x/hmetrics/onload",
     "github.com/lib/pq",
     "github.com/microcosm-cc/bluemonday",
     "github.com/oklog/run",
