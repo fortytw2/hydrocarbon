@@ -27,6 +27,7 @@ import (
 )
 
 func main() {
+
 	var (
 		autoExplain   = flag.Bool("autoexplain", false, "run EXPLAIN on every database query")
 		noEmailVerify = flag.Bool("no-email-verify", false, "send login links in response to token request")
@@ -205,7 +206,7 @@ func httpLogger(router http.Handler, prefix string) http.Handler {
 
 func cspMiddleware(router http.Handler, imageDomain string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Security-Policy", fmt.Sprintf("default-src 'self' data:; img-src 'self' data: %s", imageDomain))
+		w.Header().Set("Content-Security-Policy", fmt.Sprintf(`default-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: %s`, imageDomain))
 		w.Header().Set("X-XSS-Protection", "1; mode=block")
 		router.ServeHTTP(w, req)
 	})

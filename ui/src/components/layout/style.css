@@ -1,10 +1,11 @@
 .layout {
-  /* same as medium/wordpress.com */
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   margin-top: 56px;
   background: #fdfdfd;
   color: #212121;
+}
+
+* {
+  font-family: "Fira Sans", sans-serif;
 }
 
 @media only screen and (max-width: 440px) {
