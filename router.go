@@ -95,7 +95,7 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.
 		var buf []byte
 		if r.URL.Path == "/favicon.ico" {
 			w.Header().Set("Content-Type", "image/png")
-			buf = public.MustAsset("ui/dist/favicon.ico")
+			buf = public.MustAsset("ui/dist/media/favicon.ico")
 		} else {
 
 			w.Header().Set("Content-Type", "text/html")
