@@ -101,11 +101,11 @@ func parseFeed(f *Feed) ([]*hydrocarbon.Post, error) {
 	for _, i := range f.Items {
 
 		var pubDate time.Time
-		if f.PubDate != "" {
+		if i.PubDate != "" {
 			var err error
-			pubDate, err = time.Parse(rssTime, f.PubDate)
+			pubDate, err = time.Parse(rssTime, i.PubDate)
 			if err != nil {
-				pubDate, err = time.Parse(rssAltTime, f.PubDate)
+				pubDate, err = time.Parse(rssAltTime, i.PubDate)
 				if err != nil {
 					fmt.Println(err)
 				}
