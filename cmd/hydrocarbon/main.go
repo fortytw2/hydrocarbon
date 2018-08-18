@@ -20,6 +20,7 @@ import (
 	"github.com/fortytw2/hydrocarbon/postmark"
 
 	"github.com/fortytw2/hydrocarbon/plugins/fictionpress"
+	"github.com/fortytw2/hydrocarbon/plugins/jsonfeed"
 	"github.com/fortytw2/hydrocarbon/plugins/parahumans"
 	"github.com/fortytw2/hydrocarbon/plugins/rss"
 
@@ -115,7 +116,7 @@ func main() {
 		discollect.WithWriter(db),
 		discollect.WithMetastore(db),
 		discollect.WithFileStore(localFS),
-		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin, rss.Plugin),
+		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin, rss.Plugin, jsonfeed.Plugin),
 	)
 	if err != nil {
 		log.Fatal(err)
