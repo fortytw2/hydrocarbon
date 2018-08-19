@@ -2,7 +2,7 @@ package discollect
 
 import (
 	"context"
-	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 )
@@ -28,5 +28,5 @@ type StdoutReporter struct{}
 
 // Report prints out the error
 func (StdoutReporter) Report(_ context.Context, ro *ReporterOpts, err error) {
-	fmt.Printf("error-reporter: %+v, %s\n", ro, err)
+	log.Printf("error-reporter: %+v, %s\n", ro, err)
 }

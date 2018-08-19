@@ -16,6 +16,8 @@ type Queue interface {
 	Push(ctx context.Context, tasks []*QueuedTask) error
 
 	Finish(ctx context.Context, taskID uuid.UUID) error
+	Error(ctx context.Context, qt *QueuedTask) error
+
 	Status(ctx context.Context, scrapeID uuid.UUID) *ScrapeStatus
 }
 
@@ -56,7 +58,9 @@ type ScrapeStatus struct {
 
 // NewMemQueue makes a new purely in-memory queue
 func NewMemQueue() *MemQueue {
-	return &MemQueue{}
+	return &MemQueue{
+		q: make(chan *QueuedTask, 64),
+	}
 }
 
 // A MemQueue is a super simple Queue backed by an array and a mutex
@@ -68,7 +72,7 @@ type MemQueue struct {
 	completedTasks int
 	retriedTasks   int
 
-	q []*QueuedTask
+	q chan *QueuedTask
 }
 
 // Pop pops a single task off the left side of the array
@@ -82,10 +86,7 @@ func (mq *MemQueue) Pop(ctx context.Context) (*QueuedTask, error) {
 
 	mq.inflight += 1
 
-	qt := mq.q[0]
-	mq.q = mq.q[1:]
-
-	return qt, nil
+	return <-mq.q, nil
 }
 
 // Push appends tasks to the right side of the array
@@ -103,9 +104,22 @@ func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
 		} else {
 			mq.retriedTasks += 1
 		}
+
+		mq.q <- t
 	}
 
-	mq.q = append(mq.q, tasks...)
+	return nil
+}
+
+func (mq *MemQueue) Error(ctx context.Context, qt *QueuedTask) error {
+	mq.mu.Lock()
+	defer mq.mu.Unlock()
+
+	mq.inflight -= 1
+
+	qt.Retries += 1
+
+	mq.q <- qt
 
 	return nil
 }
@@ -116,6 +130,7 @@ func (mq *MemQueue) Finish(ctx context.Context, taskID uuid.UUID) error {
 	defer mq.mu.Unlock()
 
 	mq.inflight -= 1
+
 	mq.completedTasks += 1
 
 	return nil

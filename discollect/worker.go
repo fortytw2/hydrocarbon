@@ -67,6 +67,8 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 			err = w.processTask(ctx, qt)
 			if err != nil {
 				w.er.Report(ctx, nil, err)
+				// retry task
+				w.q.Error(ctx, qt)
 				cancel()
 				continue
 			}
