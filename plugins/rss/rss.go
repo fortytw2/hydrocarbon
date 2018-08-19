@@ -2,7 +2,6 @@ package rss
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"net/http"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/httpx"
 	"github.com/microcosm-cc/bluemonday"
+	"github.com/mmcdole/gofeed"
 
 	dc "github.com/fortytw2/hydrocarbon/discollect"
 )
@@ -67,7 +67,7 @@ func rssFeed(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerRes
 	}
 }
 
-func getFeed(ctx context.Context, c *http.Client, url string) (*Feed, error) {
+func getFeed(ctx context.Context, c *http.Client, url string) (*gofeed.Feed, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -86,25 +86,24 @@ func getFeed(ctx context.Context, c *http.Client, url string) (*Feed, error) {
 		return nil, fmt.Errorf("url has content type: %s - are you sure you have the correct URL", ct)
 	}
 
-	var f Feed
-	err = xml.NewDecoder(resp.Body).Decode(&f)
+	f, err := gofeed.NewParser().Parse(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	return &f, nil
+	return f, nil
 }
 
-func parseFeed(f *Feed) ([]*hydrocarbon.Post, error) {
+func parseFeed(f *gofeed.Feed) ([]*hydrocarbon.Post, error) {
 	posts := make([]*hydrocarbon.Post, 0)
 	for _, i := range f.Items {
 
 		var pubDate time.Time
-		if i.PubDate != "" {
+		if i.Published != "" {
 			var err error
-			pubDate, err = time.Parse(rssTime, i.PubDate)
+			pubDate, err = time.Parse(rssTime, i.Published)
 			if err != nil {
-				pubDate, err = time.Parse(rssAltTime, i.PubDate)
+				pubDate, err = time.Parse(rssAltTime, i.Published)
 				if err != nil {
 					fmt.Println(err)
 				}
@@ -120,9 +119,14 @@ func parseFeed(f *Feed) ([]*hydrocarbon.Post, error) {
 			sanitized = rssPolicy.Sanitize(i.Description)
 		}
 
+		var author string
+		if i.Author != nil {
+			author = i.Author.Name
+		}
+
 		posts = append(posts, &hydrocarbon.Post{
 			PostedAt:    pubDate,
-			Author:      strings.TrimSpace(i.Author),
+			Author:      strings.TrimSpace(author),
 			Title:       strings.TrimSpace(i.Title),
 			Body:        strings.TrimSpace(sanitized),
 			OriginalURL: strings.TrimSpace(i.Link),
