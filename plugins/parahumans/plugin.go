@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Puerkitobio/goquery"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/fortytw2/hydrocarbon"
 	dc "github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/httpx"

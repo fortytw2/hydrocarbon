@@ -10,12 +10,12 @@
   revision = "edf8477e0cb3b93a0a1e0550cb0869e1f64f6398"
 
 [[projects]]
+  branch = "master"
   digest = "1:90272eae3bf75d2aa681ff3eee6cf4f49e8b06db533dc9c830ef214e5abbaaf2"
-  name = "github.com/Puerkitobio/goquery"
+  name = "github.com/PuerkitoBio/goquery"
   packages = ["."]
   pruneopts = ""
   revision = "dc2ec5c7ca4d9aae063b79b9f581dd3ea6afd2b2"
-  version = "v1.4.1"
 
 [[projects]]
   digest = "1:4d0cb5aec47a2aec8b8b211540dc59902f8f00d571281356597b41ae349f4885"
@@ -69,12 +69,34 @@
   revision = "90697d60dd844d5ef6ff15135d0203f65d2f53b8"
 
 [[projects]]
-  digest = "1:666aa9adea209a9df7267b3a0bfdaa802dcd470d6e1cb8e8b4ca14425b2024eb"
+  digest = "1:5cb4c45cbce8202f9bb09193e9baaa0f78927dbc8f8939d6bf0ccf7a5a26787a"
   name = "github.com/microcosm-cc/bluemonday"
   packages = ["."]
   pruneopts = ""
-  revision = "dafebb5b6ff2861a0d69af64991e10866c19be85"
-  version = "v1.0.0"
+  revision = "82c7118e8ccf7403d4860175d97bb635e8e28239"
+  version = "v1.0.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:40d5db14e7ecdd8029de984f4fb670d6fe12b4c654d77200d5e98fda4a64e44a"
+  name = "github.com/mmcdole/gofeed"
+  packages = [
+    ".",
+    "atom",
+    "extensions",
+    "internal/shared",
+    "rss",
+  ]
+  pruneopts = ""
+  revision = "3ad502aa86dbc0f278e63a2badb7b3b1fa26d51e"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2aeabb465eb865eda7512877c258380bddacc8222610e41041f3833379093909"
+  name = "github.com/mmcdole/goxpp"
+  packages = ["."]
+  pruneopts = ""
+  revision = "77e4a51a73ed99ee3f33c1474dc166866304acbd"
 
 [[projects]]
   digest = "1:94e9081cc450d2cdf4e6886fc2c06c07272f86477df2d74ee5931951fa3d2577"
@@ -152,22 +174,50 @@
   packages = [
     "html",
     "html/atom",
+    "html/charset",
   ]
   pruneopts = ""
   revision = "aaf60122140d3fcf75376d319f0554393160eb50"
+
+[[projects]]
+  digest = "1:af9bfca4298ef7502c52b1459df274eed401a4f5498b900e9a92d28d3d87ac5a"
+  name = "golang.org/x/text"
+  packages = [
+    "encoding",
+    "encoding/charmap",
+    "encoding/htmlindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
+    "internal/gen",
+    "internal/tag",
+    "internal/utf8internal",
+    "language",
+    "runes",
+    "transform",
+    "unicode/cldr",
+  ]
+  pruneopts = ""
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
     "github.com/NYTimes/gziphandler",
-    "github.com/Puerkitobio/goquery",
+    "github.com/PuerkitoBio/goquery",
     "github.com/elazarl/go-bindata-assetfs",
     "github.com/fortytw2/dockertest",
     "github.com/google/uuid",
     "github.com/heroku/x/hmetrics",
     "github.com/lib/pq",
     "github.com/microcosm-cc/bluemonday",
+    "github.com/mmcdole/gofeed",
     "github.com/oklog/run",
     "github.com/stripe/stripe-go",
     "github.com/stripe/stripe-go/client",
