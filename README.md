@@ -21,6 +21,14 @@ go generate $(go list ../../... | grep -v vendor) && go build -i . && POSTGRES_D
 then open port :8080, enter an email, get the login token from hydrocarbon STDOUT
 and proceed to develop.
 
+## Configuring Image Server
+
+Hydrocarbon has two modes for downloading and rehosting images, a local server
+and a Google Cloud Storage backed server. To use the local server, configure nothing.
+
+To configure google cloud storage, set `GCP_SERVICE_ACCOUNT`, `IMAGE_BUCKET_NAME`
+and `IMAGE_DOMAIN`.
+
 ## license
 
 mit
