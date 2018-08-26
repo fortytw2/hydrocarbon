@@ -685,7 +685,7 @@ func (db *DB) ScheduleForwardScrapes(ctx context.Context, limit int) error {
 	INSERT INTO scrapes
 	(feed_id, plugin, config, scheduled_start_at)
 	SELECT last_config.feed_id, last_config.plugin, last_config.config, now() + INTERVAL '5 minutes' as scheduled_start_at 
-	FROM last_config`, limit)
+	FROM last_config`)
 	return err
 }
 
