@@ -6,4 +6,4 @@ build:
   docker:
     web: Dockerfile
 run:
-  web: hydrocarbon -no-email-verify
+  web: hydrocarbon
