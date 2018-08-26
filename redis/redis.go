@@ -5,7 +5,7 @@ package redis
 import "context"
 
 type Queue struct {
-	r *redis.Conn
+	// r *redis.
 }
 
 func (q *Queue) Pop(ctx context.Context) (*QueuedTask, error) {
