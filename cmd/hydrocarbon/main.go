@@ -69,7 +69,6 @@ func main() {
 	}
 
 	log.Println("hydrocarbon: launching api server on port", getPort("PORT", ":8080"), "for", domain)
-	log.Println("hydrocarbon: launching image server on port", getPort("IMAGE_PORT", ":8082"), "for", imageDomain)
 
 	var m hydrocarbon.Mailer
 	{
@@ -122,6 +121,7 @@ func main() {
 		}
 		fs = localFS
 
+		log.Println("hydrocarbon: launching image server on port", getPort("IMAGE_PORT", ":8082"), "for", imageDomain)
 		imageH := &http.Server{
 			Addr:    getPort("IMAGE_PORT", ":8082"),
 			Handler: httpLogger(hydrocarbon.ErrorHandler(localFS.ServeHTTP), "hydrocarbon-images"),

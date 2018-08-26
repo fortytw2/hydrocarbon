@@ -26,25 +26,25 @@ func DownloadImages(textIn string, c *http.Client, fs FileStore) (string, error)
 			var src string
 			src, err = findSrc(n.Attr)
 			if err != nil {
-				panic(err)
+				return
 			}
 
 			resp, err := c.Get(src)
 			if err != nil {
-				panic(err)
+				return
 			}
 
 			buf, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				resp.Body.Close()
-				panic(err)
+				return
 			}
 
 			resp.Body.Close()
 
 			newSrc, err := fs.Put(src, buf)
 			if err != nil {
-				panic(err)
+				return
 			}
 
 			n.Attr = setSrc(n.Attr, newSrc)
