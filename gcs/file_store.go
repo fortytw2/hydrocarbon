@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net/http"
+	"time"
 
 	"cloud.google.com/go/storage"
 	"golang.org/x/oauth2/google"
@@ -58,8 +59,11 @@ func (fs *FileStore) Put(fileName string, contents []byte) (string, error) {
 		return "", fmt.Errorf("unsupported image type: %s", contentType)
 	}
 
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	obj := fs.client.Bucket(fs.imageBucketName).Object(fName)
-	wc := obj.NewWriter(context.TODO())
+	wc := obj.NewWriter(ctx)
 	written, err := wc.Write(contents)
 	if err != nil {
 		return "", err
