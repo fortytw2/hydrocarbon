@@ -7,7 +7,7 @@ import (
 
 // A Mailer sends mail
 type Mailer interface {
-	Send(email string, body string) error
+	Send(email, subject, body string) error
 	RootDomain() string
 }
 
@@ -34,7 +34,7 @@ type StdoutMailer struct {
 }
 
 // Send writes the email to stdout
-func (*StdoutMailer) Send(email string, body string) error {
+func (*StdoutMailer) Send(email, subject, body string) error {
 	log.Println("hydrocarbon: new mail to", email, "\n", body)
 	return nil
 }

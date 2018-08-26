@@ -35,12 +35,12 @@ type mailReq struct {
 }
 
 // Send sends a mail using the postmark api
-func (m *Mailer) Send(email string, body string) error {
+func (m *Mailer) Send(email, subject, body string) error {
 	buf, err := json.Marshal(&mailReq{
 		From:     "support@hydrocarbon.io",
 		To:       email,
-		Subject:  "login to hydrocarbon",
-		TextBody: body,
+		Subject:  subject,
+		HTMLBody: body,
 	})
 	if err != nil {
 		return err

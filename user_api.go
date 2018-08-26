@@ -94,8 +94,9 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	loginURL := fmt.Sprintf("%s/callback?token=%s", ua.m.RootDomain(), lt)
 	if ua.emailVerify {
-		err = ua.m.Send(registerData.Email, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
+		err = ua.m.Send(registerData.Email, "Login to Hydrocarbon", fmt.Sprintf(`Visit <a href="%s">%s</a> to login`, loginURL, loginURL))
 		if err != nil {
 			return err
 		}
@@ -103,7 +104,7 @@ func (ua *UserAPI) RequestToken(w http.ResponseWriter, r *http.Request) error {
 		return writeSuccess(w, "check your email for a login token, token expires in 24 hours")
 
 	} else {
-		return writeSuccess(w, fmt.Sprintf("visit %s/callback?token=%s to login", ua.m.RootDomain(), lt))
+		return writeSuccess(w, loginURL)
 
 	}
 }
