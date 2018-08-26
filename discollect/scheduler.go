@@ -6,7 +6,8 @@ import (
 )
 
 const pollInterval = 10 * time.Second
-const scrapeLimit = 5
+const scrapeLimit = 25
+const forwardScrapeLimit = 100
 
 // A Scheduler initiates new scrapes according to plugin-level schedules
 type Scheduler struct {
@@ -51,6 +52,11 @@ func (s *Scheduler) Start() {
 				}
 			}
 
+			// go ahead and add the next 5 scrapes
+			err = s.ms.ScheduleForwardScrapes(context.TODO(), forwardScrapeLimit)
+			if err != nil {
+				s.er.Report(context.TODO(), nil, err)
+			}
 		}
 	}
 }

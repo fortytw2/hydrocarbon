@@ -665,6 +665,30 @@ func (db *DB) ListScrapes(ctx context.Context, stateFilter string, limit, offset
 	return rsArr, nil
 }
 
+// ScheduleForwardScrapes creates the next N scrapes
+func (db *DB) ScheduleForwardScrapes(ctx context.Context, limit int) error {
+	_, err := db.sql.ExecContext(ctx, `
+	WITH f AS (
+		SELECT fe.id
+		FROM feeds fe
+		WHERE NOT EXISTS (
+			SELECT 1 FROM scrapes 
+			WHERE state = 'WAITING'
+			AND scheduled_start_at < now() + INTERVAL '5 minutes'
+			LIMIT 1
+		)
+	), last_config AS (
+		SELECT f.id as feed_id, sc.plugin, sc.config, sc.scheduled_start_at
+		FROM scrapes sc
+		INNER JOIN f ON (feed_id = f.id)
+	) 
+	INSERT INTO scrapes
+	(feed_id, plugin, config, scheduled_start_at)
+	SELECT last_config.feed_id, last_config.plugin, last_config.config, now() + INTERVAL '5 minutes' as scheduled_start_at 
+	FROM last_config`, limit)
+	return err
+}
+
 // EndScrape marks a scrape as SUCCESS and records the number of datums and
 // tasks returned
 func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, retries, tasks int) error {
