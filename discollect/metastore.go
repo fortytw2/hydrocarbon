@@ -38,8 +38,9 @@ type Metastore interface {
 	// and UI purposes
 	ListScrapes(ctx context.Context, statusFilter string, limit, offset int) ([]*Scrape, error)
 
-	// ScheduleForwardScrapes adds scrapes that should be run to the future set
-	ScheduleForwardScrapes(ctx context.Context, limit int) error
+	// FindMissingSchedules adds scrapes that should be run to the future set
+	FindMissingSchedules(ctx context.Context, limit int) ([]*ScheduleRequest, error)
+	InsertSchedule(context.Context, *ScheduleRequest, []*ScrapeSchedule) error
 
 	// EndScrape marks a scrape as SUCCESS and records the number of datums and
 	// tasks returned

@@ -2,12 +2,13 @@ package discollect
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
-const pollInterval = 10 * time.Second
+const pollInterval = 30 * time.Second
 const scrapeLimit = 25
-const forwardScrapeLimit = 100
+const forwardScrapeLimit = 5
 
 // A Scheduler initiates new scrapes according to plugin-level schedules
 type Scheduler struct {
@@ -52,10 +53,29 @@ func (s *Scheduler) Start() {
 				}
 			}
 
-			// go ahead and add the next 5 scrapes
-			err = s.ms.ScheduleForwardScrapes(context.TODO(), forwardScrapeLimit)
+			// forward scheduler action
+			srs, err := s.ms.FindMissingSchedules(context.TODO(), forwardScrapeLimit)
 			if err != nil {
 				s.er.Report(context.TODO(), nil, err)
+			}
+
+			for _, sr := range srs {
+				p, err := s.r.Get(sr.Plugin)
+				if err != nil {
+					s.er.Report(context.TODO(), nil, fmt.Errorf("forward-scheduler: cannot find plugin: %s", err))
+					continue
+				}
+
+				ss, err := p.Scheduler(sr)
+				if err != nil {
+					s.er.Report(context.TODO(), nil, err)
+					continue
+				}
+
+				err = s.ms.InsertSchedule(context.TODO(), sr, ss)
+				if err != nil {
+					s.er.Report(context.TODO(), nil, err)
+				}
 			}
 		}
 	}

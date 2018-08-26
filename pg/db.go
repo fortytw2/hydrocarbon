@@ -665,28 +665,88 @@ func (db *DB) ListScrapes(ctx context.Context, stateFilter string, limit, offset
 	return rsArr, nil
 }
 
-// ScheduleForwardScrapes creates the next N scrapes
-func (db *DB) ScheduleForwardScrapes(ctx context.Context, limit int) error {
-	_, err := db.sql.ExecContext(ctx, `
-	WITH f AS (
-		SELECT fe.id
-		FROM feeds fe
-		WHERE NOT EXISTS (
-			SELECT 1 FROM scrapes 
-			WHERE state = 'WAITING'
-			AND scheduled_start_at < now() + INTERVAL '5 minutes'
-			LIMIT 1
-		)
-	), last_config AS (
-		SELECT f.id as feed_id, sc.plugin, sc.config, sc.scheduled_start_at
-		FROM scrapes sc
-		INNER JOIN f ON (feed_id = f.id)
-	) 
-	INSERT INTO scrapes
-	(feed_id, plugin, config, scheduled_start_at)
-	SELECT last_config.feed_id, last_config.plugin, last_config.config, now() + INTERVAL '5 minutes' as scheduled_start_at 
-	FROM last_config`)
-	return err
+// FindMissingSchedules pulls info to ask a plugin to create a schedule
+func (db *DB) FindMissingSchedules(ctx context.Context, limit int) ([]*discollect.ScheduleRequest, error) {
+	rows, err := db.sql.QueryContext(ctx, `
+	SELECT f.id, max(f.plugin), jsonb_agg(
+		row_to_json(sc.*) ORDER BY scheduled_start_at DESC
+	) as scrapes, jsonb_agg(
+		row_to_json(ps.*) ORDER BY ps.created_at DESC
+	) as posts
+	FROM feeds f
+	JOIN LATERAL (SELECT * FROM scrapes WHERE feed_id = f.id ORDER BY scrapes.scheduled_start_at DESC LIMIT 5) sc ON true
+	JOIN LATERAL (SELECT * FROM posts WHERE feed_id = f.id ORDER BY posts.created_at DESC LIMIT 5) ps ON true
+	WHERE NOT EXISTS (
+		SELECT 1 FROM scrapes 
+		WHERE feed_id = f.id
+		AND state = 'WAITING'
+	)
+	GROUP BY f.id
+	LIMIT $1`, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	var sr []*discollect.ScheduleRequest
+
+	for rows.Next() {
+		var feedID uuid.UUID
+		var plugin string
+		var scrapesJSON []byte
+		var postsJSON []byte
+
+		err := rows.Scan(&feedID, &plugin, &scrapesJSON, &postsJSON)
+		if err != nil {
+			return nil, err
+		}
+
+		var latestScrapes []*discollect.Scrape
+		if len(scrapesJSON) > 0 {
+			err = json.Unmarshal(scrapesJSON, &latestScrapes)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		var latestPosts []*hydrocarbon.Post
+		if len(scrapesJSON) > 0 {
+			err = json.Unmarshal(scrapesJSON, &latestPosts)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		sr = append(sr, &discollect.ScheduleRequest{
+			FeedID:        feedID,
+			Plugin:        plugin,
+			LatestScrapes: latestScrapes,
+			LatestDatums:  latestPosts,
+		})
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return sr, nil
+}
+
+// InsertSchedule inserts all the schedules
+func (db *DB) InsertSchedule(ctx context.Context, sr *discollect.ScheduleRequest, ss []*discollect.ScrapeSchedule) error {
+	for _, s := range ss {
+		_, err := db.sql.ExecContext(ctx, `
+		INSERT INTO scrapes
+		(feed_id, plugin, config, scheduled_start_at)
+		VALUES 
+		($1, $2, $3, $4)
+		ON CONFLICT ON CONSTRAINT scrapes_plugin_scheduled_start_at_config_key DO NOTHING;`, sr.FeedID, sr.Plugin, s.Config, s.ScheduledStartAt)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // EndScrape marks a scrape as SUCCESS and records the number of datums and

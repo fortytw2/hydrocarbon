@@ -34,6 +34,7 @@ var Plugin = &dc.Plugin{
 
 		return f.Title, nil
 	},
+	Scheduler: dc.DefaultScheduler,
 	Routes: map[string]dc.Handler{
 		`(.*)`: rssFeed,
 	},

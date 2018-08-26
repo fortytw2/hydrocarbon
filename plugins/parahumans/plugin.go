@@ -20,6 +20,7 @@ var Plugin = &dc.Plugin{
 	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
 		return "Worm", nil
 	},
+	Scheduler: dc.DefaultScheduler,
 	Routes: map[string]dc.Handler{
 		`https:\/\/parahumans.wordpress.com\/(\d+)\/(\d+)\/(\d+)\/(.*)`: phPage,
 	},

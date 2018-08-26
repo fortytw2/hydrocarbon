@@ -30,6 +30,7 @@ var Plugin = &dc.Plugin{
 
 		return getTitle(ho)
 	},
+	Scheduler: dc.DefaultScheduler,
 	Routes: map[string]dc.Handler{
 		`https:\/\/www.(fictionpress.com|fanfiction.net)\/s\/(.*)\/(\d+)(.*)`: storyPage,
 	},

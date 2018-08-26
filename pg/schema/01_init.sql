@@ -154,7 +154,9 @@ CREATE TABLE scrapes (
 
 	total_datums INT DEFAULT 0,
 	total_retries INT DEFAULT 0,
-	total_tasks INT DEFAULT 0
+	total_tasks INT DEFAULT 0,
+
+	UNIQUE (plugin, scheduled_start_at, config)
 );
 
 CREATE INDEX scrapes_poller_idx ON scrapes (id, scheduled_start_at, state, errors);

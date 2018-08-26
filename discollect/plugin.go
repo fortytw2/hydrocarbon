@@ -22,7 +22,10 @@ type Plugin struct {
 	// A ConfigValidator is used to validate dynamically loaded configs and
 	// return the title of the config
 	ConfigValidator func(*HandlerOpts) (string, error)
-	Routes          map[string]Handler
+	// the Scheduler looks into the past and tells the future
+	Scheduler func(*ScheduleRequest) ([]*ScrapeSchedule, error)
+
+	Routes map[string]Handler
 }
 
 // Config is a specific configuration of a given plugin
