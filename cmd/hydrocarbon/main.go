@@ -16,6 +16,7 @@ import (
 
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/discollect"
+	"github.com/fortytw2/hydrocarbon/gcs"
 	"github.com/fortytw2/hydrocarbon/pg"
 	"github.com/fortytw2/hydrocarbon/postmark"
 
@@ -28,6 +29,7 @@ import (
 )
 
 func main() {
+	var g run.Group
 
 	var (
 		autoExplain   = flag.Bool("autoexplain", false, "run EXPLAIN on every database query")
@@ -106,16 +108,39 @@ func main() {
 		log.Println("payment not enabled, set STRIPE_PRIVATE_TOKEN to enable")
 	}
 
-	localFS, err := discollect.NewLocalFS("./images", imageDomain+"/static/images/")
-	if err != nil {
-		log.Fatal(err)
+	var fs discollect.FileStore
+	if gcpSA, ok := os.LookupEnv("GCP_SERVICE_ACCOUNT"); ok {
+		gcpFS, err := gcs.NewFileStore(gcpSA, os.Getenv("IMAGE_BUCKET_NAME"))
+		if err != nil {
+			log.Fatal(err)
+		}
+		fs = gcpFS
+	} else {
+		localFS, err := discollect.NewLocalFS("./images", imageDomain+"/static/images/")
+		if err != nil {
+			log.Fatal(err)
+		}
+		fs = localFS
+
+		imageH := &http.Server{
+			Addr:    getPort("IMAGE_PORT", ":8082"),
+			Handler: httpLogger(hydrocarbon.ErrorHandler(localFS.ServeHTTP), "hydrocarbon-images"),
+		}
+		{
+			g.Add(imageH.ListenAndServe, func(error) {
+				err := imageH.Shutdown(context.TODO())
+				if err != nil && err != http.ErrServerClosed {
+					log.Println("hydrocarbon: error shutting down http server", err)
+				}
+			})
+		}
 	}
 
 	dc, err := discollect.New(
 		// pg.DB is a discollect writer
 		discollect.WithWriter(db),
 		discollect.WithMetastore(db),
-		discollect.WithFileStore(localFS),
+		discollect.WithFileStore(fs),
 		discollect.WithPlugins(fictionpress.Plugin, parahumans.Plugin, rss.Plugin, jsonfeed.Plugin),
 	)
 	if err != nil {
@@ -138,26 +163,12 @@ func main() {
 		Handler: httpLogger(cspMiddleware(gziphandler.GzipHandler(r), imageDomain), "hydrocarbon-api"),
 	}
 
-	imageH := &http.Server{
-		Addr:    getPort("IMAGE_PORT", ":8082"),
-		Handler: httpLogger(hydrocarbon.ErrorHandler(localFS.ServeHTTP), "hydrocarbon-images"),
-	}
-
 	// if running on heroku, start reporting enhanced language metrics
 	herokuMetrics()
 
-	var g run.Group
 	{
 		g.Add(h.ListenAndServe, func(error) {
 			err := h.Shutdown(context.TODO())
-			if err != nil && err != http.ErrServerClosed {
-				log.Println("hydrocarbon: error shutting down http server", err)
-			}
-		})
-	}
-	{
-		g.Add(imageH.ListenAndServe, func(error) {
-			err := imageH.Shutdown(context.TODO())
 			if err != nil && err != http.ErrServerClosed {
 				log.Println("hydrocarbon: error shutting down http server", err)
 			}

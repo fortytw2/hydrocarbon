@@ -17,8 +17,8 @@ type MockMailer struct {
 }
 
 // Send stores a mail in the local MockMailer
-func (mm *MockMailer) Send(email string, body string) error {
-	mm.Mails = append(mm.Mails, fmt.Sprintf("%s: %s", email, body))
+func (mm *MockMailer) Send(email, subject, body string) error {
+	mm.Mails = append(mm.Mails, fmt.Sprintf("to %s [%s]: %s", email, subject, body))
 	return nil
 }
 
