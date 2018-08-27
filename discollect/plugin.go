@@ -99,7 +99,7 @@ func Response(facts []interface{}, tasks ...*Task) *HandlerResponse {
 // A Handler can handle an individual Task
 type Handler func(ctx context.Context, ho *HandlerOpts, t *Task) *HandlerResponse
 
-const defaultTimeout = 10 * time.Second
+const defaultTimeout = 60 * time.Second
 
 // launchScrape launches a new scrape and enqueues the initial tasks
 func launchScrape(ctx context.Context, id uuid.UUID, p *Plugin, cfg *Config, q Queue, ms Metastore) error {

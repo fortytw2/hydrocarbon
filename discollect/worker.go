@@ -55,15 +55,8 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 				continue
 			}
 
-			var timeout time.Duration
-			if qt.Task.Timeout == timeout {
-				timeout = 15 * time.Second
-			} else {
-				timeout = qt.Task.Timeout
-			}
-
 			// set config timeout on all worker actions on this task
-			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			ctx, cancel := context.WithTimeout(context.Background(), qt.Task.Timeout)
 			err = w.processTask(ctx, qt)
 			if err != nil {
 				w.er.Report(ctx, nil, err)
@@ -134,7 +127,7 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 		Client:      client,
 	}, q.Task)
 
-	errs := make(chan error, 8)
+	errs := make(chan error, 128)
 	var wg sync.WaitGroup
 	wg.Add(3)
 	// push queued tasks

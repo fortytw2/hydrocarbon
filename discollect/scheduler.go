@@ -57,6 +57,7 @@ func (s *Scheduler) Start() {
 			srs, err := s.ms.FindMissingSchedules(context.TODO(), forwardScrapeLimit)
 			if err != nil {
 				s.er.Report(context.TODO(), nil, err)
+				continue
 			}
 
 			for _, sr := range srs {

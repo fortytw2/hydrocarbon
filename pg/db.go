@@ -672,10 +672,10 @@ func (db *DB) FindMissingSchedules(ctx context.Context, limit int) ([]*discollec
 		row_to_json(sc.*) ORDER BY scheduled_start_at DESC
 	) as scrapes, jsonb_agg(
 		row_to_json(ps.*) ORDER BY ps.created_at DESC
-	) as posts
+	) FILTER (WHERE ps.id IS NOT NULL) as posts
 	FROM feeds f
 	JOIN LATERAL (SELECT * FROM scrapes WHERE feed_id = f.id ORDER BY scrapes.scheduled_start_at DESC LIMIT 5) sc ON true
-	JOIN LATERAL (SELECT * FROM posts WHERE feed_id = f.id ORDER BY posts.created_at DESC LIMIT 5) ps ON true
+	LEFT JOIN LATERAL (SELECT * FROM posts WHERE feed_id = f.id ORDER BY posts.created_at DESC LIMIT 5) ps ON true
 	WHERE NOT EXISTS (
 		SELECT 1 FROM scrapes 
 		WHERE feed_id = f.id
