@@ -7,14 +7,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/fortytw2/hydrocarbon/discollect"
-
-	"github.com/lib/pq"
-
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/google/uuid"
-	// postgres driver
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // A DB is responsible for all interactions with postgres
@@ -504,18 +500,33 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 // UpdatePosts upserts a smattering of posts into the db
 func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarbon.Post) error {
 	for _, p := range posts {
-		var contentHash string
-		err := db.sql.QueryRow(`
+		contentHash := p.ContentHash()
+		tx, err := db.sql.BeginTx(ctx, nil)
+		if err != nil {
+			return nil
+		}
+
+		var validHash string
+		err = tx.QueryRowContext(ctx, `
+		SELECT content_hash FROM posts WHERE content_hash = $1`, contentHash).Scan(&validHash)
+		if err != nil {
+			if err != sql.ErrNoRows {
+				return err
+			}
+		}
+
+		if validHash != "" {
+			continue
+		}
+
+		_, err = tx.ExecContext(ctx, `
 		INSERT INTO posts 
 		(feed_id, content_hash, title, author, body, url, posted_at)
 		VALUES 
 		($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (content_hash) DO NOTHING
-		RETURNING content_hash;`, feedID, p.ContentHash(), p.Title, p.Author, p.Body, p.OriginalURL, p.PostedAt).Scan(&contentHash)
+		ON CONFLICT (url) DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author, body = EXCLUDED.body, content_hash = EXCLUDED.content_hash;`,
+			feedID, p.ContentHash(), p.Title, p.Author, p.Body, p.OriginalURL, p.PostedAt)
 		if err != nil {
-			if err == sql.ErrNoRows {
-				continue
-			}
 			return err
 		}
 	}

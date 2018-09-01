@@ -114,6 +114,7 @@ CREATE TABLE posts (
 
 	extra JSONB,
 
+	UNIQUE (url),
 	UNIQUE (content_hash)
 );
 

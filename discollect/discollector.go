@@ -62,10 +62,11 @@ func New(opts ...OptionFn) (*Discollector, error) {
 	d.workers = make([]*Worker, 0)
 
 	d.s = &Scheduler{
-		r:  d.r,
-		ms: d.ms,
-		q:  d.q,
-		er: d.er,
+		shutdown: make(chan chan struct{}),
+		r:        d.r,
+		ms:       d.ms,
+		q:        d.q,
+		er:       d.er,
 	}
 
 	d.resolver = &Resolver{

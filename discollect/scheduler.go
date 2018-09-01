@@ -23,8 +23,6 @@ type Scheduler struct {
 
 // Start launches the scheduler
 func (s *Scheduler) Start() {
-	s.shutdown = make(chan chan struct{})
-
 	s.ticker = time.NewTicker(pollInterval)
 
 	for {
