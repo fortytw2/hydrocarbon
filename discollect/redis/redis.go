@@ -36,7 +36,7 @@ func scrapeRetriesCounterKey(scrapeID uuid.UUID) string {
 }
 
 func scrapeCompletedCounterKey(scrapeID uuid.UUID) string {
-	return fmt.Sprintf("%s_retries", scrapeID)
+	return fmt.Sprintf("%c_completed", scrapeID)
 }
 
 // Queue implements discollect.Queue using a redis reliable queue
@@ -131,7 +131,6 @@ func (q *Queue) Push(ctx context.Context, tasks []*discollect.QueuedTask) error 
 	conn := q.r.Get()
 	defer conn.Close()
 
-	fmt.Printf("%+v\n", tasks)
 	scrapeID := tasks[0].ScrapeID
 
 	_, err := redis.Int(conn.Do("SADD", activeScrapeIDsKey, scrapeID))
@@ -167,6 +166,11 @@ func (q *Queue) Finish(ctx context.Context, task *discollect.QueuedTask) error {
 	defer conn.Close()
 
 	_, err := redis.Int(conn.Do("INCR", scrapeCompletedCounterKey(task.ScrapeID)))
+	if err != nil {
+		return err
+	}
+
+	_, err = redis.Int(conn.Do("DECR", scrapeInflightCounterKey(task.ScrapeID)))
 	if err != nil {
 		return err
 	}
@@ -239,19 +243,37 @@ func (q *Queue) Status(ctx context.Context, scrapeID uuid.UUID) (*discollect.Scr
 	}, nil
 }
 
-func (q *Queue) FinishScrape(ctx context.Context, scrapeID uuid.UUID) error {
-	// DELETE scrapeid_tasks
-	// DELETE scrapeid_inflight_tasks
+// DELETE scrapeid_tasks
+// DELETE scrapeid_inflight_tasks
 
-	// DELETE scrapeid_total
-	// DELETE scrapeid_complete
-	// DELETE scrapeid_retries
-	// DELETE scrapeid_inflight
+// DELETE scrapeid_total
+// DELETE scrapeid_complete
+// DELETE scrapeid_retries
+// DELETE scrapeid_inflight
 
-	// DELETE scrapeid FROM active_scrape_ids
+// DELETE scrapeid FROM active_scrape_ids
+func (q *Queue) CompleteScrape(ctx context.Context, scrapeID uuid.UUID) error {
+	conn := q.r.Get()
+	defer conn.Close()
 
-	return nil
+	keys := []string{
+		scrapeTasksKey(scrapeID),
+		scrapeInflightTasksKey(scrapeID),
+		scrapeTotalCounterKey(scrapeID),
+		scrapeCompletedCounterKey(scrapeID),
+		scrapeRetriesCounterKey(scrapeID),
+		scrapeInflightCounterKey(scrapeID),
+	}
 
+	for _, k := range keys {
+		_, err := redis.Bool(conn.Do("DEL", k))
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err := redis.Int(conn.Do("SREM", activeScrapeIDsKey, scrapeID))
+	return err
 }
 
 // ResetAll runs FLUSHALL

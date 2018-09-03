@@ -19,6 +19,8 @@ type Queue interface {
 	Error(ctx context.Context, qt *QueuedTask) error
 
 	Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStatus, error)
+
+	CompleteScrape(ctx context.Context, scrapeID uuid.UUID) error
 }
 
 var ErrCompletedScrape = errors.New("completed scrape")
@@ -147,4 +149,8 @@ func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStat
 		RetriedTasks:   mq.retriedTasks,
 		InFlightTasks:  mq.inflight,
 	}, nil
+}
+
+func (mq *MemQueue) CompleteScrape(ctx context.Context, scrapeID uuid.UUID) error {
+	return nil
 }

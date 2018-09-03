@@ -114,7 +114,8 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 			}
 
 			tasks = append(tasks, &dc.Task{
-				URL: fmt.Sprintf("https://%s/s/%s/%s", parsedURL.Host, ho.RouteParams[2], val),
+				URL:     fmt.Sprintf("https://%s/s/%s/%s", parsedURL.Host, ho.RouteParams[2], val),
+				Timeout: 45 * time.Second,
 			})
 		})
 	}

@@ -59,7 +59,7 @@ func (fs *FileStore) Put(fileName string, contents []byte) (string, error) {
 		return "", fmt.Errorf("unsupported image type: %s", contentType)
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	obj := fs.client.Bucket(fs.imageBucketName).Object(fName)

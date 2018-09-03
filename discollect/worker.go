@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // A Worker is a single-threaded worker that pulls a single task from the queue at a time
@@ -46,7 +48,7 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 		default:
 			qt, err := w.q.Pop(context.TODO())
 			if err != nil {
-				w.er.Report(context.TODO(), nil, err)
+				w.er.Report(context.TODO(), nil, fmt.Errorf("discollect: worker-pop: %s", err))
 				continue
 			}
 
@@ -55,11 +57,16 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 				continue
 			}
 
+			timeout := defaultTimeout
+			if qt.Task.Timeout != 0 {
+				timeout = qt.Task.Timeout
+			}
+
 			// set config timeout on all worker actions on this task
-			ctx, cancel := context.WithTimeout(context.Background(), qt.Task.Timeout)
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
 			err = w.processTask(ctx, qt)
 			if err != nil {
-				w.er.Report(ctx, nil, err)
+				w.er.Report(ctx, nil, fmt.Errorf("discollect: worker-process-task: %s", err))
 				// retry task
 				w.q.Error(ctx, qt)
 				cancel()
@@ -145,6 +152,7 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 				Plugin:   q.Plugin,
 				Config:   q.Config,
 				QueuedAt: time.Now().In(time.UTC),
+				TaskID:   uuid.New(),
 				Task:     t,
 			})
 		}

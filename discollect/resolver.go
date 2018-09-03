@@ -2,6 +2,7 @@ package discollect
 
 import (
 	"context"
+	"fmt"
 	"time"
 )
 
@@ -39,7 +40,17 @@ func (r *Resolver) Start() {
 				}
 
 				if ss.InFlightTasks == 0 && (ss.CompletedTasks == ss.TotalTasks) {
-					r.ms.EndScrape(context.TODO(), sc.ID, 0, ss.RetriedTasks, ss.CompletedTasks)
+					err = r.ms.EndScrape(context.TODO(), sc.ID, 0, ss.RetriedTasks, ss.CompletedTasks)
+					if err != nil {
+						continue
+					}
+
+					err = r.q.CompleteScrape(context.TODO(), sc.ID)
+					if err != nil {
+						// TODO(fortytw2):
+						r.er.Report(context.TODO(), nil, fmt.Errorf("could not clean up redis for scrape id: %s: %s", sc.ID, err))
+						continue
+					}
 				}
 			}
 		}
