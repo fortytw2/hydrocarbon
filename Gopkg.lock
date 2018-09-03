@@ -66,6 +66,17 @@
   revision = "a73397bdeff4b713648d4b2e7fc655eb9a85fb6b"
 
 [[projects]]
+  digest = "1:4b5f8c148e7fa094b73bcb6d16ea46eac7fdc726e55b81845ff96e29df534421"
+  name = "github.com/garyburd/redigo"
+  packages = [
+    "internal",
+    "redis",
+  ]
+  pruneopts = ""
+  revision = "a69d19351219b6dd56f274f96d85a7014a2ec34e"
+  version = "v1.6.0"
+
+[[projects]]
   digest = "1:815d45503dceeca8ffecce0081d7edeae5e75b126107ef763d1c617154d72359"
   name = "github.com/golang/protobuf"
   packages = [
@@ -82,11 +93,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2f22df23fa4f83691f72e0645ac4fcb4816c5cc33163e868e4af8ef71f16a368"
+  digest = "1:8db382e6b6e49d0a3c033f75a920bbb9730a09f4f55510d744c44420f2e846ce"
   name = "github.com/google/uuid"
   packages = ["."]
   pruneopts = ""
-  revision = "dec09d789f3dba190787f8b4454c7d3c936fed9e"
+  revision = "e704694aed0ea004bb7eb1fc2e911d048a54606a"
 
 [[projects]]
   digest = "1:e097a364f4e8d8d91b9b9eeafb992d3796a41fde3eb548c1a87eb9d9f60725cf"
@@ -154,7 +165,7 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:f68b162217234f07cd0620b2a826df86cbd8acf830b249175dcc8396cf10929d"
+  digest = "1:cd26c8c1a50e408ecfc32bcbdf4fa3f6bc5069a1607cdb0894aca06a5bc99845"
   name = "github.com/stripe/stripe-go"
   packages = [
     ".",
@@ -211,8 +222,8 @@
     "usagerecord",
   ]
   pruneopts = ""
-  revision = "f679e53dfd390ef0cc4230baf7ea39e73cf6813a"
-  version = "v43.0.0"
+  revision = "6ed5f054050b8398fe8c3e01999b2dd69825e9d4"
+  version = "v45.0.0"
 
 [[projects]]
   digest = "1:081bd218a5f06b96c08d91530c185dd1b579584be4c96ea70a17438e44fd59d0"
@@ -271,11 +282,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ec93a2af9bfc37e1a1793a1c97e05b31a8b19065747b7fc329c9c0ff58700aa5"
+  digest = "1:c1fdf540baedb140d1ff49a99cade2c5caac71a25168a43c20aba6434b6dadc9"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = ""
-  revision = "4910a1d54f876d7b22162a85f4d066d3ee649450"
+  revision = "1b73967140201b02a8420ee8555ed00a432e97c0"
 
 [[projects]]
   digest = "1:af9bfca4298ef7502c52b1459df274eed401a4f5498b900e9a92d28d3d87ac5a"
@@ -314,7 +325,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:85c898b818bd7c690bc5a453511ac6e634a7e5e9a81209ca3e80ba36af975c68"
+  digest = "1:4c11fda7ef44f31a6cb30fc84d186dcf6a3a7c320f61980bb90ccefa92f02216"
   name = "google.golang.org/api"
   packages = [
     "gensupport",
@@ -328,7 +339,7 @@
     "transport/http",
   ]
   pruneopts = ""
-  revision = "7954115fcf34e0dcda6981c9ed8a81a293f0489b"
+  revision = "b810576d88a056b90ef18a0b5328544c9c074c68"
 
 [[projects]]
   digest = "1:eede11c81b63c8f6fd06ef24ba0a640dc077196ec9b7a58ecde03c82eee2f151"
@@ -351,7 +362,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c8aa249fb74a455a901ef97b28dd8225a3f65a5af0b2127d7ac3f54924866086"
+  digest = "1:7040eaf95eb09f6f69e1415074049a9a66236d59d8767f2d17b759b916f79fb1"
   name = "google.golang.org/genproto"
   packages = [
     "googleapis/api/annotations",
@@ -360,7 +371,7 @@
     "googleapis/rpc/status",
   ]
   pruneopts = ""
-  revision = "c66870c02cf823ceb633bcd05be3c7cda29976f4"
+  revision = "11092d34479b07829b72e10713b159248caf5dad"
 
 [[projects]]
   digest = "1:cb1330030248de97a11d9f9664f3944fce0df947e5ed94dbbd9cb6e77068bd46"
@@ -406,6 +417,7 @@
     "github.com/PuerkitoBio/goquery",
     "github.com/elazarl/go-bindata-assetfs",
     "github.com/fortytw2/dockertest",
+    "github.com/garyburd/redigo/redis",
     "github.com/google/uuid",
     "github.com/heroku/x/hmetrics",
     "github.com/lib/pq",
