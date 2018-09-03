@@ -16,6 +16,7 @@ import (
 
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/discollect"
+	"github.com/fortytw2/hydrocarbon/discollect/redis"
 	"github.com/fortytw2/hydrocarbon/gcs"
 	"github.com/fortytw2/hydrocarbon/pg"
 	"github.com/fortytw2/hydrocarbon/postmark"
@@ -136,8 +137,19 @@ func main() {
 		}
 	}
 
+	var queue discollect.Queue
+	if redisAddr, ok := os.LookupEnv("REDIS_URL"); ok {
+		queue, err = redis.NewQueue(redisAddr, 0)
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		queue = discollect.NewMemQueue()
+	}
+
 	dc, err := discollect.New(
 		// pg.DB is a discollect writer
+		discollect.WithQueue(queue),
 		discollect.WithWriter(db),
 		discollect.WithMetastore(db),
 		discollect.WithFileStore(fs),

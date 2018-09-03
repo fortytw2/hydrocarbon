@@ -103,7 +103,7 @@ const defaultTimeout = 60 * time.Second
 
 // launchScrape launches a new scrape and enqueues the initial tasks
 func launchScrape(ctx context.Context, id uuid.UUID, p *Plugin, cfg *Config, q Queue, ms Metastore) error {
-	qts := make([]*QueuedTask, len(cfg.Entrypoints))
+	qts := make([]*QueuedTask, 0)
 	for _, e := range cfg.Entrypoints {
 		u, err := uuid.NewRandom()
 		if err != nil {

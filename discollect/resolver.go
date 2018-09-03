@@ -33,7 +33,11 @@ func (r *Resolver) Start() {
 			}
 
 			for _, sc := range scrapes {
-				ss := r.q.Status(context.TODO(), sc.ID)
+				ss, err := r.q.Status(context.TODO(), sc.ID)
+				if err != nil {
+					continue
+				}
+
 				if ss.InFlightTasks == 0 && (ss.CompletedTasks == ss.TotalTasks) {
 					r.ms.EndScrape(context.TODO(), sc.ID, 0, ss.RetriedTasks, ss.CompletedTasks)
 				}

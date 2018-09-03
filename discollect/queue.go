@@ -18,7 +18,7 @@ type Queue interface {
 	Finish(ctx context.Context, qt *QueuedTask) error
 	Error(ctx context.Context, qt *QueuedTask) error
 
-	Status(ctx context.Context, scrapeID uuid.UUID) *ScrapeStatus
+	Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStatus, error)
 }
 
 var ErrCompletedScrape = errors.New("completed scrape")
@@ -137,7 +137,7 @@ func (mq *MemQueue) Finish(ctx context.Context, qt *QueuedTask) error {
 }
 
 // Status returns the status for a given scrape
-func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) *ScrapeStatus {
+func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStatus, error) {
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
 
@@ -146,5 +146,5 @@ func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) *ScrapeStatu
 		TotalTasks:     mq.totalTasks,
 		RetriedTasks:   mq.retriedTasks,
 		InFlightTasks:  mq.inflight,
-	}
+	}, nil
 }

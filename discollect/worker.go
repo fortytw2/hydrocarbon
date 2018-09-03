@@ -134,15 +134,19 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 	go func() {
 		defer wg.Done()
 
-		qt := make([]*QueuedTask, len(resp.Tasks))
-		for i, t := range resp.Tasks {
-			qt[i] = &QueuedTask{
+		qt := make([]*QueuedTask, 0)
+		for _, t := range resp.Tasks {
+			if t == nil {
+				continue
+			}
+
+			qt = append(qt, &QueuedTask{
 				ScrapeID: q.ScrapeID,
 				Plugin:   q.Plugin,
 				Config:   q.Config,
 				QueuedAt: time.Now().In(time.UTC),
 				Task:     t,
-			}
+			})
 		}
 
 		err := w.q.Push(ctx, qt)

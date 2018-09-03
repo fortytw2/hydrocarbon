@@ -124,9 +124,14 @@ func (q *Queue) Pop(ctx context.Context) (*discollect.QueuedTask, error) {
 // INCR scrapeid_total
 // LPUSH onto 'scrapeid_tasks'
 func (q *Queue) Push(ctx context.Context, tasks []*discollect.QueuedTask) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
 	conn := q.r.Get()
 	defer conn.Close()
 
+	fmt.Printf("%+v\n", tasks)
 	scrapeID := tasks[0].ScrapeID
 
 	_, err := redis.Int(conn.Do("SADD", activeScrapeIDsKey, scrapeID))
