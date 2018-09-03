@@ -109,10 +109,11 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 	c := &hydrocarbon.Post{
 		// there is no posted at date for either site, so make a fake date using
 		// the year to maintain ordering
-		PostedAt: time.Date(day, 01, 01, 0, 0, 0, 0, time.UTC),
-		Title:    chapterTitle,
-		Author:   strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
-		Body:     html.UnescapeString(strings.TrimSpace(body)),
+		PostedAt:    time.Date(day, 01, 01, 0, 0, 0, 0, time.UTC),
+		OriginalURL: t.URL,
+		Title:       chapterTitle,
+		Author:      strings.TrimSpace(doc.Find(`#profile_top .xcontrast_txt+ a.xcontrast_txt`).Text()),
+		Body:        html.UnescapeString(strings.TrimSpace(body)),
 	}
 
 	// find all chapters if this is the first one
