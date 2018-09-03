@@ -30,7 +30,19 @@ var Plugin = &dc.Plugin{
 
 		return getTitle(ho)
 	},
-	Scheduler: dc.DefaultScheduler,
+	Scheduler: func(sr *dc.ScheduleRequest) ([]*dc.ScrapeSchedule, error) {
+		if len(sr.LatestScrapes) == 0 {
+			return nil, errors.New("discollect: cannot schedule a scrape without an initial scrape")
+		}
+
+		base := time.Now()
+		conf := sr.LatestScrapes[0].Config
+
+		return []*dc.ScrapeSchedule{{
+			ScheduledStartAt: base.Add(time.Hour * 72),
+			Config:           conf,
+		}}, nil
+	},
 	Routes: map[string]dc.Handler{
 		`https:\/\/www.(fictionpress.com|fanfiction.net)\/s\/(.*)\/(\d+)(.*)`: storyPage,
 	},
