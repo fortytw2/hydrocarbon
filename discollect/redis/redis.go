@@ -51,7 +51,10 @@ func NewQueue(redisAddr string, redisDBIndex int) (*Queue, error) {
 		Dial: func() (redis.Conn, error) {
 			c, err := redis.Dial("tcp", redisAddr)
 			if err != nil {
-				return nil, err
+				c, err = redis.DialURL(redisAddr)
+				if err != nil {
+					return nil, err
+				}
 			}
 			if _, err := c.Do("SELECT", redisDBIndex); err != nil {
 				c.Close()
@@ -245,7 +248,6 @@ func (q *Queue) Status(ctx context.Context, scrapeID uuid.UUID) (*discollect.Scr
 
 // DELETE scrapeid_tasks
 // DELETE scrapeid_inflight_tasks
-
 // DELETE scrapeid_total
 // DELETE scrapeid_complete
 // DELETE scrapeid_retries
