@@ -67,7 +67,7 @@ func (w *Worker) Start(wg *sync.WaitGroup) {
 			}
 
 			// callback that we've finished the task
-			err = w.q.Finish(ctx, qt.TaskID)
+			err = w.q.Finish(ctx, qt)
 			if err != nil {
 				w.er.Report(ctx, nil, err)
 			}

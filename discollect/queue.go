@@ -15,7 +15,7 @@ type Queue interface {
 	Pop(ctx context.Context) (*QueuedTask, error)
 	Push(ctx context.Context, tasks []*QueuedTask) error
 
-	Finish(ctx context.Context, taskID uuid.UUID) error
+	Finish(ctx context.Context, qt *QueuedTask) error
 	Error(ctx context.Context, qt *QueuedTask) error
 
 	Status(ctx context.Context, scrapeID uuid.UUID) *ScrapeStatus
@@ -125,7 +125,7 @@ func (mq *MemQueue) Error(ctx context.Context, qt *QueuedTask) error {
 }
 
 // Finish is a no-op for the MemQueue
-func (mq *MemQueue) Finish(ctx context.Context, taskID uuid.UUID) error {
+func (mq *MemQueue) Finish(ctx context.Context, qt *QueuedTask) error {
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
 
