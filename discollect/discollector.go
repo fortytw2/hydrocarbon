@@ -70,9 +70,10 @@ func New(opts ...OptionFn) (*Discollector, error) {
 	}
 
 	d.resolver = &Resolver{
-		ms: d.ms,
-		q:  d.q,
-		er: d.er,
+		shutdown: make(chan chan struct{}),
+		ms:       d.ms,
+		q:        d.q,
+		er:       d.er,
 	}
 
 	return d, nil
