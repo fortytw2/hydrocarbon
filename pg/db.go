@@ -471,6 +471,7 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 		ID:    feedID,
 		Posts: make([]*hydrocarbon.Post, 0),
 	}
+
 	for rows.Next() {
 		var feedID, feedTitle string
 		var jsonBody []byte
@@ -486,6 +487,13 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 			if err != nil {
 				return nil, err
 			}
+
+			for _, p := range feed.Posts {
+				p.Body, err = decompressText(p.Body)
+				if err != nil {
+					return nil, err
+				}
+			}
 		}
 	}
 
@@ -497,43 +505,6 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	return feed, nil
 }
 
-// UpdatePosts upserts a smattering of posts into the db
-func (db *DB) UpdatePosts(ctx context.Context, feedID string, posts []*hydrocarbon.Post) error {
-	for _, p := range posts {
-		contentHash := p.ContentHash()
-		tx, err := db.sql.BeginTx(ctx, nil)
-		if err != nil {
-			return nil
-		}
-
-		var validHash string
-		err = tx.QueryRowContext(ctx, `
-		SELECT content_hash FROM posts WHERE content_hash = $1`, contentHash).Scan(&validHash)
-		if err != nil {
-			if err != sql.ErrNoRows {
-				return err
-			}
-		}
-
-		if validHash != "" {
-			continue
-		}
-
-		_, err = tx.ExecContext(ctx, `
-		INSERT INTO posts 
-		(feed_id, content_hash, title, author, body, url, posted_at)
-		VALUES 
-		($1, $2, $3, $4, $5, $6, $7)
-		ON CONFLICT (url) DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author, body = EXCLUDED.body, content_hash = EXCLUDED.content_hash;`,
-			feedID, p.ContentHash(), p.Title, p.Author, p.Body, p.OriginalURL, p.PostedAt)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 // Write saves off the post to the db
 func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) error {
 	hcp, ok := f.(*hydrocarbon.Post)
@@ -541,14 +512,55 @@ func (db *DB) Write(ctx context.Context, scrapeID uuid.UUID, f interface{}) erro
 		return errors.New("unable to write non *hydrocarbon.Post struct")
 	}
 
-	_, err := db.sql.ExecContext(ctx, `
-	INSERT INTO posts 
-	(feed_id, content_hash, title, author, body, url, posted_at)
-	VALUES 
-	(
-		(SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6, $7
-	)
-	ON CONFLICT DO NOTHING;`, scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, hcp.Body, hcp.OriginalURL, hcp.PostedAt)
+	contentHash := hcp.ContentHash()
+	tx, err := db.sql.BeginTx(ctx, nil)
+	if err != nil {
+		return nil
+	}
+
+	rollback := true
+	// defer rollback if we throw an error
+	defer func() {
+		if rollback {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				err = fmt.Errorf("err: %s, rollbackErr: %s", err, rollbackErr)
+			}
+		}
+	}()
+
+	var validHash string
+	err = tx.QueryRowContext(ctx, `
+		SELECT content_hash FROM posts WHERE content_hash = $1`, contentHash).Scan(&validHash)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return err
+		}
+	}
+
+	// do no work
+	if validHash != "" {
+		return nil
+	}
+
+	body, err := compressText(hcp.Body)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO posts 
+		(feed_id, content_hash, title, author, body, url, posted_at)
+		VALUES 
+		((SELECT feed_id FROM scrapes WHERE id = $1), $2, $3, $4, $5, $6, $7)
+		ON CONFLICT (url) DO UPDATE SET title = EXCLUDED.title, author = EXCLUDED.author, body = EXCLUDED.body, content_hash = EXCLUDED.content_hash;`,
+		scrapeID, hcp.ContentHash(), hcp.Title, hcp.Author, body, hcp.OriginalURL, hcp.PostedAt)
+	if err != nil {
+		return err
+	}
+
+	rollback = false
+	err = tx.Commit()
 	return err
 }
 
@@ -765,7 +777,7 @@ func (db *DB) InsertSchedule(ctx context.Context, sr *discollect.ScheduleRequest
 func (db *DB) EndScrape(ctx context.Context, id uuid.UUID, datums, retries, tasks int) error {
 	row := db.sql.QueryRowContext(ctx, `
 	UPDATE scrapes
-	SET state = 'SUCCESS'::scrape_state, total_datums = $1, total_retries = $2, total_tasks = $3
+	SET state = 'SUCCESS'::scrape_state, ended_at = now(), total_datums = $1, total_retries = $2, total_tasks = $3
 	WHERE id = $4
 	RETURNING state`, datums, retries, tasks, id)
 
