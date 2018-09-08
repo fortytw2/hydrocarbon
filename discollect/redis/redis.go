@@ -85,6 +85,8 @@ func NewQueue(redisAddr string, redisDBIndex int) (*Queue, error) {
 	}, nil
 }
 
+// TODO(fortytw2): if there is nothing in the scrape returned by SRANDMEMBER
+// try again, etc.
 var popScript = fmt.Sprintf(`
 -- redis does not allow SRANDMEMBER in default replication mode.. we don't
 -- care about replication though
@@ -110,7 +112,6 @@ func (q *Queue) Pop(ctx context.Context) (*discollect.QueuedTask, error) {
 
 	task, err := redis.Bytes(conn.Do("EVALSHA", q.popScriptSHA, 0))
 	if err != nil {
-		// no task in the queue for that specific scrape
 		if err == redis.ErrNil {
 			return nil, nil
 		}
