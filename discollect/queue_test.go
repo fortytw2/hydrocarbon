@@ -9,8 +9,7 @@ import (
 func TestMemQueue(t *testing.T) {
 	mq := NewMemQueue()
 
-	QueueTests(t, mq, func() {
-		mq = NewMemQueue()
-	})
-
+	t.Run("standard", QueueTests(t, mq, func() {
+		mq.reset()
+	}))
 }

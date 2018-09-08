@@ -5,6 +5,7 @@ package discollect
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/google/uuid"
@@ -86,18 +87,27 @@ func QueueTests(t *testing.T, q Queue, resetFunc func()) func(t *testing.T) {
 						return errors.New("got nil for task 1")
 					}
 
-					qt, err := q.Pop(context.TODO())
-					if err != nil || qt != nil {
-						return errors.New("got a task when non currently exist")
-					}
-
 					ss, err := q.Status(context.TODO(), exID)
 					if err != nil {
 						return err
 					}
 
 					if ss.TotalTasks != 1 {
-						return errors.New("wrong scrape status")
+						return fmt.Errorf("wrong number of total tasks after popping one, got %d, want 1", ss.TotalTasks)
+					}
+
+					qt, err := q.Pop(context.TODO())
+					if err != nil || qt != nil {
+						return errors.New("got a task when non currently exist")
+					}
+
+					ss, err = q.Status(context.TODO(), exID)
+					if err != nil {
+						return err
+					}
+
+					if ss.TotalTasks != 1 {
+						return fmt.Errorf("wrong number of total tasks, got %d, want 1", ss.TotalTasks)
 					}
 
 					err = q.Finish(context.TODO(), qt1)

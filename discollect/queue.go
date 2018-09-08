@@ -61,7 +61,8 @@ type ScrapeStatus struct {
 // NewMemQueue makes a new purely in-memory queue
 func NewMemQueue() *MemQueue {
 	return &MemQueue{
-		q: make(map[uuid.UUID]chan *QueuedTask),
+		state: make(map[uuid.UUID]*ScrapeStatus),
+		q:     make(map[uuid.UUID]chan *QueuedTask),
 	}
 }
 
@@ -71,6 +72,14 @@ type MemQueue struct {
 
 	state map[uuid.UUID]*ScrapeStatus
 	q     map[uuid.UUID]chan *QueuedTask
+}
+
+func (mq *MemQueue) reset() {
+	mq.mu.Lock()
+	defer mq.mu.Unlock()
+
+	mq.state = make(map[uuid.UUID]*ScrapeStatus)
+	mq.q = make(map[uuid.UUID]chan *QueuedTask)
 }
 
 // Pop pops a single task off the left side of the array
@@ -83,14 +92,17 @@ func (mq *MemQueue) Pop(ctx context.Context) (*QueuedTask, error) {
 	}
 
 	for _, q := range mq.q {
-		task := <-q
-		if task != nil {
-			mq.state[task.ScrapeID].InFlightTasks += 1
-			return task, nil
-		} else {
-			return nil, nil
+		select {
+		case task := <-q:
+			if task != nil {
+				mq.state[task.ScrapeID].InFlightTasks += 1
+				return task, nil
+			} else {
+				return nil, nil
+			}
+		default:
+			continue
 		}
-
 	}
 
 	return nil, nil
@@ -98,12 +110,14 @@ func (mq *MemQueue) Pop(ctx context.Context) (*QueuedTask, error) {
 
 // Push appends tasks to the right side of the array
 func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
-	mq.mu.Lock()
-	defer mq.mu.Unlock()
-
 	for _, t := range tasks {
 		if t == nil {
 			continue
+		}
+
+		mq.mu.Lock()
+		if mq.state[t.ScrapeID] == nil {
+			mq.state[t.ScrapeID] = &ScrapeStatus{}
 		}
 
 		if t.Retries == 0 {
@@ -112,11 +126,16 @@ func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
 			mq.state[t.ScrapeID].RetriedTasks += 1
 		}
 
+		var c chan *QueuedTask
 		if mq.q[t.ScrapeID] == nil {
-			mq.q[t.ScrapeID] = make(chan *QueuedTask, 64)
+			c = make(chan *QueuedTask, 64)
+			mq.q[t.ScrapeID] = c
+		} else {
+			c = mq.q[t.ScrapeID]
 		}
+		mq.mu.Unlock()
 
-		mq.q[t.ScrapeID] <- t
+		c <- t
 	}
 
 	return nil
@@ -124,12 +143,13 @@ func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
 
 func (mq *MemQueue) Error(ctx context.Context, qt *QueuedTask) error {
 	mq.mu.Lock()
-	defer mq.mu.Unlock()
-
 	mq.state[qt.ScrapeID].InFlightTasks -= 1
 	mq.state[qt.ScrapeID].RetriedTasks += 1
 
-	mq.q[qt.ScrapeID] <- qt
+	writeTo := mq.q[qt.ScrapeID]
+	mq.mu.Unlock()
+
+	writeTo <- qt
 
 	return nil
 }

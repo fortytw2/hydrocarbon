@@ -25,7 +25,7 @@ func TestRedis(t *testing.T) {
 	}
 
 	t.Run("standard", discollect.QueueTests(t, q, func() {
-		err := q.ResetAll()
+		err := q.resetAll()
 		if err != nil {
 			panic(err)
 		}

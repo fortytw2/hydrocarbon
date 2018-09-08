@@ -285,7 +285,7 @@ func (q *Queue) CompleteScrape(ctx context.Context, scrapeID uuid.UUID) error {
 }
 
 // ResetAll runs FLUSHALL
-func (q *Queue) ResetAll() error {
+func (q *Queue) resetAll() error {
 	conn := q.r.Get()
 	defer conn.Close()
 
