@@ -38,6 +38,10 @@ func compressText(in string) (string, error) {
 }
 
 func decompressText(in string) (string, error) {
+	if !strings.HasPrefix(in, compressionPrefix) {
+		return in, nil
+	}
+
 	decoded, err := base64.StdEncoding.DecodeString(strings.TrimPrefix(in, compressionPrefix))
 	if err != nil {
 		return "", err
