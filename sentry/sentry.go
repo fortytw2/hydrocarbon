@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/fortytw2/discollect"
+	"github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // ErrorReporter implements discollect.ErrorReporter and hydrocarbon.ErrorReporter
