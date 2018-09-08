@@ -86,18 +86,18 @@ func NewQueue(redisAddr string, redisDBIndex int) (*Queue, error) {
 }
 
 var popScript = fmt.Sprintf(`
-	-- redis does not allow SRANDMEMBER in default replication mode.. we don't
-	-- care about replication though
-	redis.replicate_commands()
-	
-	local scrapeID = redis.call("SRANDMEMBER", "%s")
-	if scrapeID == false or scrapeID == nil  then
-		return false
-	end
+-- redis does not allow SRANDMEMBER in default replication mode.. we don't
+-- care about replication though
+redis.replicate_commands()
 
-	redis.call("INCR", scrapeID .. "_inflight")
+local scrapeID = redis.call("SRANDMEMBER", "%s")
+if scrapeID == false or scrapeID == nil  then
+	return false
+end
 
-	return redis.call("RPOPLPUSH", scrapeID .. "_tasks", scrapeID .. "_inflight_tasks")
+redis.call("INCR", scrapeID .. "_inflight")
+
+return redis.call("RPOPLPUSH", scrapeID .. "_tasks", scrapeID .. "_inflight_tasks")
 `, activeScrapeIDsKey)
 
 // Pop pops a task off any active queue
