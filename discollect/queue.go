@@ -61,7 +61,7 @@ type ScrapeStatus struct {
 // NewMemQueue makes a new purely in-memory queue
 func NewMemQueue() *MemQueue {
 	return &MemQueue{
-		q: make(chan *QueuedTask, 64),
+		q: make(map[uuid.UUID]chan *QueuedTask),
 	}
 }
 
@@ -69,12 +69,8 @@ func NewMemQueue() *MemQueue {
 type MemQueue struct {
 	mu sync.Mutex
 
-	inflight       int
-	totalTasks     int
-	completedTasks int
-	retriedTasks   int
-
-	q chan *QueuedTask
+	state map[uuid.UUID]*ScrapeStatus
+	q     map[uuid.UUID]chan *QueuedTask
 }
 
 // Pop pops a single task off the left side of the array
@@ -86,9 +82,18 @@ func (mq *MemQueue) Pop(ctx context.Context) (*QueuedTask, error) {
 		return nil, nil
 	}
 
-	mq.inflight += 1
+	for _, q := range mq.q {
+		task := <-q
+		if task != nil {
+			mq.state[task.ScrapeID].InFlightTasks += 1
+			return task, nil
+		} else {
+			return nil, nil
+		}
 
-	return <-mq.q, nil
+	}
+
+	return nil, nil
 }
 
 // Push appends tasks to the right side of the array
@@ -102,12 +107,16 @@ func (mq *MemQueue) Push(ctx context.Context, tasks []*QueuedTask) error {
 		}
 
 		if t.Retries == 0 {
-			mq.totalTasks += 1
+			mq.state[t.ScrapeID].TotalTasks += 1
 		} else {
-			mq.retriedTasks += 1
+			mq.state[t.ScrapeID].RetriedTasks += 1
 		}
 
-		mq.q <- t
+		if mq.q[t.ScrapeID] == nil {
+			mq.q[t.ScrapeID] = make(chan *QueuedTask, 64)
+		}
+
+		mq.q[t.ScrapeID] <- t
 	}
 
 	return nil
@@ -117,11 +126,10 @@ func (mq *MemQueue) Error(ctx context.Context, qt *QueuedTask) error {
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
 
-	mq.inflight -= 1
+	mq.state[qt.ScrapeID].InFlightTasks -= 1
+	mq.state[qt.ScrapeID].RetriedTasks += 1
 
-	qt.Retries += 1
-
-	mq.q <- qt
+	mq.q[qt.ScrapeID] <- qt
 
 	return nil
 }
@@ -131,9 +139,8 @@ func (mq *MemQueue) Finish(ctx context.Context, qt *QueuedTask) error {
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
 
-	mq.inflight -= 1
-
-	mq.completedTasks += 1
+	mq.state[qt.ScrapeID].InFlightTasks -= 1
+	mq.state[qt.ScrapeID].CompletedTasks += 1
 
 	return nil
 }
@@ -143,14 +150,18 @@ func (mq *MemQueue) Status(ctx context.Context, scrapeID uuid.UUID) (*ScrapeStat
 	mq.mu.Lock()
 	defer mq.mu.Unlock()
 
-	return &ScrapeStatus{
-		CompletedTasks: mq.completedTasks,
-		TotalTasks:     mq.totalTasks,
-		RetriedTasks:   mq.retriedTasks,
-		InFlightTasks:  mq.inflight,
-	}, nil
+	ss := mq.state[scrapeID]
+	cop := *ss
+
+	return &cop, nil
 }
 
 func (mq *MemQueue) CompleteScrape(ctx context.Context, scrapeID uuid.UUID) error {
+	mq.mu.Lock()
+	defer mq.mu.Unlock()
+
+	delete(mq.state, scrapeID)
+	delete(mq.q, scrapeID)
+
 	return nil
 }
