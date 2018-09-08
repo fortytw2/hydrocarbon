@@ -57,6 +57,10 @@ func testSimple(q *Queue) func(t *testing.T) {
 						return err
 					}
 
+					if qt == nil {
+						return errors.New("got a nil queued task when one should exist")
+					}
+
 					if qt.ScrapeID != exID {
 						return errors.New("did not get the same thing back")
 					}

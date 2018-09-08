@@ -76,6 +76,8 @@ func NewQueue(redisAddr string, redisDBIndex int) (*Queue, error) {
 	}, nil
 }
 
+// Pop pops a task off any active queue
+// TODO(fortytw2): use redis EVALSHA
 // SRANDMEMBER active_scrape_ids
 // RPOPLPUSH from scrapeid_tasks to scrapeid_inflight_tasks
 // INCR scrapeid_inflight
@@ -83,22 +85,21 @@ func (q *Queue) Pop(ctx context.Context) (*discollect.QueuedTask, error) {
 	conn := q.r.Get()
 	defer conn.Close()
 
-	strScrapeID, err := redis.String(conn.Do("SRANDMEMBER", activeScrapeIDsKey))
-	if err != nil {
-		// nothing in the queue at all
-		if err == redis.ErrNil {
-			return nil, nil
-		}
+	var script = fmt.Sprintf(`
+	-- redis does not allow SRANDMEMBER in default replication mode.. we don't
+	-- care about replication though
+	redis.replicate_commands()
+	
+	local scrapeID = redis.call("SRANDMEMBER", "%s")
+	if scrapeID == false or scrapeID == nil  then
+		return false
+	end
 
-		return nil, err
-	}
+	redis.call("INCR", scrapeID .. "_inflight")
+	return redis.call("RPOPLPUSH", scrapeID .. "_tasks", scrapeID .. "_inflight_tasks")
+	`, activeScrapeIDsKey)
 
-	scrapeID, err := uuid.Parse(strScrapeID)
-	if err != nil {
-		return nil, err
-	}
-
-	task, err := redis.Bytes(conn.Do("RPOPLPUSH", scrapeTasksKey(scrapeID), scrapeInflightTasksKey(scrapeID)))
+	task, err := redis.Bytes(conn.Do("EVAL", script, 0))
 	if err != nil {
 		// no task in the queue for that specific scrape
 		if err == redis.ErrNil {
@@ -110,11 +111,6 @@ func (q *Queue) Pop(ctx context.Context) (*discollect.QueuedTask, error) {
 
 	var qt discollect.QueuedTask
 	err = json.Unmarshal(task, &qt)
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = redis.Int(conn.Do("INCR", scrapeInflightCounterKey(scrapeID)))
 	if err != nil {
 		return nil, err
 	}
