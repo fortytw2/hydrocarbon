@@ -188,14 +188,14 @@ func httpsOnly(domain string) bool {
 	if err != nil {
 		panic(err)
 	}
+
 	return u.Scheme == "https"
 }
 
 func redirectHTTPS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("X-Forwarded-Proto") == "http" {
-			r.URL.Scheme = "https"
-			http.Redirect(w, r, r.URL.String(), http.StatusTemporaryRedirect)
+		if r.Header.Get("X-Forwarded-Proto") == "http" || r.URL.Scheme == "http" {
+			http.Redirect(w, r, fmt.Sprintf("https://%s%s", r.URL.Host, r.URL.Path), http.StatusMovedPermanently)
 			return
 		}
 
