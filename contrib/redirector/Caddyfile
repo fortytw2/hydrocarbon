@@ -1,0 +1,11 @@
+0.0.0.0
+
+hydrocarbon.io
+tls admin@hydrocarbon.io
+
+rewrite / {
+	r  ^/(\w+)/?$
+	to https://www.hydrocarbon.io/{1}
+}
+
+header / Strict-Transport-Security "max-age=31536000;"
