@@ -134,88 +134,46 @@ func (w *Worker) processTask(ctx context.Context, q *QueuedTask) error {
 		Client:      client,
 	}, q.Task)
 
-	errs := make(chan error, 128)
-	var wg sync.WaitGroup
-	wg.Add(3)
-	// push queued tasks
-	go func() {
-		defer wg.Done()
-
-		qt := make([]*QueuedTask, 0)
-		for _, t := range resp.Tasks {
-			if t == nil {
-				continue
-			}
-
-			qt = append(qt, &QueuedTask{
-				ScrapeID: q.ScrapeID,
-				Plugin:   q.Plugin,
-				Config:   q.Config,
-				QueuedAt: time.Now().In(time.UTC),
-				TaskID:   uuid.New(),
-				Task:     t,
-			})
-		}
-
-		err := w.q.Push(ctx, qt)
-		if err != nil {
-			errs <- err
-		}
-	}()
-
 	// report errors
-	go func() {
-		defer wg.Done()
-		for _, err := range resp.Errors {
-			w.er.Report(ctx, &ReporterOpts{
-				ScrapeID: q.ScrapeID,
-				Plugin:   q.Plugin,
-				URL:      q.Task.URL,
-			}, err)
+	for _, err := range resp.Errors {
+		w.er.Report(ctx, &ReporterOpts{
+			ScrapeID: q.ScrapeID,
+			Plugin:   q.Plugin,
+			URL:      q.Task.URL,
+		}, err)
+	}
+
+	// submit tasks back to the queue
+	qt := make([]*QueuedTask, 0)
+	for _, t := range resp.Tasks {
+		if t == nil {
+			continue
 		}
-	}()
+
+		qt = append(qt, &QueuedTask{
+			ScrapeID: q.ScrapeID,
+			Plugin:   q.Plugin,
+			Config:   q.Config,
+			QueuedAt: time.Now().In(time.UTC),
+			TaskID:   uuid.New(),
+			Task:     t,
+		})
+	}
+
+	if len(qt) > 0 {
+		err = w.q.Push(ctx, qt)
+		if err != nil {
+			return err
+		}
+	}
 
 	// write facts
-	go func() {
-		defer wg.Done()
-
-		for _, f := range resp.Facts {
-			err := w.w.Write(ctx, q.ScrapeID, f)
-			if err != nil {
-				errs <- err
-			}
-		}
-	}()
-
-	// wait for all 3 writers to finish
-	wg.Wait()
-	// close error channel
-	close(errs)
-
-	// close error writer
-	var out []error
-	for e := range errs {
-		if e != nil {
-			out = append(out, e)
+	for _, f := range resp.Facts {
+		err = w.w.Write(ctx, q.ScrapeID, f)
+		if err != nil {
+			return err
 		}
 	}
 
-	if len(out) == 0 {
-		return nil
-	}
-
-	return &WorkerErr{
-		QueuedTask: q,
-		Errors:     out,
-	}
-}
-
-// WorkerErr carries errors from a task
-type WorkerErr struct {
-	QueuedTask *QueuedTask
-	Errors     []error
-}
-
-func (we *WorkerErr) Error() string {
-	return fmt.Sprintf("%v", we.Errors)
+	return nil
 }

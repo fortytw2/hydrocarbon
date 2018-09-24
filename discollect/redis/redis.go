@@ -36,7 +36,7 @@ func scrapeRetriesCounterKey(scrapeID uuid.UUID) string {
 }
 
 func scrapeCompletedCounterKey(scrapeID uuid.UUID) string {
-	return fmt.Sprintf("%c_completed", scrapeID)
+	return fmt.Sprintf("%s_completed", scrapeID)
 }
 
 // Queue implements discollect.Queue using a redis reliable queue
@@ -93,13 +93,16 @@ var popScript = fmt.Sprintf(`
 redis.replicate_commands()
 
 local scrapeID = redis.call("SRANDMEMBER", "%s")
-if scrapeID == false or scrapeID == nil  then
+if scrapeID == false or scrapeID == nil then
 	return false
 end
 
-redis.call("INCR", scrapeID .. "_inflight")
+local task = redis.call("RPOPLPUSH", scrapeID .. "_tasks", scrapeID .. "_inflight_tasks")
+if task ~= nil and task ~= false then
+	redis.call("INCR", scrapeID .. "_inflight")
+end
 
-return redis.call("RPOPLPUSH", scrapeID .. "_tasks", scrapeID .. "_inflight_tasks")
+return task 
 `, activeScrapeIDsKey)
 
 // Pop pops a task off any active queue
