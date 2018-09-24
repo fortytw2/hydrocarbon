@@ -127,6 +127,58 @@ func QueueTests(t *testing.T, q Queue, resetFunc func()) func(t *testing.T) {
 					return nil
 				},
 			},
+			{
+				"correct-inflight",
+				func(q Queue) error {
+					err := q.Push(context.TODO(), []*QueuedTask{
+						{
+							ScrapeID: exID,
+						},
+					})
+
+					return err
+				},
+				func(q Queue) error {
+					qt1, err := q.Pop(context.TODO())
+					if err != nil {
+						return err
+					}
+
+					qt, err := q.Pop(context.TODO())
+					if err != nil {
+						return err
+					}
+
+					if qt != nil {
+						return errors.New("got a task where none exists")
+					}
+
+					ss, err := q.Status(context.TODO(), exID)
+					if err != nil {
+						return err
+					}
+
+					if ss.InFlightTasks != 1 {
+						return errors.New("multiple inflight tasks when none should exist")
+					}
+
+					err = q.Finish(context.TODO(), qt1)
+					if err != nil {
+						return err
+					}
+
+					ss, err = q.Status(context.TODO(), exID)
+					if err != nil {
+						return err
+					}
+
+					if ss.InFlightTasks != 0 {
+						return errors.New("no tasks are inflight but one exists")
+					}
+
+					return nil
+				},
+			},
 		}
 
 		for _, c := range cases {
