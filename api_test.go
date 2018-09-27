@@ -35,9 +35,13 @@ func runCases(t *testing.T, db *pg.DB, cases []apiCase) {
 		db.TruncateTables(t)
 
 		dc, _ := discollect.New(discollect.WithPlugins(&discollect.Plugin{
-			Name: "ycombinators",
-			ConfigValidator: func(ho *discollect.HandlerOpts) (string, error) {
-				return "a ok", nil
+			Name:        "ycombinators",
+			Entrypoints: []string{".*"},
+			ConfigCreator: func(url string, ho *discollect.HandlerOpts) (string, *discollect.Config, error) {
+				return "gotem", &discollect.Config{
+					Type:        discollect.FullScrape,
+					Entrypoints: []string{"gotem"},
+				}, nil
 			},
 		}))
 
