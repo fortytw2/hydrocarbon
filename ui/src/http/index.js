@@ -21,7 +21,7 @@ export const listFeeds = ({ folderId, apiKey }) => {
     });
 };
 
-export const createFeed = ({ url, plugin, folderId, apiKey }) => {
+export const createFeed = ({ url, folderId, apiKey }) => {
   return fetch("/v1/feed/create", {
     method: "POST",
     headers: {
@@ -29,7 +29,6 @@ export const createFeed = ({ url, plugin, folderId, apiKey }) => {
     },
     body: JSON.stringify({
       url: url,
-      plugin: plugin,
       folder_id: folderId
     })
   })

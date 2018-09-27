@@ -17,10 +17,16 @@ import (
 // Plugin is a plugin that can scrape parahumans
 var Plugin = &dc.Plugin{
 	Name: "parahumans",
-	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
-		return "Worm", nil
+	// url has already passed the Entrypoints regexps
+	// there is one possible config for this plugin
+	ConfigCreator: func(url string, ho *dc.HandlerOpts) (string, *dc.Config, error) {
+		return "Worm", &dc.Config{
+			Type:        dc.FullScrape,
+			Entrypoints: []string{"https://parahumans.wordpress.com/2011/06/11/1-1/"},
+		}, nil
 	},
-	Scheduler: dc.DefaultScheduler,
+	Scheduler:   dc.NeverSchedule,
+	Entrypoints: []string{`.*parahumans.wordpress.com.*`},
 	Routes: map[string]dc.Handler{
 		`https:\/\/parahumans.wordpress.com\/(\d+)\/(\d+)\/(\d+)\/(.*)`: phPage,
 	},

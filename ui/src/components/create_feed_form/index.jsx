@@ -7,9 +7,6 @@ import inputStyle from "@/styles/textbox.css";
 
 const initialState = {
   url: "",
-  loadingPlugins: true,
-  plugins: [],
-  plugin: "",
   submitting: false,
   error: null
 };
@@ -19,15 +16,6 @@ export default class CreateFeedForm extends Component {
     super(props);
 
     this.setState(initialState);
-  }
-
-  async componentDidMount(props) {
-    try {
-      const plugins = await listPlugins({ apiKey: this.props.apiKey });
-      this.setState({ plugins: plugins, loadingPlugins: false });
-    } catch (e) {
-      this.setState({ error: e, loadingPlugins: false });
-    }
   }
 
   @bind
@@ -43,11 +31,6 @@ export default class CreateFeedForm extends Component {
   }
 
   @bind
-  handlePluginInput(e) {
-    this.setState({ plugin: e.target.value });
-  }
-
-  @bind
   async createFeed(e) {
     e.preventDefault();
 
@@ -58,7 +41,6 @@ export default class CreateFeedForm extends Component {
     try {
       const resp = await createFeed({
         url: this.state.url,
-        plugin: this.state.plugin,
         folderId: this.props.folderId,
         apiKey: this.props.apiKey
       });
@@ -82,7 +64,7 @@ export default class CreateFeedForm extends Component {
     this.setState(initialState);
   }
 
-  render({}, { submitting, error, url, plugin, plugins, pluginsLoading }) {
+  render({}, { submitting, error, url }) {
     if (error) {
       return (
         <div>
@@ -94,10 +76,6 @@ export default class CreateFeedForm extends Component {
 
     if (submitting) {
       return <h3>Processing...</h3>;
-    }
-
-    if (pluginsLoading) {
-      return <h3>Loading Plugins...</h3>;
     }
 
     return (
@@ -112,17 +90,7 @@ export default class CreateFeedForm extends Component {
           onChange={this.handleURLInput}
           placeholder="Feed URL"
         />
-        <label for="feedURL">base URL for the plugin</label>
-
-        <select
-          id="feedPlugin"
-          onChange={this.handlePluginInput}
-          value={plugin}
-        >
-          {plugins.map(p => <option value={p}>{p}</option>)}
-        </select>
-
-        <label for="feedPlugin">actual plugin to use</label>
+        <label for="feedURL">URL you would like to add</label>
 
         <button>Create Feed</button>
       </form>

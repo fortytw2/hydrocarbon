@@ -20,15 +20,10 @@ import (
 
 // Plugin is a plugin that can scrape fictionpress
 var Plugin = &dc.Plugin{
-	Name: "fictionpress",
-	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
-		for _, e := range ho.Config.Entrypoints {
-			if !strings.Contains(e, "fictionpress.com") && !strings.Contains(e, "fanfiction.net") {
-				return "", errors.New("fictionpress plugin only works for fictionpress and fanfiction.net")
-			}
-		}
-
-		return getTitle(ho)
+	Name:          "fictionpress",
+	ConfigCreator: configCreator,
+	Entrypoints: []string{
+		`https:\/\/www.(fictionpress.com|fanfiction.net)\/s\/(.*)\/(\d+)(.*)`,
 	},
 	Scheduler: func(sr *dc.ScheduleRequest) ([]*dc.ScrapeSchedule, error) {
 		if len(sr.LatestScrapes) == 0 {
@@ -48,23 +43,34 @@ var Plugin = &dc.Plugin{
 	},
 }
 
-func getTitle(ho *dc.HandlerOpts) (string, error) {
-	resp, err := ho.Client.Get(ho.Config.Entrypoints[0])
+func configCreator(entrypointURL string, ho *dc.HandlerOpts) (string, *dc.Config, error) {
+	resp, err := ho.Client.Get(entrypointURL)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 	defer httpx.DrainAndClose(resp.Body)
 
 	if resp.StatusCode != http.StatusOK {
-		return "", errors.New("non-200 response")
+		return "", nil, errors.New("non-200 response")
+	}
+
+	parsedURL, err := url.Parse(entrypointURL)
+	if err != nil {
+		return "", nil, err
 	}
 
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
-		return "", err
+		return "", nil, err
 	}
 
-	return strings.TrimSpace(doc.Find("#profile_top > b").First().Text()), nil
+	// of the pattern https://www.fictionpress.com/s/{STORY_ID}/1
+	initialURL := fmt.Sprintf("https://%s/s/%s/%d", parsedURL.Host, ho.RouteParams[2], 1)
+
+	return strings.TrimSpace(doc.Find("#profile_top > b").First().Text()), &dc.Config{
+		Type:        dc.FullScrape,
+		Entrypoints: []string{initialURL},
+	}, nil
 }
 
 func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerResponse {

@@ -20,15 +20,19 @@ var rssPolicy = bluemonday.UGCPolicy().AddTargetBlankToFullyQualifiedLinks(true)
 // - [ ] strip images that don't matter
 var Plugin = &dc.Plugin{
 	Name: "jsonfeed",
-	ConfigValidator: func(ho *dc.HandlerOpts) (string, error) {
-		f, err := getFeed(context.TODO(), ho.Client, ho.Config.Entrypoints[0])
+	ConfigCreator: func(url string, ho *dc.HandlerOpts) (string, *dc.Config, error) {
+		f, err := getFeed(context.TODO(), ho.Client, url)
 		if err != nil {
-			return "", err
+			return "", nil, err
 		}
 
-		return f.Title, nil
+		return f.Title, &dc.Config{
+			Type:        dc.FullScrape,
+			Entrypoints: []string{url},
+		}, nil
 	},
-	Scheduler: dc.DefaultScheduler,
+	Entrypoints: []string{".*"},
+	Scheduler:   dc.DefaultScheduler,
 	Routes: map[string]dc.Handler{
 		`(.*)`: jsonFeed,
 	},

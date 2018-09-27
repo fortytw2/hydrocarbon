@@ -19,24 +19,33 @@ type Plugin struct {
 	// RateLimit is set per-plugin
 	RateLimit *RateLimit
 
-	// A ConfigValidator is used to validate dynamically loaded configs and
-	// return the title of the config
-	ConfigValidator func(*HandlerOpts) (string, error)
+	// a list of valid Entrypoint patterns for this plugin, can easily just be `.*`
+	// especially if it merits further testing via the ConfigCreator
+	// this gets compiled into regexps at boot
+	Entrypoints []string
+
+	// A ConfigCreator is used to validate submitted entrypoints and convert
+	// them into a fully valid config as well as returning the normalized title
+	ConfigCreator func(url string, ho *HandlerOpts) (string, *Config, error)
+
 	// the Scheduler looks into the past and tells the future
 	Scheduler func(*ScheduleRequest) ([]*ScrapeSchedule, error)
 
+	// map of regexp to Handler
 	Routes map[string]Handler
 }
+
+const (
+	FullScrape  = "full_scrape"
+	DeltaScrape = "delta_scrape"
+)
 
 // Config is a specific configuration of a given plugin
 type Config struct {
 	// friendly identifier for this config
-	Name string
+	Type string
 	// Entrypoints is used to start a scrape
 	Entrypoints []string
-	// DynamicEntry specifies whether this config was created dynamically
-	// or is a preset
-	DynamicEntry bool
 	// Since is used to convey delta information
 	Since time.Time
 	// Countries is a list of countries this scrape can be executed from

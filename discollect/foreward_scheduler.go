@@ -41,3 +41,20 @@ func DefaultScheduler(sr *ScheduleRequest) ([]*ScrapeSchedule, error) {
 	}
 	return ss, nil
 }
+
+// NeverSchedule simple never schedules another scrape
+func NeverSchedule(sr *ScheduleRequest) ([]*ScrapeSchedule, error) {
+	if len(sr.LatestScrapes) == 0 {
+		return nil, errors.New("discollect: cannot schedule a scrape without an initial scrape")
+	}
+
+	base := time.Now()
+	conf := sr.LatestScrapes[0].Config
+
+	return []*ScrapeSchedule{
+		{
+			ScheduledStartAt: base.Add(time.Hour * 24 * 365),
+			Config:           conf,
+		},
+	}, nil
+}

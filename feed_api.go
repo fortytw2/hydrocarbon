@@ -4,10 +4,11 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"sort"
 
 	"github.com/fortytw2/hydrocarbon/discollect"
 )
+
+const maxFailedResolutions = 8
 
 // A FeedStore is an interface used to seperate the FeedAPI from knowledge of the
 // actual underlying database
@@ -50,7 +51,6 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 
 	var feed struct {
 		FolderID string `json:"folder_id,omitempty"`
-		Plugin   string `json:"plugin"`
 		URL      string `json:"url"`
 	}
 
@@ -59,47 +59,49 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	if feed.URL == "" || feed.Plugin == "" {
+	if feed.URL == "" {
 		return errors.New("one of url or plugin is empty")
 	}
 
-	// check if the plugin exists
-	dbFeed, ok, err := fa.s.CheckIfFeedExists(r.Context(), key, feed.FolderID, feed.Plugin, feed.URL)
-	if err != nil {
-		return err
-	}
+	var blacklist []string
+	var feedTitle string
+	var id string
 
-	if ok {
-		return writeSuccess(w, map[string]string{
-			"id":    dbFeed.ID,
-			"title": dbFeed.Title,
-		})
-	}
+	for {
+		plugin, handlerOpts, err := fa.dc.PluginForEntrypoint(feed.URL, blacklist)
+		if err != nil {
+			return err
+		}
 
-	plugin, err := fa.dc.GetPlugin(feed.Plugin)
-	if err != nil {
-		return err
-	}
+		// check if the plugin exists
+		dbFeed, ok, err := fa.s.CheckIfFeedExists(r.Context(), key, feed.FolderID, plugin.Name, feed.URL)
+		if err != nil {
+			return err
+		}
 
-	exConfig := &discollect.Config{
-		Name:         "full",
-		Entrypoints:  []string{feed.URL},
-		DynamicEntry: true,
-	}
+		if ok {
+			return writeSuccess(w, map[string]string{
+				"id":    dbFeed.ID,
+				"title": dbFeed.Title,
+			})
+		}
 
-	feedTitle, err := plugin.ConfigValidator(&discollect.HandlerOpts{
-		Client: http.DefaultClient,
-		Config: exConfig,
-	})
-	if err != nil {
-		return err
-	}
+		var initialConfig *discollect.Config
+		feedTitle, initialConfig, err = plugin.ConfigCreator(feed.URL, handlerOpts)
+		if err != nil {
+			if len(blacklist) == maxFailedResolutions {
+				return err
+			}
+			blacklist = append(blacklist, plugin.Name)
+			continue
+		}
 
-	// TODO(fortytw2): implement plugin validation against the hydrocollect list
-	// TODO(fortytw2): set title appropriately
-	id, err := fa.s.AddFeed(r.Context(), key, feed.FolderID, feedTitle, feed.Plugin, feed.URL, exConfig)
-	if err != nil {
-		return err
+		id, err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feedTitle, plugin.Name, feed.URL, initialConfig)
+		if err != nil {
+			return err
+		}
+
+		break
 	}
 
 	return writeSuccess(w, map[string]string{
@@ -219,19 +221,4 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return writeSuccess(w, feed)
-}
-
-// ListPlugins lists all available plugins
-func (fa *FeedAPI) ListPlugins(w http.ResponseWriter, r *http.Request) error {
-	_, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
-	if err != nil {
-		return err
-	}
-
-	p := fa.dc.ListPlugins()
-	sort.Strings(p)
-
-	return writeSuccess(w, map[string][]string{
-		"plugins": p,
-	})
 }

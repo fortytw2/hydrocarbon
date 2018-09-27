@@ -135,9 +135,6 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.
 		"/v1/post/list": fa.GetFeed,
 
 		"/v1/post/read": rs.MarkRead,
-
-		// list all plugins in hc
-		"/v1/plugin/list": fa.ListPlugins,
 	}
 
 	for route, handler := range routes {

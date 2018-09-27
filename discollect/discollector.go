@@ -106,6 +106,24 @@ func (d *Discollector) GetPlugin(name string) (*Plugin, error) {
 	return d.r.Get(name)
 }
 
+// GetPlugin returns the first plugin that matches the given entrypoint
+func (d *Discollector) PluginForEntrypoint(url string, blacklist []string) (*Plugin, *HandlerOpts, error) {
+	plugin, routeParams, err := d.r.PluginFor(url, blacklist)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	c, err := d.ro.Get(nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return plugin, &HandlerOpts{
+		Client:      c,
+		RouteParams: routeParams,
+	}, nil
+}
+
 // Shutdown spins down all the workers after allowing them to finish
 // their current tasks
 func (d *Discollector) Shutdown(ctx context.Context) {
@@ -202,9 +220,4 @@ func (d *Discollector) ListPlugins() []string {
 	}
 
 	return out
-}
-
-// StartScrape launches a new scrape
-func (d *Discollector) StartScrape(ctx context.Context, pluginName string, config *Config) (string, error) {
-	return "", nil
 }
