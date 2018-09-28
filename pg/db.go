@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/discollect"
@@ -362,12 +363,17 @@ func (db *DB) RemoveFeed(ctx context.Context, sessionKey, folderID, feedID strin
 
 // GetFolders returns all of the folders for a user - if there are none it creates a
 // default folder
-func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon.Folder, error) {
+func (db *DB) GetFoldersWithFeeds(ctx context.Context, sessionKey string) ([]*hydrocarbon.Folder, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fo.name as folder_name, fo.id as folder_id
+	SELECT fo.name as folder_name, fo.id as folder_id, jsonb_agg(
+		json_build_object('id', f.id, 'title', f.title)
+	) as feeds
 	FROM folders fo
+	LEFT JOIN feed_folders ff ON (fo.user_id = ff.user_id AND fo.id = ff.folder_id)
+	LEFT JOIN feeds f ON (ff.feed_id = f.id)
 	WHERE fo.user_id = (SELECT user_id FROM sessions WHERE key = $1 LIMIT 1) 
-	ORDER BY fo.created_at DESC;`, sessionKey)
+	GROUP BY fo.name, fo.id
+	ORDER BY fo.name DESC;`, sessionKey)
 	if err != nil {
 		return nil, err
 	}
@@ -376,8 +382,15 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon
 	folders := make([]*hydrocarbon.Folder, 0)
 	for rows.Next() {
 		var folderName, folderID string
+		var feedJSON []byte
 
-		err = rows.Scan(&folderName, &folderID)
+		err = rows.Scan(&folderName, &folderID, &feedJSON)
+		if err != nil {
+			return nil, err
+		}
+
+		var feeds []*hydrocarbon.Feed
+		err := json.Unmarshal(feedJSON, &feeds)
 		if err != nil {
 			return nil, err
 		}
@@ -385,6 +398,7 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon
 		folders = append(folders, &hydrocarbon.Folder{
 			ID:    folderID,
 			Title: folderName,
+			Feeds: feeds,
 		})
 	}
 
@@ -396,72 +410,16 @@ func (db *DB) GetFolders(ctx context.Context, sessionKey string) ([]*hydrocarbon
 	return folders, nil
 }
 
-func (db *DB) MarkRead(ctx context.Context, sessionKey, postID string) error {
-	_, err := db.sql.ExecContext(ctx, `
-	INSERT INTO read_statuses
-	(user_id, post_id)
-	VALUES 
-	((SELECT user_id FROM sessions WHERE key = $1), $2)
-	ON CONFLICT DO NOTHING`, sessionKey, postID)
-	return err
-}
-
-// GetFeedsForFolder returns a single feed
-func (db *DB) GetFeedsForFolder(ctx context.Context, sessionKey, folderID string, limit, offset int) ([]*hydrocarbon.Feed, error) {
+// GetFeedPosts returns a single feed
+func (db *DB) GetFeedPosts(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fe.id, fe.title, fe.url, fe.plugin
- 	FROM feeds fe
-	RIGHT JOIN feed_folders ff ON 
-		(fe.id = ff.feed_id
-		AND ff.user_id = (SELECT user_id FROM sessions WHERE key = $1) 
-		AND ff.folder_id = $2)
-	LIMIT $3 OFFSET $4;`, sessionKey, folderID, limit, offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var f []*hydrocarbon.Feed
-	for rows.Next() {
-		var feedID, feedTitle, feedURL, feedPlugin sql.NullString
-
-		err = rows.Scan(&feedID, &feedTitle, &feedURL, &feedPlugin)
-		if err != nil {
-			return nil, err
-		}
-
-		if !feedID.Valid {
-			continue
-		}
-
-		f = append(f, &hydrocarbon.Feed{
-			ID:      feedID.String,
-			Title:   feedTitle.String,
-			Plugin:  feedPlugin.String,
-			BaseURL: feedURL.String,
-		})
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return f, nil
-}
-
-// GetFeed returns a single feed
-func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
-	rows, err := db.sql.QueryContext(ctx, `
-	SELECT fe.id, fe.title, jsonb_agg(
-		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'body', po.body, 'original_url', po.url, 'created_at', po.created_at, 'updated_at', po.updated_at, 'posted_at', po.posted_at, 'read', (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1))))
-	ORDER BY po.posted_at DESC) FILTER (WHERE po.id IS NOT NULL)
-	FROM feeds fe
-	LEFT JOIN posts po ON (fe.id = po.feed_id)
-	WHERE fe.id = $2
+	SELECT jsonb_agg(
+		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'original_url', po.url, 'posted_at', po.posted_at, 'read', (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1))))
+	ORDER BY po.posted_at DESC)
+	FROM posts po
+	WHERE po.feed_id = $2
 	AND EXISTS (SELECT 1 FROM sessions WHERE key = $1)
-	GROUP BY fe.id, fe.title
-	LIMIT $3 OFFSET $4;`, sessionKey, feedID, limit, offset)
+	LIMIT $3 OFFSET $4`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -473,26 +431,17 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	}
 
 	for rows.Next() {
-		var feedID, feedTitle string
 		var jsonBody []byte
 
-		err := rows.Scan(&feedID, &feedTitle, &jsonBody)
+		err := rows.Scan(&jsonBody)
 		if err != nil {
 			return nil, err
 		}
-		feed.Title = feedTitle
 
 		if len(jsonBody) > 0 {
 			err = json.Unmarshal(jsonBody, &feed.Posts)
 			if err != nil {
 				return nil, err
-			}
-
-			for _, p := range feed.Posts {
-				p.Body, err = decompressText(p.Body)
-				if err != nil {
-					return nil, err
-				}
 			}
 		}
 	}
@@ -503,6 +452,47 @@ func (db *DB) GetFeed(ctx context.Context, sessionKey, feedID string, limit, off
 	}
 
 	return feed, nil
+}
+func (db *DB) GetPost(ctx context.Context, sessionKey, postID string) (*hydrocarbon.Post, error) {
+	row := db.sql.QueryRowContext(ctx, `
+	SELECT po.id, po.title, po.body, po.author, po.url, po.posted_at, (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1)))
+	FROM posts po WHERE id = $2
+	AND EXISTS (SELECT id FROM sessions WHERE key = $1);`, sessionKey, postID)
+
+	var id uuid.UUID
+	var title, author, url string
+	var postedAt time.Time
+	var read bool
+	var compressedBody string
+	err := row.Scan(&id, &title, &compressedBody, &author, &url, &postedAt, &read)
+	if err != nil {
+		return nil, err
+	}
+
+	body, err := decompressText(compressedBody)
+	if err != nil {
+		return nil, err
+	}
+
+	return &hydrocarbon.Post{
+		ID:          id.String(),
+		PostedAt:    postedAt,
+		Title:       title,
+		Body:        body,
+		Author:      author,
+		OriginalURL: url,
+		Read:        read,
+	}, nil
+}
+
+func (db *DB) MarkRead(ctx context.Context, sessionKey, postID string) error {
+	_, err := db.sql.ExecContext(ctx, `
+	INSERT INTO read_statuses
+	(user_id, post_id)
+	VALUES 
+	((SELECT user_id FROM sessions WHERE key = $1), $2)
+	ON CONFLICT DO NOTHING`, sessionKey, postID)
+	return err
 }
 
 // Write saves off the post to the db

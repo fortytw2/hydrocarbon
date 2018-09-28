@@ -131,15 +131,37 @@ export const createFolder = ({ name, apiKey }) => {
     });
 };
 
-export const listPosts = ({ feedId, apiKey }) => {
-  return fetch("/v1/post/list", {
+export const getFeed = ({ feedId, apiKey }) => {
+  return fetch("/v1/feed/get", {
     method: "POST",
     headers: {
       "x-hydrocarbon-key": apiKey
     },
     body: JSON.stringify({
+      limit: 50,
+      offset: 0,
       feed_id: feedId
     })
+  })
+    .then(response => {
+      if (response.ok) {
+        return response.json();
+      }
+    })
+    .then(json => {
+      if (json.status === "error") {
+        throw json.error;
+      }
+      return json.data;
+    });
+};
+
+export const getPost = ({ postId, apiKey }) => {
+  return fetch(`/v1/post/get?post_id=${postId}`, {
+    method: "GET",
+    headers: {
+      "x-hydrocarbon-key": apiKey
+    }
   })
     .then(response => {
       if (response.ok) {

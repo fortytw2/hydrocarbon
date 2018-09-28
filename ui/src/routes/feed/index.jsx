@@ -33,21 +33,6 @@ export default class Feed extends Component {
   async componentDidMount(props) {
     try {
       let folders = await listFolders({ apiKey: this.props.apiKey });
-
-      // TODO(fortytw2): push this down to the API layer
-      folders = await Promise.all(
-        folders.map(async f => {
-          const feeds = await listFeeds({
-            apiKey: this.props.apiKey,
-            folderId: f.id
-          });
-          return {
-            ...f,
-            feeds
-          };
-        })
-      );
-
       this.setState({ folders: folders });
     } catch (e) {
       console.log(e);

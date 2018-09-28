@@ -95,9 +95,8 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.
 		var buf []byte
 		if r.URL.Path == "/favicon.ico" {
 			w.Header().Set("Content-Type", "image/png")
-			buf = public.MustAsset("ui/dist/media/favicon.ico")
+			buf = public.MustAsset("ui/dist/media/favicon.9a3c5f4f.ico")
 		} else {
-
 			w.Header().Set("Content-Type", "text/html")
 			buf = public.MustAsset("ui/dist/index.html")
 		}
@@ -122,17 +121,16 @@ func NewRouter(ua *UserAPI, fa *FeedAPI, rs *ReadStatusAPI, domain string) http.
 		// feed management
 		"/v1/feed/create": fa.AddFeed,
 		"/v1/feed/delete": fa.RemoveFeed,
-
-		// list all feeds for a folder
-		"/v1/feed/list": fa.GetFeedsForFolder,
+		// list all posts with no body for a feed
+		"/v1/feed/get": fa.GetFeed,
 
 		// folder management
 		"/v1/folder/create": fa.AddFolder,
-		// list all folders
+		// list all folders with the feed titles
 		"/v1/folder/list": fa.GetFolders,
 
-		// list all posts in a feed
-		"/v1/post/list": fa.GetFeed,
+		// get a post
+		"/v1/post/get": fa.GetPost,
 
 		"/v1/post/read": rs.MarkRead,
 	}
@@ -168,7 +166,7 @@ func (fpr *fixedPathRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	h, ok := fpr.paths[r.URL.Path]
 	if ok {
-		if r.Method != http.MethodPost {
+		if r.Method != http.MethodPost && !strings.Contains(r.URL.Path, "get") {
 			w.WriteHeader(http.StatusMethodNotAllowed)
 			return
 		}

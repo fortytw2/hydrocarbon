@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import { bind } from "decko";
-import { markRead, listPosts } from "@/http";
+import { markRead, getFeed, getPost } from "@/http";
 import { Link } from "preact-router";
 import { DateTime } from "luxon";
 
@@ -9,7 +9,10 @@ import style from "./style.css";
 const initialState = {
   loading: true,
   error: null,
-  posts: []
+  posts: [],
+
+  loadingPost: true,
+  postsById: {}
 };
 
 export default class PostList extends Component {
@@ -20,7 +23,11 @@ export default class PostList extends Component {
   }
 
   async componentDidMount() {
-    await this.fetchData();
+    try {
+      await this.fetchData();
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   async componentDidUpdate(prevProps) {
@@ -28,9 +35,7 @@ export default class PostList extends Component {
       this.setState(initialState);
       await this.fetchData();
     } else if (this.props.postId && this.props.postId !== prevProps.postId) {
-      const currentPost = this.state.posts.filter(
-        p => p.id === this.props.postId
-      )[0];
+      const currentPost = await this.fetchPostByPropId();
       if (currentPost.read) {
         return;
       }
@@ -55,21 +60,55 @@ export default class PostList extends Component {
   }
 
   @bind
-  async fetchData(feedId) {
+  async fetchData() {
     if (!this.props.feedId) {
       this.setState({ loading: false });
       return;
+    } else {
+      const feed = await getFeed({
+        apiKey: this.props.apiKey,
+        feedId: this.props.feedId
+      });
+
+      this.setState({ loading: false, posts: feed.posts });
     }
 
-    const feed = await listPosts({
-      apiKey: this.props.apiKey,
-      feedId: this.props.feedId
-    });
-    this.setState({ loading: false, posts: feed.posts });
+    if (!this.props.postId) {
+      this.setState({ loadingPost: false });
+      return;
+    } else {
+      await this.fetchPostByPropId();
+    }
   }
 
   @bind
-  renderPost(folderId, feedId, postId, post) {
+  async fetchPostByPropId() {
+    this.setState({
+      postLoading: true
+    });
+
+    if (this.state.postsById[this.props.postId] === undefined) {
+      const post = await getPost({
+        apiKey: this.props.apiKey,
+        postId: this.props.postId
+      });
+      this.setState({
+        postLoading: false,
+        postsById: { ...this.state.postsById, [post.id]: post }
+      });
+
+      return post;
+    }
+
+    this.setState({
+      postLoading: false
+    });
+
+    return this.state.postsById[this.props.postId];
+  }
+
+  @bind
+  renderPostListElement(folderId, feedId, postId, post) {
     const friendlyTime = DateTime.fromISO(post.posted_at);
     let displayTime = "";
     if (friendlyTime.year > 1000) {
@@ -109,16 +148,13 @@ export default class PostList extends Component {
   }
 
   @bind
-  getActivePost(postId, posts) {
-    let post;
-    if (!postId) {
-      if (posts.length > 0) {
-        post = posts[0];
-      } else {
-        return <h1> no post selected </h1>;
-      }
-    } else {
-      post = posts.filter(p => p.id === postId)[0];
+  getActivePost(postLoading, post) {
+    if (postLoading) {
+      return <h2> Loading... </h2>;
+    }
+
+    if (post === undefined) {
+      return <h3>No Post Selected</h3>;
     }
 
     const friendlyTime = DateTime.fromISO(post.posted_at);
@@ -136,7 +172,10 @@ export default class PostList extends Component {
     );
   }
 
-  render({ folderId, feedId, postId }, { posts, loading, error }) {
+  render(
+    { folderId, feedId, postId },
+    { posts, postsById, postLoading, loading, error }
+  ) {
     if (loading) {
       return (
         <div class={style.postList}>
@@ -161,10 +200,14 @@ export default class PostList extends Component {
       <div class={style.postView}>
         <div class={style.postList}>
           <ol class={style.postListInside}>
-            {posts.map(p => this.renderPost(folderId, feedId, postId, p))}
+            {posts.map(p =>
+              this.renderPostListElement(folderId, feedId, postId, p)
+            )}
           </ol>
         </div>
-        <div class={style.postContent}>{this.getActivePost(postId, posts)}</div>
+        <div class={style.postContent}>
+          {this.getActivePost(postLoading, postsById[postId])}
+        </div>
       </div>
     );
   }

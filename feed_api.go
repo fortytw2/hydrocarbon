@@ -21,9 +21,10 @@ type FeedStore interface {
 	AddFolder(ctx context.Context, sessionKey, name string) (string, error)
 
 	// GetFolders should not return any Posts in the nested Feeds
-	GetFolders(ctx context.Context, sessionKey string) ([]*Folder, error)
-	GetFeedsForFolder(ctx context.Context, sessionKey string, folderID string, limit, offset int) ([]*Feed, error)
-	GetFeed(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error)
+	GetFoldersWithFeeds(ctx context.Context, sessionKey string) ([]*Folder, error)
+	// Return Post Title, PostedAt, Read, and ID
+	GetFeedPosts(ctx context.Context, sessionKey, feedID string, limit, offset int) (*Feed, error)
+	GetPost(ctx context.Context, sessionKey, postID string) (*Post, error)
 }
 
 // FeedAPI encapsulates everything related to user management
@@ -172,36 +173,12 @@ func (fa *FeedAPI) GetFolders(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	folders, err := fa.s.GetFolders(r.Context(), key)
+	folders, err := fa.s.GetFoldersWithFeeds(r.Context(), key)
 	if err != nil {
 		return err
 	}
 
 	return writeSuccess(w, folders)
-}
-
-// GetFeedsForFolder writes a specific feed
-func (fa *FeedAPI) GetFeedsForFolder(w http.ResponseWriter, r *http.Request) error {
-	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
-	if err != nil {
-		return err
-	}
-
-	var id struct {
-		FolderID string `json:"folder_id"`
-	}
-
-	err = limitDecoder(r, &id)
-	if err != nil {
-		return err
-	}
-
-	feed, err := fa.s.GetFeedsForFolder(r.Context(), key, id.FolderID, 50, 0)
-	if err != nil {
-		return err
-	}
-
-	return writeSuccess(w, feed)
 }
 
 // GetFeed writes a specific feed
@@ -212,6 +189,8 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var id struct {
+		Limit  int    `json:"limit"`
+		Offset int    `json:"offset"`
 		FeedID string `json:"feed_id"`
 	}
 
@@ -220,9 +199,44 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
-	feed, err := fa.s.GetFeed(r.Context(), key, id.FeedID, 50, 0)
+	feed, err := fa.s.GetFeedPosts(r.Context(), key, id.FeedID, id.Limit, id.Offset)
 	if err != nil {
 		return err
+	}
+
+	return writeSuccess(w, feed)
+}
+
+// GetPost writes a single post out
+func (fa *FeedAPI) GetPost(w http.ResponseWriter, r *http.Request) error {
+	key, err := fa.ks.Verify(r.Header.Get("X-Hydrocarbon-Key"))
+	if err != nil {
+		return err
+	}
+	var id struct {
+		PostID string `json:"post_id"`
+	}
+
+	if r.Method == http.MethodGet {
+		id.PostID = r.URL.Query().Get("post_id")
+	} else if r.Method == http.MethodPost {
+		err = limitDecoder(r, &id)
+		if err != nil {
+			return err
+		}
+	}
+
+	if id.PostID == "" {
+		return errors.New("no post ID submitted")
+	}
+
+	feed, err := fa.s.GetPost(r.Context(), key, id.PostID)
+	if err != nil {
+		return err
+	}
+
+	if r.Method == http.MethodGet {
+		w.Header().Set("Cache-Control", "public, max-age=86400")
 	}
 
 	return writeSuccess(w, feed)
