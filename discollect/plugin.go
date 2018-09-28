@@ -97,6 +97,10 @@ func ErrorResponse(err error) *HandlerResponse {
 	}
 }
 
+func NilResponse() *HandlerResponse {
+	return &HandlerResponse{}
+}
+
 // Response is shorthand for a successful response
 func Response(facts []interface{}, tasks ...*Task) *HandlerResponse {
 	return &HandlerResponse{

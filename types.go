@@ -35,7 +35,9 @@ type Post struct {
 	PostedAt  time.Time `json:"posted_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 
+	// TODO(fortytw2): normalize this
 	OriginalURL string `json:"original_url"`
+	URL         string `json:"url"`
 
 	Title  string `json:"title"`
 	Author string `json:"author"`

@@ -3,6 +3,7 @@ package hydrocarbon
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/fortytw2/hydrocarbon/discollect"
@@ -96,7 +97,11 @@ func (fa *FeedAPI) AddFeed(w http.ResponseWriter, r *http.Request) error {
 			continue
 		}
 
-		id, err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feedTitle, plugin.Name, feed.URL, initialConfig)
+		if len(initialConfig.Entrypoints) == 0 {
+			return fmt.Errorf("%s: did not return an entrypoint for %s", plugin.Name, feed.URL)
+		}
+
+		id, err = fa.s.AddFeed(r.Context(), key, feed.FolderID, feedTitle, plugin.Name, initialConfig.Entrypoints[0], initialConfig)
 		if err != nil {
 			return err
 		}

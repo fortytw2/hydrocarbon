@@ -697,8 +697,8 @@ func (db *DB) FindMissingSchedules(ctx context.Context, limit int) ([]*discollec
 		row_to_json(ps.*) ORDER BY ps.created_at DESC
 	) FILTER (WHERE ps.id IS NOT NULL) as posts
 	FROM feeds f
-	JOIN LATERAL (SELECT * FROM scrapes WHERE feed_id = f.id ORDER BY scrapes.scheduled_start_at DESC LIMIT 5) sc ON true
-	LEFT JOIN LATERAL (SELECT * FROM posts WHERE feed_id = f.id ORDER BY posts.created_at DESC LIMIT 5) ps ON true
+	JOIN LATERAL (SELECT * FROM scrapes WHERE feed_id = f.id ORDER BY scrapes.scheduled_start_at DESC LIMIT 10) sc ON true
+	LEFT JOIN LATERAL (SELECT * FROM posts WHERE feed_id = f.id ORDER BY posts.posted_at DESC LIMIT 10) ps ON true
 	WHERE NOT EXISTS (
 		SELECT 1 FROM scrapes 
 		WHERE feed_id = f.id
@@ -732,8 +732,8 @@ func (db *DB) FindMissingSchedules(ctx context.Context, limit int) ([]*discollec
 		}
 
 		var latestPosts []*hydrocarbon.Post
-		if len(scrapesJSON) > 0 {
-			err = json.Unmarshal(scrapesJSON, &latestPosts)
+		if len(postsJSON) > 0 {
+			err = json.Unmarshal(postsJSON, &latestPosts)
 			if err != nil {
 				return nil, err
 			}

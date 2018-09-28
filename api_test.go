@@ -8,9 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fortytw2/hydrocarbon/discollect"
-
 	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/fortytw2/hydrocarbon/pg"
 )
 

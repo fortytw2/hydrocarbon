@@ -30,12 +30,30 @@ var Plugin = &dc.Plugin{
 			return nil, errors.New("discollect: cannot schedule a scrape without an initial scrape")
 		}
 
-		base := time.Now()
-		conf := sr.LatestScrapes[0].Config
+		lastPosts, ok := sr.LatestDatums.([]*hydrocarbon.Post)
+		if !ok {
+			return nil, errors.New("fictionpress: did not get a hydrocarbon post back")
+		}
 
+		base := time.Now()
+		// run another full scrape later on...
+		if len(lastPosts) == 0 {
+			conf := sr.LatestScrapes[0].Config
+
+			return []*dc.ScrapeSchedule{{
+				ScheduledStartAt: base.Add(time.Hour * 72),
+				Config:           conf,
+			}}, nil
+		}
+
+		fmt.Printf("%+v: \n %+v \n", lastPosts, lastPosts[0])
+		// DeltaScrape in one hour
 		return []*dc.ScrapeSchedule{{
-			ScheduledStartAt: base.Add(time.Hour * 72),
-			Config:           conf,
+			ScheduledStartAt: base.Add(time.Hour),
+			Config: &dc.Config{
+				Type:        dc.DeltaScrape,
+				Entrypoints: []string{lastPosts[0].URL},
+			},
 		}}, nil
 	},
 	Routes: map[string]dc.Handler{
@@ -94,6 +112,12 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 		return dc.ErrorResponse(err)
 	}
 
+	if ho.Config.Type == dc.DeltaScrape {
+		if strings.Contains(strings.ToLower(doc.Text()), "not found") {
+			return dc.NilResponse()
+		}
+	}
+
 	body, err := doc.Find(`#storytext`).Html()
 	if err != nil {
 		return dc.ErrorResponse(err)
@@ -139,10 +163,18 @@ func storyPage(ctx context.Context, ho *dc.HandlerOpts, t *dc.Task) *dc.HandlerR
 		})
 	}
 
-	return &dc.HandlerResponse{
-		Facts: []interface{}{
-			c,
-		},
-		Tasks: tasks,
+	// Delta Handling
+	if ho.Config.Type == dc.DeltaScrape {
+		currentChapter, err := strconv.Atoi(ho.RouteParams[3])
+		if err != nil {
+			return dc.ErrorResponse(err)
+		}
+
+		tasks = append(tasks, &dc.Task{
+			URL:     fmt.Sprintf("https://%s/s/%s/%d", parsedURL.Host, ho.RouteParams[2], currentChapter+1),
+			Timeout: 45 * time.Second,
+		})
 	}
+
+	return dc.Response([]interface{}{c}, tasks...)
 }
