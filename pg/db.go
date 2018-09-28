@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fortytw2/hydrocarbon"
-	"github.com/fortytw2/hydrocarbon/discollect"
 	"github.com/google/uuid"
 	"github.com/lib/pq"
+
+	"github.com/fortytw2/hydrocarbon"
+	"github.com/fortytw2/hydrocarbon/discollect"
 )
 
 // A DB is responsible for all interactions with postgres
@@ -413,12 +414,11 @@ func (db *DB) GetFoldersWithFeeds(ctx context.Context, sessionKey string) ([]*hy
 // GetFeedPosts returns a single feed
 func (db *DB) GetFeedPosts(ctx context.Context, sessionKey, feedID string, limit, offset int) (*hydrocarbon.Feed, error) {
 	rows, err := db.sql.QueryContext(ctx, `
-	SELECT jsonb_agg(
-		json_build_object('id', po.id, 'title', po.title, 'author', po.author, 'original_url', po.url, 'posted_at', po.posted_at, 'read', (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1))))
-	ORDER BY po.posted_at DESC)
+	SELECT po.id, po.title, po.author, po.url, po.posted_at, (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1)))
 	FROM posts po
 	WHERE po.feed_id = $2
 	AND EXISTS (SELECT 1 FROM sessions WHERE key = $1)
+	ORDER BY po.posted_at DESC
 	LIMIT $3 OFFSET $4`, sessionKey, feedID, limit, offset)
 	if err != nil {
 		return nil, err
@@ -431,19 +431,23 @@ func (db *DB) GetFeedPosts(ctx context.Context, sessionKey, feedID string, limit
 	}
 
 	for rows.Next() {
-		var jsonBody []byte
+		var id, title, author, url string
+		var postedAt time.Time
+		var read bool
 
-		err := rows.Scan(&jsonBody)
+		err := rows.Scan(&id, &title, &author, &url, &postedAt, &read)
 		if err != nil {
 			return nil, err
 		}
 
-		if len(jsonBody) > 0 {
-			err = json.Unmarshal(jsonBody, &feed.Posts)
-			if err != nil {
-				return nil, err
-			}
-		}
+		feed.Posts = append(feed.Posts, &hydrocarbon.Post{
+			ID:          id,
+			Title:       title,
+			Author:      author,
+			OriginalURL: url,
+			PostedAt:    postedAt,
+			Read:        read,
+		})
 	}
 
 	err = rows.Err()
