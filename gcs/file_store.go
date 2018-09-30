@@ -64,6 +64,8 @@ func (fs *FileStore) Put(fileName string, contents []byte) (string, error) {
 
 	obj := fs.client.Bucket(fs.imageBucketName).Object(fName)
 	wc := obj.NewWriter(ctx)
+	// GCS sets ETag properly, but this is even better
+	wc.CacheControl = "public, max-age=86400"
 	written, err := wc.Write(contents)
 	if err != nil {
 		return "", err
