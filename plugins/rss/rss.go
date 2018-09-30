@@ -86,11 +86,6 @@ func getFeed(ctx context.Context, c *http.Client, url string) (*gofeed.Feed, err
 	}
 	defer httpx.DrainAndClose(resp.Body)
 
-	ct := resp.Header.Get("Content-Type")
-	if !(strings.Contains(ct, "application/rss+xml") || strings.Contains(ct, "text/xml")) || strings.Contains(ct, "application/xml") {
-		return nil, fmt.Errorf("url has content type: %s - are you sure you have the correct URL", ct)
-	}
-
 	f, err := gofeed.NewParser().Parse(resp.Body)
 	if err != nil {
 		return nil, err
