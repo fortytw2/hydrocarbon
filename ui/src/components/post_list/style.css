@@ -23,6 +23,7 @@
 }
 
 .postListInside {
+  margin-top: 0px;
   list-style-type: none;
   padding: 0px;
 }
@@ -32,6 +33,27 @@
 }
 
 .postListInside > a:visited {
+  color: #212121;
+}
+
+.paginationContainer {
+  background-color: #e6e6e6;
+  border-bottom: 1px solid #212121;
+  padding: 0px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.paginationContainer > a {
+  color: #212121;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  padding: 8px;
+}
+
+.paginationContainer > a:visited {
   color: #212121;
 }
 

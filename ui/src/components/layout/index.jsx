@@ -73,7 +73,10 @@ export default class Layout extends Component {
         <Header email={email} logoutCallback={this.logout} />
         <Router>
           <Home path="/" />
-          <Feed apiKey={apiKey} path="/feed/:folderId?/:feedId?/:postId?" />
+          <Feed
+            apiKey={apiKey}
+            path="/feed/:folderId?/:feedId?/:page?/:postId?"
+          />
           <Settings path="/settings" />
           <Login path="/login" />
           <Callback path="/callback" loginCallback={this.login} />

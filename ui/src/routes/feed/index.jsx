@@ -86,7 +86,7 @@ export default class Feed extends Component {
   }
 
   render(
-    { apiKey, folderId, feedId, postId },
+    { apiKey, folderId, feedId, postId, page },
     { newFeedModal, newFeedModalFolderId, newFolderModal, folders }
   ) {
     return (
@@ -123,6 +123,7 @@ export default class Feed extends Component {
           folderId={folderId}
           feedId={feedId}
           postId={postId}
+          page={page}
         />
       </div>
     );

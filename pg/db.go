@@ -457,6 +457,7 @@ func (db *DB) GetFeedPosts(ctx context.Context, sessionKey, feedID string, limit
 
 	return feed, nil
 }
+
 func (db *DB) GetPost(ctx context.Context, sessionKey, postID string) (*hydrocarbon.Post, error) {
 	row := db.sql.QueryRowContext(ctx, `
 	SELECT po.id, po.title, po.body, po.author, po.url, po.posted_at, (EXISTS(SELECT 1 FROM read_statuses WHERE post_id = po.id AND user_id = (SELECT user_id FROM sessions WHERE key = $1)))

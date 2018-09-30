@@ -131,18 +131,24 @@ export const createFolder = ({ name, apiKey }) => {
     });
 };
 
-export const getFeed = ({ feedId, apiKey }) => {
-  return fetch("/v1/feed/get", {
-    method: "POST",
-    headers: {
-      "x-hydrocarbon-key": apiKey
-    },
-    body: JSON.stringify({
-      limit: 50,
-      offset: 0,
-      feed_id: feedId
-    })
-  })
+const paginationLimit = 50;
+
+export const getFeed = ({ page, feedId, apiKey }) => {
+  if (page == null) {
+    page = 0;
+  }
+
+  const offset = page * paginationLimit;
+
+  return fetch(
+    `/v1/feed/get?feed_id=${feedId}&limit=${paginationLimit}&offset=${offset}`,
+    {
+      method: "GET",
+      headers: {
+        "x-hydrocarbon-key": apiKey
+      }
+    }
+  )
     .then(response => {
       if (response.ok) {
         return response.json();

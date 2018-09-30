@@ -31,7 +31,10 @@ export default class PostList extends Component {
   }
 
   async componentDidUpdate(prevProps) {
-    if (this.props.feedId !== prevProps.feedId) {
+    if (
+      this.props.feedId !== prevProps.feedId ||
+      this.props.page !== prevProps.page
+    ) {
       this.setState(initialState);
       await this.fetchData();
     } else if (this.props.postId && this.props.postId !== prevProps.postId) {
@@ -66,6 +69,7 @@ export default class PostList extends Component {
       return;
     } else {
       const feed = await getFeed({
+        page: this.props.page,
         apiKey: this.props.apiKey,
         feedId: this.props.feedId
       });
@@ -108,7 +112,7 @@ export default class PostList extends Component {
   }
 
   @bind
-  renderPostListElement(folderId, feedId, postId, post) {
+  renderPostListElement(folderId, feedId, postId, page, post) {
     const friendlyTime = DateTime.fromISO(post.posted_at);
     let displayTime = "";
     if (friendlyTime.year > 1000) {
@@ -128,7 +132,7 @@ export default class PostList extends Component {
       <Link
         tabIndex="0"
         activeClassName={style.activeLink}
-        href={`/feed/${folderId}/${feedId}/${post.id}`}
+        href={`/feed/${folderId}/${feedId}/${page}/${post.id}`}
       >
         <li class={postStyle}>
           <span class={style.postTitle}>
@@ -173,7 +177,7 @@ export default class PostList extends Component {
   }
 
   render(
-    { folderId, feedId, postId },
+    { folderId, feedId, postId, page = 0 },
     { posts, postsById, postLoading, loading, error }
   ) {
     if (loading) {
@@ -196,12 +200,22 @@ export default class PostList extends Component {
       );
     }
 
+    const numPage = parseInt(page, 10);
+
     return (
       <div class={style.postView}>
         <div class={style.postList}>
           <ol class={style.postListInside}>
+            <li class={style.paginationContainer}>
+              <Link href={`/feed/${folderId}/${feedId}/${numPage - 1}`}>
+                Next
+              </Link>
+              <Link href={`/feed/${folderId}/${feedId}/${numPage + 1}`}>
+                Previous
+              </Link>
+            </li>
             {posts.map(p =>
-              this.renderPostListElement(folderId, feedId, postId, p)
+              this.renderPostListElement(folderId, feedId, postId, page, p)
             )}
           </ol>
         </div>

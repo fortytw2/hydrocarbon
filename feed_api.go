@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/fortytw2/hydrocarbon/discollect"
 )
@@ -194,14 +195,48 @@ func (fa *FeedAPI) GetFeed(w http.ResponseWriter, r *http.Request) error {
 		FeedID string `json:"feed_id"`
 	}
 
-	err = limitDecoder(r, &id)
-	if err != nil {
-		return err
+	if r.Method == http.MethodGet {
+		lim, err := strconv.Atoi(r.URL.Query().Get("limit"))
+		if err != nil {
+			id.Limit = 50
+		} else {
+			id.Limit = lim
+		}
+
+		off, err := strconv.Atoi(r.URL.Query().Get("offset"))
+		if err != nil {
+			id.Offset = 0
+		} else {
+			id.Offset = off
+		}
+
+		id.FeedID = r.URL.Query().Get("feed_id")
+	} else if r.Method == http.MethodPost {
+		err = limitDecoder(r, &id)
+		if err != nil {
+			return err
+		}
+	}
+
+	if id.Limit == 0 {
+		id.Limit = 50
+	}
+
+	if id.Limit < 10 {
+		id.Limit = 10
+	}
+
+	if id.Offset < 0 {
+		id.Offset = 0
 	}
 
 	feed, err := fa.s.GetFeedPosts(r.Context(), key, id.FeedID, id.Limit, id.Offset)
 	if err != nil {
 		return err
+	}
+
+	if r.Method == http.MethodGet {
+		w.Header().Set("Cache-Control", "public, max-age=600")
 	}
 
 	return writeSuccess(w, feed)
