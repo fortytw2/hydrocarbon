@@ -16,8 +16,7 @@ import (
 
 var cases = []struct {
 	Name    string
-	Execute func(*chromedp.Chrome, addr string) error
-	Verify  func(*chromedp.Chrome, addr string, db *pg.DB, mm *hydrocarbon.MockMailer) error
+	Run  func(*chromedp.Chrome, addr string, db *pg.DB, mm *hydrocarbon.MockMailer) error
 }{
 	{
 		// TODO: test cases go here
@@ -25,7 +24,6 @@ var cases = []struct {
 }
 
 func TestEndToEnd(t *testing.T) {
-
 	instances := 1
 	if val, ok := os.LookupEnv("HYDROCARBON_E2E_PARALLELISM"); ok {
 		instances, err = strconv.Atoi(val)
@@ -39,24 +37,18 @@ func TestEndToEnd(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
+			// TODO(fortytw2): does this work right?
 			t.Parallel()
 
+			// this will block if there are no free instances
 			s, release := pool.getServer()
 			defer release()
 
 			chrome, chromeRelease := chromePool.getServer()
 			defer chromeRelease()
 
-			if c.Execute != nil {
-				err := c.Execute(chrome, s.addr)
-				if err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			if c.Verify != nil {
-
-				err := c.Verify(chrome, s.addr, s.db, s.mm)
+			if c.Run != nil {
+				err := c.Run(chrome, s.addr, s.db, s.mm)
 				if err != nil {
 					t.Fatal(err)
 				}
