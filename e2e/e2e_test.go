@@ -3,33 +3,36 @@
 package e2e
 
 import (
-	"fmt"
-	"net/http"
 	"os"
+	"runtime"
 	"strconv"
-	"sync"
 	"testing"
 
 	"github.com/fortytw2/hydrocarbon"
 	"github.com/fortytw2/hydrocarbon/pg"
 )
 
-var cases = []struct {
-	Name    string
-	Run  func(*chromedp.Chrome, addr string, db *pg.DB, mm *hydrocarbon.MockMailer) error
-}{
+type E2ETestCase struct {
+	Name string
+	Run  func(browser *chromedp.Chrome, addr string, db *pg.DB, mm *hydrocarbon.MockMailer) error
+}
+
+var cases = []E2ETestCase{
 	{
 		// TODO: test cases go here
 	},
 }
 
 func TestEndToEnd(t *testing.T) {
-	instances := 1
-	if val, ok := os.LookupEnv("HYDROCARBON_E2E_PARALLELISM"); ok {
+	var instances int
+	if val, ok := os.LookupEnv("E2E_PARALLELISM"); ok {
 		instances, err = strconv.Atoi(val)
 		if err != nil {
 			t.Fatal(err)
 		}
+	} else {
+		// this should be a sensible default
+		instances = runtime.NumCPU() / 2
 	}
 
 	pool := newTestServerPool(instances)
@@ -37,14 +40,14 @@ func TestEndToEnd(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			// TODO(fortytw2): does this work right?
+			// TODO(fortytw2): does this work right with subtests
 			t.Parallel()
 
 			// this will block if there are no free instances
 			s, release := pool.getServer()
 			defer release()
 
-			chrome, chromeRelease := chromePool.getServer()
+			chrome, chromeRelease := chromePool.GetInstance()
 			defer chromeRelease()
 
 			if c.Run != nil {
